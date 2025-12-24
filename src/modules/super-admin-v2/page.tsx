@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { Settings2, FileText, Eye, EyeOff, GripVertical } from "lucide-react";
 import {
   appRoleSchema,
   superAdminAssignRoleSchema,
@@ -29,15 +31,19 @@ import {
 import { WorkspaceSettings } from "./components/WorkspaceSettings";
 import { RoleManagementPolicies } from "./components/RoleManagementPolicies";
 import { UserRoleCard } from "./components/UserRoleCard";
+import { AppointmentFormConfigurator } from "./components/AppointmentFormConfigurator";
 import { useSuperAdmin } from "./hooks/useSuperAdmin";
+import { useAppointmentFormConfig } from "./hooks/useAppointmentFormConfig";
 import type { AppRole, SuperAdminAssignRoleInput, SuperAdminUpdateSettingsInput } from "./types";
 
 const SuperAdminV2MainPage = () => {
   const { toast } = useToast();
   const { users, settings, updateSettings, assignRole, isLoading } = useSuperAdmin();
+  const { config: formConfig } = useAppointmentFormConfig();
 
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [isRolesDialogOpen, setIsRolesDialogOpen] = useState(false);
+  const [isFormConfigOpen, setIsFormConfigOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const selectedUser = useMemo(
@@ -145,6 +151,53 @@ const SuperAdminV2MainPage = () => {
         />
       </section>
 
+      {/* Seção de configuração do formulário de agendamento */}
+      <section>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Formulário de Agendamento
+                </CardTitle>
+                <CardDescription>
+                  Configure os campos visíveis, ordem e obrigatoriedade do formulário de novo agendamento.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setIsFormConfigOpen(true)}>
+                <Settings2 className="mr-2 h-4 w-4" />
+                Configurar Campos
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {formConfig.fields
+                .filter((f) => f.visible)
+                .sort((a, b) => a.order - b.order)
+                .map((field) => (
+                  <Badge
+                    key={field.id}
+                    variant={field.required ? "default" : "secondary"}
+                    className="flex items-center gap-1"
+                  >
+                    <GripVertical className="h-3 w-3" />
+                    {field.label}
+                    {field.required && <span className="text-[10px]">*</span>}
+                  </Badge>
+                ))}
+              {formConfig.fields.filter((f) => !f.visible).length > 0 && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <EyeOff className="h-3 w-3" />
+                  {formConfig.fields.filter((f) => !f.visible).length} ocultos
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-3">
         {users.length === 0 ? (
           <p className="text-sm text-muted-foreground">
@@ -166,6 +219,12 @@ const SuperAdminV2MainPage = () => {
           ))
         )}
       </section>
+
+      {/* Modal de configuração do formulário */}
+      <AppointmentFormConfigurator
+        open={isFormConfigOpen}
+        onOpenChange={setIsFormConfigOpen}
+      />
 
       {/* Dialogo de configurações globais */}
       <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
