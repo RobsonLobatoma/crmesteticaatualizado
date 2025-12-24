@@ -7,6 +7,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -16,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, ToggleLeft, ToggleRight, Loader2, Users, Briefcase, DoorOpen, Wrench } from "lucide-react";
+import { Plus, Pencil, ToggleLeft, ToggleRight, Loader2, Users, Briefcase, DoorOpen, Wrench, Trash2 } from "lucide-react";
 import {
   useProfessionalsAdmin,
   useServicesAdmin,
@@ -59,6 +69,33 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
   const [serviceModal, setServiceModal] = useState<{ open: boolean; item: Service | null }>({ open: false, item: null });
   const [roomModal, setRoomModal] = useState<{ open: boolean; item: Room | null }>({ open: false, item: null });
   const [equipmentModal, setEquipmentModal] = useState<{ open: boolean; item: Equipment | null }>({ open: false, item: null });
+
+  // Delete confirmation states
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; type: string; id: string; name: string }>({ open: false, type: "", id: "", name: "" });
+
+  const handleDelete = async () => {
+    const { type, id } = deleteConfirm;
+    let success = false;
+    
+    switch (type) {
+      case "professional":
+        success = await professionalsHook.deleteProfessional(id);
+        break;
+      case "service":
+        success = await servicesHook.deleteService(id);
+        break;
+      case "room":
+        success = await roomsHook.deleteRoom(id);
+        break;
+      case "equipment":
+        success = await equipmentsHook.deleteEquipment(id);
+        break;
+    }
+    
+    if (success) {
+      setDeleteConfirm({ open: false, type: "", id: "", name: "" });
+    }
+  };
 
   const handleSaveProfessional = async (data: Partial<Professional>) => {
     if (professionalModal.item) {
@@ -186,6 +223,14 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
                             >
                               {p.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                             </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteConfirm({ open: true, type: "professional", id: p.id, name: p.name })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))
@@ -252,6 +297,14 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
                             >
                               {s.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                             </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteConfirm({ open: true, type: "service", id: s.id, name: s.name })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))
@@ -316,6 +369,14 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
                             >
                               {r.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                             </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteConfirm({ open: true, type: "room", id: r.id, name: r.name })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))
@@ -378,6 +439,14 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
                             >
                               {e.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                             </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteConfirm({ open: true, type: "equipment", id: e.id, name: e.name })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))
@@ -423,6 +492,31 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
           />
         </>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirm.open} onOpenChange={(open) => setDeleteConfirm({ ...deleteConfirm, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir "{deleteConfirm.name}"? Esta ação não pode ser desfeita.
+              {deleteConfirm.type === "professional" && " Se houver agendamentos vinculados, a exclusão falhará."}
+              {deleteConfirm.type === "service" && " Se houver agendamentos vinculados, a exclusão falhará."}
+              {deleteConfirm.type === "room" && " Se houver agendamentos vinculados, a exclusão falhará."}
+              {deleteConfirm.type === "equipment" && " Se houver agendamentos vinculados, a exclusão falhará."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

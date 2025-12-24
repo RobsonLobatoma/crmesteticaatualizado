@@ -89,7 +89,18 @@ export function useProfessionalsAdmin() {
     return updateProfessional(id, { is_active: isActive });
   };
 
-  return { professionals, isLoading, fetchProfessionals, createProfessional, updateProfessional, toggleActive };
+  const deleteProfessional = async (id: string) => {
+    const { error } = await supabase.from("professionals").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro", description: "Erro ao excluir profissional. Pode estar vinculado a agendamentos.", variant: "destructive" });
+      return false;
+    }
+    toast({ title: "Sucesso", description: "Profissional excluído com sucesso" });
+    await fetchProfessionals();
+    return true;
+  };
+
+  return { professionals, isLoading, fetchProfessionals, createProfessional, updateProfessional, toggleActive, deleteProfessional };
 }
 
 export function useServicesAdmin() {
@@ -142,7 +153,18 @@ export function useServicesAdmin() {
     return updateService(id, { is_active: isActive });
   };
 
-  return { services, isLoading, fetchServices, createService, updateService, toggleActive };
+  const deleteService = async (id: string) => {
+    const { error } = await supabase.from("services").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro", description: "Erro ao excluir serviço. Pode estar vinculado a agendamentos.", variant: "destructive" });
+      return false;
+    }
+    toast({ title: "Sucesso", description: "Serviço excluído com sucesso" });
+    await fetchServices();
+    return true;
+  };
+
+  return { services, isLoading, fetchServices, createService, updateService, toggleActive, deleteService };
 }
 
 export function useRoomsAdmin() {
@@ -195,7 +217,18 @@ export function useRoomsAdmin() {
     return updateRoom(id, { is_active: isActive });
   };
 
-  return { rooms, isLoading, fetchRooms, createRoom, updateRoom, toggleActive };
+  const deleteRoom = async (id: string) => {
+    const { error } = await supabase.from("rooms").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro", description: "Erro ao excluir sala. Pode estar vinculada a agendamentos.", variant: "destructive" });
+      return false;
+    }
+    toast({ title: "Sucesso", description: "Sala excluída com sucesso" });
+    await fetchRooms();
+    return true;
+  };
+
+  return { rooms, isLoading, fetchRooms, createRoom, updateRoom, toggleActive, deleteRoom };
 }
 
 export function useEquipmentsAdmin() {
@@ -248,5 +281,16 @@ export function useEquipmentsAdmin() {
     return updateEquipment(id, { is_active: isActive });
   };
 
-  return { equipments, isLoading, fetchEquipments, createEquipment, updateEquipment, toggleActive };
+  const deleteEquipment = async (id: string) => {
+    const { error } = await supabase.from("equipments").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Erro", description: "Erro ao excluir equipamento. Pode estar vinculado a agendamentos.", variant: "destructive" });
+      return false;
+    }
+    toast({ title: "Sucesso", description: "Equipamento excluído com sucesso" });
+    await fetchEquipments();
+    return true;
+  };
+
+  return { equipments, isLoading, fetchEquipments, createEquipment, updateEquipment, toggleActive, deleteEquipment };
 }
