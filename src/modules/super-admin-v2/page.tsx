@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Settings2, FileText, EyeOff, GripVertical, Loader2, Users, ShieldCheck } from "lucide-react";
+import { Settings2, FileText, EyeOff, GripVertical, Loader2, Users, ShieldCheck, Database as DatabaseIcon } from "lucide-react";
 import { z } from "zod";
 import { WorkspaceSettings } from "./components/WorkspaceSettings";
 import { RoleManagementPolicies } from "./components/RoleManagementPolicies";
@@ -30,6 +30,7 @@ import { UserRoleCard } from "./components/UserRoleCard";
 import { AppointmentFormConfigurator } from "./components/AppointmentFormConfigurator";
 import { RolePolicyEditor } from "./components/RolePolicyEditor";
 import { RequireSuperAdmin } from "./components/RequireSuperAdmin";
+import { MasterDataManager } from "./components/MasterDataManager";
 import { useSuperAdmin, type UserWithRoles, type SuperAdminSettings } from "./hooks/useSuperAdmin";
 import { useAppointmentFormConfig } from "./hooks/useAppointmentFormConfig";
 import type { Database } from "@/integrations/supabase/types";
@@ -62,6 +63,7 @@ const SuperAdminV2MainPage = () => {
   const [isRolesDialogOpen, setIsRolesDialogOpen] = useState(false);
   const [isFormConfigOpen, setIsFormConfigOpen] = useState(false);
   const [isPolicyEditorOpen, setIsPolicyEditorOpen] = useState(false);
+  const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const selectedUser = useMemo(
@@ -235,6 +237,29 @@ const SuperAdminV2MainPage = () => {
           </Card>
         </section>
 
+        {/* Seção de dados mestres */}
+        <section>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <DatabaseIcon className="h-5 w-5" />
+                    Dados Mestres do Agendamento
+                  </CardTitle>
+                  <CardDescription>
+                    Gerencie profissionais, procedimentos, salas e equipamentos disponíveis.
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsMasterDataOpen(true)}>
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Gerenciar Dados
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+        </section>
+
         {/* Lista de Usuários */}
         <section>
           <Card>
@@ -283,6 +308,12 @@ const SuperAdminV2MainPage = () => {
         <RolePolicyEditor
           open={isPolicyEditorOpen}
           onOpenChange={setIsPolicyEditorOpen}
+        />
+
+        {/* Modal de dados mestres */}
+        <MasterDataManager
+          open={isMasterDataOpen}
+          onOpenChange={setIsMasterDataOpen}
         />
 
         {/* Dialogo de configurações globais */}
