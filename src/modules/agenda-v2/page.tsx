@@ -6,6 +6,7 @@ import { CalendarGrid } from "./components/CalendarGrid";
 import { AppointmentForm } from "./components/AppointmentForm";
 import { AbsenceModal } from "./components/AbsenceModal";
 import { AppointmentDetails } from "./components/AppointmentDetails";
+import { EditAppointmentForm } from "./components/EditAppointmentForm";
 import { useAppointments } from "./hooks/useAppointments";
 import { useProfessionals } from "./hooks/useProfessionals";
 import { CalendarView, AppointmentWithRelations, AppointmentFormData } from "./types";
@@ -17,13 +18,14 @@ const AgendaV2Page = () => {
   const [showAbsenceModal, setShowAbsenceModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithRelations | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [formInitialData, setFormInitialData] = useState<{
     date?: Date;
     time?: string;
     professionalId?: string;
   }>({});
 
-  const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment, isCreating } =
+  const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment, isCreating, isUpdating } =
     useAppointments(currentDate, view);
   const { professionals } = useProfessionals();
 
@@ -56,6 +58,21 @@ const AgendaV2Page = () => {
       send_sms: data.send_sms,
       user_id: "",
     });
+  };
+
+  const handleEditSubmit = (data: Parameters<typeof updateAppointment>[0]) => {
+    updateAppointment(data, {
+      onSuccess: () => {
+        setShowEditForm(false);
+        setShowDetails(false);
+        setSelectedAppointment(null);
+      },
+    });
+  };
+
+  const handleEdit = () => {
+    setShowDetails(false);
+    setShowEditForm(true);
   };
 
   const handleStatusChange = (status: string) => {
@@ -179,12 +196,22 @@ const AgendaV2Page = () => {
         appointment={selectedAppointment}
         open={showDetails}
         onOpenChange={setShowDetails}
-        onEdit={() => toast.info("Edição em desenvolvimento")}
+        onEdit={handleEdit}
         onDelete={handleDelete}
         onStatusChange={handleStatusChange}
         onWhatsApp={handleWhatsApp}
         onCreateSale={handleCreateSale}
       />
+
+      {selectedAppointment && (
+        <EditAppointmentForm
+          appointment={selectedAppointment}
+          open={showEditForm}
+          onOpenChange={setShowEditForm}
+          onSubmit={handleEditSubmit}
+          isSubmitting={isUpdating}
+        />
+      )}
     </div>
   );
 };
