@@ -287,14 +287,14 @@ export function AppointmentForm({
             <div className="space-y-2">
               <Label>Sala</Label>
               <Select
-                value={formData.room_id ?? ""}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, room_id: value || undefined }))}
+                value={formData.room_id ?? "_none"}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, room_id: value === "_none" ? undefined : value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Nenhuma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="_none">Nenhuma</SelectItem>
                   {rooms?.map((room) => (
                     <SelectItem key={room.id} value={room.id}>
                       {room.name}
@@ -308,14 +308,14 @@ export function AppointmentForm({
             <div className="space-y-2">
               <Label>Equipamento</Label>
               <Select
-                value={formData.equipment_id ?? ""}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, equipment_id: value || undefined }))}
+                value={formData.equipment_id ?? "_none"}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, equipment_id: value === "_none" ? undefined : value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Nenhum" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="_none">Nenhum</SelectItem>
                   {equipments?.map((eq) => (
                     <SelectItem key={eq.id} value={eq.id}>
                       {eq.name}
