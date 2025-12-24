@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Settings2, FileText, EyeOff, GripVertical, Loader2, Users, ShieldCheck, Database as DatabaseIcon } from "lucide-react";
+import { Settings2, FileText, Loader2, Users, Database as DatabaseIcon } from "lucide-react";
 import { z } from "zod";
 import { WorkspaceSettings } from "./components/WorkspaceSettings";
 import { RoleManagementPolicies } from "./components/RoleManagementPolicies";
@@ -153,127 +153,92 @@ const SuperAdminV2MainPage = () => {
 
   return (
     <RequireSuperAdmin>
-      <div className="flex flex-1 flex-col gap-6 px-4 py-8 lg:px-8">
-        <header className="flex flex-col gap-2 border-b border-border/60 pb-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Super admin</h1>
-              <p className="text-sm text-muted-foreground">
-                Configure regras globais, papéis de usuários e segurança avançada do seu
-                CRM.
-              </p>
-            </div>
-            <Badge
-              variant="outline"
-              className="rounded-full text-[10px] uppercase tracking-wide"
-            >
-              Área sensível
-            </Badge>
+      <div className="flex flex-1 flex-col gap-3 px-4 py-4 lg:px-6 overflow-hidden">
+        <header className="flex items-center justify-between gap-4 border-b border-border/60 pb-3 shrink-0">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">Super admin</h1>
+            <p className="text-xs text-muted-foreground">
+              Configure regras globais, papéis e segurança do CRM.
+            </p>
           </div>
+          <Badge
+            variant="outline"
+            className="rounded-full text-[10px] uppercase tracking-wide"
+          >
+            Área sensível
+          </Badge>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)]">
-          <WorkspaceSettings
-            settings={workspaceSettingsAdapter}
-            onEdit={handleOpenSettingsDialog}
-            onViewAudit={() =>
-              toast({
-                title: "Auditoria",
-                description:
-                  "O histórico de alterações será implementado em breve.",
-              })
-            }
-          />
+        {/* Grid principal com 2 colunas */}
+        <div className="grid flex-1 gap-3 lg:grid-cols-2 overflow-hidden">
+          {/* Coluna esquerda */}
+          <div className="flex flex-col gap-3 overflow-hidden">
+            <section className="grid gap-3 md:grid-cols-2 shrink-0">
+              <WorkspaceSettings
+                settings={workspaceSettingsAdapter}
+                onEdit={handleOpenSettingsDialog}
+                onViewAudit={() =>
+                  toast({
+                    title: "Auditoria",
+                    description:
+                      "O histórico de alterações será implementado em breve.",
+                  })
+                }
+              />
 
-          <RoleManagementPolicies
-            onEditPolicy={() => setIsPolicyEditorOpen(true)}
-          />
-        </section>
+              <RoleManagementPolicies
+                onEditPolicy={() => setIsPolicyEditorOpen(true)}
+              />
+            </section>
 
-        {/* Seção de configuração do formulário de agendamento */}
-        <section>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Formulário de Agendamento
-                  </CardTitle>
-                  <CardDescription>
-                    Configure os campos visíveis, ordem e obrigatoriedade do formulário de novo agendamento.
-                  </CardDescription>
+            {/* Cards compactos */}
+            <div className="grid gap-3 md:grid-cols-2 shrink-0">
+              <Card className="p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">Formulário de Agendamento</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {formConfig.fields.filter((f) => f.visible).length} campos visíveis
+                      </p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setIsFormConfigOpen(true)}>
+                    <Settings2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-                <Button onClick={() => setIsFormConfigOpen(true)}>
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Configurar Campos
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {formConfig.fields
-                  .filter((f) => f.visible)
-                  .sort((a, b) => a.order - b.order)
-                  .map((field) => (
-                    <Badge
-                      key={field.id}
-                      variant={field.required ? "default" : "secondary"}
-                      className="flex items-center gap-1"
-                    >
-                      <GripVertical className="h-3 w-3" />
-                      {field.label}
-                      {field.required && <span className="text-[10px]">*</span>}
-                    </Badge>
-                  ))}
-                {formConfig.fields.filter((f) => !f.visible).length > 0 && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <EyeOff className="h-3 w-3" />
-                    {formConfig.fields.filter((f) => !f.visible).length} ocultos
-                  </Badge>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+              </Card>
 
-        {/* Seção de dados mestres */}
-        <section>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <DatabaseIcon className="h-5 w-5" />
-                    Dados Mestres do Agendamento
-                  </CardTitle>
-                  <CardDescription>
-                    Gerencie profissionais, procedimentos, salas e equipamentos disponíveis.
-                  </CardDescription>
+              <Card className="p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <DatabaseIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">Dados Mestres</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Profissionais, salas, equipamentos
+                      </p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setIsMasterDataOpen(true)}>
+                    <Settings2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-                <Button onClick={() => setIsMasterDataOpen(true)}>
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Gerenciar Dados
-                </Button>
-              </div>
-            </CardHeader>
-          </Card>
-        </section>
+              </Card>
+            </div>
+          </div>
 
-        {/* Lista de Usuários */}
-        <section>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+          {/* Coluna direita - Usuários */}
+          <Card className="flex flex-col overflow-hidden">
+            <CardHeader className="py-3 px-4 shrink-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Users className="h-4 w-4" />
                 Usuários e Papéis
               </CardTitle>
-              <CardDescription>
-                Gerencie os papéis dos usuários do sistema.
-              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <CardContent className="flex-1 overflow-auto px-4 pb-3">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {users.length === 0 ? (
                   <p className="text-sm text-muted-foreground col-span-full">
                     Nenhum usuário encontrado.
@@ -296,7 +261,9 @@ const SuperAdminV2MainPage = () => {
               </div>
             </CardContent>
           </Card>
-        </section>
+        </div>
+
+        {/* Modais e Dialogs (mantidos abaixo) */}
 
         {/* Modal de configuração do formulário */}
         <AppointmentFormConfigurator
