@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, ToggleLeft, ToggleRight, Loader2, Users, Briefcase, DoorOpen, Wrench, Trash2 } from "lucide-react";
+import { Plus, Pencil, ToggleLeft, ToggleRight, Loader2, Users, Briefcase, DoorOpen, Wrench, Trash2, Clock } from "lucide-react";
 import {
   useProfessionalsAdmin,
   useServicesAdmin,
@@ -41,6 +41,8 @@ import { ProfessionalFormModal } from "./ProfessionalFormModal";
 import { ServiceFormModal } from "./ServiceFormModal";
 import { RoomFormModal } from "./RoomFormModal";
 import { EquipmentFormModal } from "./EquipmentFormModal";
+import { BusinessHoursFormModal } from "./BusinessHoursFormModal";
+import { useBusinessHoursConfig } from "../hooks/useBusinessHoursConfig";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -63,6 +65,10 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
   const servicesHook = useServicesAdmin();
   const roomsHook = useRoomsAdmin();
   const equipmentsHook = useEquipmentsAdmin();
+  const businessHoursHook = useBusinessHoursConfig();
+
+  // Business Hours modal state
+  const [businessHoursModal, setBusinessHoursModal] = useState(false);
 
   // Modal states
   const [professionalModal, setProfessionalModal] = useState<{ open: boolean; item: Professional | null }>({ open: false, item: null });
@@ -139,7 +145,7 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="professionals" className="flex items-center gap-1">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Profissionais</span>
@@ -155,6 +161,10 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
               <TabsTrigger value="equipments" className="flex items-center gap-1">
                 <Wrench className="h-4 w-4" />
                 <span className="hidden sm:inline">Equipamentos</span>
+              </TabsTrigger>
+              <TabsTrigger value="hours" className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span className="hidden sm:inline">Horários</span>
               </TabsTrigger>
             </TabsList>
 
@@ -455,6 +465,61 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
                 </Table>
               )}
             </TabsContent>
+
+            {/* Hours Tab */}
+            <TabsContent value="hours" className="flex-1 overflow-auto">
+              <div className="space-y-6 py-4">
+                {businessHoursHook.isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Horário de Funcionamento</h4>
+                        <p className="text-lg font-semibold">
+                          {businessHoursHook.config.start_hour.toString().padStart(2, "0")}:00 às{" "}
+                          {businessHoursHook.config.end_hour.toString().padStart(2, "0")}:00
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Intervalo entre Horários</h4>
+                        <p className="text-lg font-semibold">{businessHoursHook.config.slot_interval} minutos</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">Dias de Funcionamento</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day, idx) => (
+                          <Badge
+                            key={idx}
+                            variant={businessHoursHook.config.working_days.includes(idx) ? "default" : "secondary"}
+                          >
+                            {day}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {businessHoursHook.config.lunch_break.enabled && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Intervalo de Almoço</h4>
+                        <p className="text-lg font-semibold">
+                          {businessHoursHook.config.lunch_break.start} às {businessHoursHook.config.lunch_break.end}
+                        </p>
+                      </div>
+                    )}
+
+                    <Button onClick={() => setBusinessHoursModal(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar Horários
+                    </Button>
+                  </>
+                )}
+              </div>
+            </TabsContent>
           </Tabs>
         </DialogContent>
       </Dialog>
@@ -492,6 +557,14 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
           />
         </>
       )}
+
+      {/* Business Hours Modal */}
+      <BusinessHoursFormModal
+        open={businessHoursModal}
+        onOpenChange={setBusinessHoursModal}
+        config={businessHoursHook.config}
+        onSave={businessHoursHook.saveConfig}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirm.open} onOpenChange={(open) => setDeleteConfirm({ ...deleteConfirm, open })}>

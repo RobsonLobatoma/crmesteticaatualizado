@@ -5,6 +5,7 @@ import { AppointmentWithRelations, CalendarView, Professional } from "../types";
 import { DraggableAppointment } from "./DraggableAppointment";
 import { DroppableSlot } from "./DroppableSlot";
 import { cn } from "@/lib/utils";
+import { useBusinessHours } from "../hooks/useBusinessHours";
 
 interface CalendarGridProps {
   currentDate: Date;
@@ -15,16 +16,6 @@ interface CalendarGridProps {
   onSlotClick: (date: Date, time: string, professionalId?: string) => void;
 }
 
-const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
-  const hour = Math.floor(i / 2) + 8;
-  const minute = (i % 2) * 30;
-  return {
-    time: `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`,
-    hour,
-    minute,
-  };
-}).filter((slot) => slot.hour >= 8 && slot.hour < 20);
-
 export function CalendarGrid({
   currentDate,
   view,
@@ -33,6 +24,8 @@ export function CalendarGrid({
   onAppointmentClick,
   onSlotClick,
 }: CalendarGridProps) {
+  const { timeSlots: TIME_SLOTS } = useBusinessHours();
+
   const weekDays = useMemo(() => {
     if (view !== "week") return [];
     const start = startOfWeek(currentDate, { weekStartsOn: 0 });
