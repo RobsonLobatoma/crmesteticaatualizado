@@ -11,7 +11,7 @@ import { z } from "zod";
  * SQL sugerido (Postgres / Supabase) – DOCUMENTAÇÃO, não é executado aqui.
  *
  *  -- 1) Enum de papéis da aplicação
- *  create type public.app_role as enum ('admin', 'moderator', 'user');
+ *  create type public.app_role as enum ('super_admin', 'admin', 'moderator', 'user');
  *
  *  -- 2) Tabela de papéis por usuário (N papéis por usuário)
  *  create table public.user_roles (
@@ -54,7 +54,7 @@ import { z } from "zod";
 //  Tipos básicos de domínio
 // ==============================
 
-export const appRoleSchema = z.enum(["admin", "moderator", "user"]);
+export const appRoleSchema = z.enum(["super_admin", "admin", "moderator", "user"]);
 export type AppRole = z.infer<typeof appRoleSchema>;
 
 export interface UserRoleEntity {

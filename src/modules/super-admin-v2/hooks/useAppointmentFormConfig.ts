@@ -40,13 +40,20 @@ export function useAppointmentFormConfig() {
   const saveConfig = async (newConfig: AppointmentFormConfig) => {
     setIsSaving(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Use upsert with onConflict to handle both insert and update
       const { error } = await supabase
         .from("app_settings")
-        .update({
-          value: JSON.parse(JSON.stringify(newConfig)) as Json,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("key", "appointment_form_config");
+        .upsert(
+          {
+            key: "appointment_form_config",
+            value: JSON.parse(JSON.stringify(newConfig)) as Json,
+            updated_at: new Date().toISOString(),
+            updated_by: user?.id || null,
+          },
+          { onConflict: "key" }
+        );
 
       if (error) {
         console.error("Error saving form config:", error);
