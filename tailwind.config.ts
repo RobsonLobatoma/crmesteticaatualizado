@@ -63,6 +63,18 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        soft: "0 18px 45px -26px hsl(var(--primary) / 0.35)",
+        elevated: "0 24px 70px -32px hsl(var(--primary) / 0.45)",
+      },
+      backgroundImage: {
+        "crm-grid":
+          "radial-gradient(circle_at_top,_hsl(var(--primary))/16,_transparent_60%)",
+        "crm-muted":
+          "linear-gradient(135deg,_hsl(var(--gradient-muted-start)),_hsl(var(--gradient-muted-end)))",
+        "crm-hero":
+          "linear-gradient(135deg,_hsl(var(--gradient-primary-start)),_hsl(var(--gradient-primary-end)))",
+      },
       keyframes: {
         "accordion-down": {
           from: {
@@ -80,10 +92,15 @@ export default {
             height: "0",
           },
         },
+        "float-card": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "float-card": "float-card 6s ease-in-out infinite",
       },
     },
   },
