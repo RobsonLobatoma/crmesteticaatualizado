@@ -241,98 +241,98 @@ const DashDiarioV2Page = () => {
                   <TableHead className="px-1 py-1">
                     <span className="whitespace-nowrap">Data</span>
                   </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Leads novos
                         <br />
                         (Total)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Leads novos
                         <br />
                         (WhatsApp)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Leads novos
                         <br />
                         (Instagram)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Conversados
                         <br />
                         (Total)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Conversados
                         <br />
                         (WhatsApp)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Conversados
                         <br />
                         (Instagram)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Follow-up
                         <br />
                         (Total)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Agendadas
                         <br />
                         HOJE (Total)
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Avaliações marcadas
                         <br />
                         HOJE
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Compareceram
                         <br />
                         HOJE
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Show rate
                         <br />
                         %
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         Fechamentos
                         <br />
                         HOJE
                       </span>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-1 py-1 text-[10px]">
                       <span className="whitespace-nowrap">
                         R$ Fechado
                         <br />
                         HOJE
                       </span>
                     </TableHead>
-                    <TableHead className="w-[80px]" />
+                    <TableHead className="px-1 py-1 w-[60px]" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
