@@ -131,14 +131,14 @@ export function CalendarGrid({
 
   if (view === "week") {
     return (
-      <div className="flex flex-1 overflow-hidden rounded-lg border border-border bg-card">
+      <div className="flex flex-1 h-full overflow-hidden rounded-lg border border-border bg-card">
         {/* Time column */}
-        <div className="w-14 shrink-0 border-r border-border bg-muted/30">
-          <div className="h-10 border-b border-border" />
+        <div className="w-14 shrink-0 border-r border-border bg-muted/30 flex flex-col">
+          <div className="h-10 border-b border-border shrink-0" />
           {TIME_SLOTS.map((slot) => (
             <div
               key={slot.time}
-              className="flex h-10 items-start justify-end border-b border-border/50 pr-2 pt-0.5 text-[11px] text-muted-foreground"
+              className="flex flex-1 items-start justify-end border-b border-border/50 pr-2 pt-0.5 text-[11px] text-muted-foreground min-h-[28px]"
             >
               {slot.time}
             </div>
@@ -151,7 +151,7 @@ export function CalendarGrid({
             <div key={day.toISOString()} className="flex min-w-[100px] flex-1 flex-col">
               <div
                 className={cn(
-                  "flex h-10 flex-col items-center justify-center border-b border-r border-border px-1 text-xs",
+                  "flex h-10 shrink-0 flex-col items-center justify-center border-b border-r border-border px-1 text-xs",
                   isSameDay(day, new Date()) && "bg-primary/10"
                 )}
               >
@@ -170,7 +170,7 @@ export function CalendarGrid({
                     date={day}
                     time={slot.time}
                     onClick={() => onSlotClick(day, slot.time)}
-                    className="relative h-10 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
+                    className="relative flex-1 min-h-[28px] border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
                   >
                     {slotAppointments.map((apt) => (
                       <DraggableAppointment
