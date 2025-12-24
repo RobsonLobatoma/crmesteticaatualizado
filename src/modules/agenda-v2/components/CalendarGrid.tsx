@@ -47,12 +47,12 @@ export function CalendarGrid({
     return (
       <div className="flex flex-1 overflow-hidden rounded-lg border border-border bg-card">
         {/* Time column */}
-        <div className="w-16 shrink-0 border-r border-border bg-muted/30">
-          <div className="h-12 border-b border-border" />
+        <div className="w-14 shrink-0 border-r border-border bg-muted/30">
+          <div className="h-10 border-b border-border" />
           {TIME_SLOTS.map((slot) => (
             <div
               key={slot.time}
-              className="flex h-16 items-start justify-end border-b border-border/50 pr-2 pt-1 text-xs text-muted-foreground"
+              className="flex h-12 items-start justify-end border-b border-border/50 pr-2 pt-0.5 text-[11px] text-muted-foreground"
             >
               {slot.time}
             </div>
@@ -63,7 +63,7 @@ export function CalendarGrid({
         <div className="flex flex-1 overflow-x-auto">
           {professionals.length === 0 ? (
             <div className="flex flex-1 flex-col">
-              <div className="flex h-12 items-center justify-center border-b border-border bg-muted/50 px-4 text-sm font-medium">
+              <div className="flex h-10 items-center justify-center border-b border-border bg-muted/50 px-3 text-sm font-medium">
                 Todos
               </div>
               {TIME_SLOTS.map((slot) => {
@@ -76,7 +76,7 @@ export function CalendarGrid({
                     date={currentDate}
                     time={slot.time}
                     onClick={() => onSlotClick(currentDate, slot.time)}
-                    className="relative h-16 border-b border-border/50 hover:bg-accent/10 cursor-pointer"
+                    className="relative h-12 border-b border-border/50 hover:bg-accent/10 cursor-pointer"
                   >
                     {slotAppointments.map((apt) => (
                       <DraggableAppointment
@@ -91,9 +91,9 @@ export function CalendarGrid({
             </div>
           ) : (
             professionals.map((prof) => (
-              <div key={prof.id} className="flex min-w-[180px] flex-1 flex-col">
+              <div key={prof.id} className="flex min-w-[160px] flex-1 flex-col">
                 <div
-                  className="flex h-12 items-center justify-center border-b border-r border-border px-4 text-sm font-medium"
+                  className="flex h-10 items-center justify-center border-b border-r border-border px-3 text-sm font-medium"
                   style={{ backgroundColor: `${prof.color}20` }}
                 >
                   {prof.name}
@@ -109,7 +109,7 @@ export function CalendarGrid({
                       time={slot.time}
                       professionalId={prof.id}
                       onClick={() => onSlotClick(currentDate, slot.time, prof.id)}
-                      className="relative h-16 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
+                      className="relative h-12 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
                     >
                       {slotAppointments.map((apt) => (
                         <DraggableAppointment
@@ -133,12 +133,12 @@ export function CalendarGrid({
     return (
       <div className="flex flex-1 overflow-hidden rounded-lg border border-border bg-card">
         {/* Time column */}
-        <div className="w-16 shrink-0 border-r border-border bg-muted/30">
-          <div className="h-12 border-b border-border" />
+        <div className="w-14 shrink-0 border-r border-border bg-muted/30">
+          <div className="h-10 border-b border-border" />
           {TIME_SLOTS.map((slot) => (
             <div
               key={slot.time}
-              className="flex h-12 items-start justify-end border-b border-border/50 pr-2 pt-1 text-xs text-muted-foreground"
+              className="flex h-10 items-start justify-end border-b border-border/50 pr-2 pt-0.5 text-[11px] text-muted-foreground"
             >
               {slot.time}
             </div>
@@ -148,14 +148,14 @@ export function CalendarGrid({
         {/* Day columns */}
         <div className="flex flex-1 overflow-x-auto">
           {weekDays.map((day) => (
-            <div key={day.toISOString()} className="flex min-w-[120px] flex-1 flex-col">
+            <div key={day.toISOString()} className="flex min-w-[100px] flex-1 flex-col">
               <div
                 className={cn(
-                  "flex h-12 flex-col items-center justify-center border-b border-r border-border px-2 text-sm",
+                  "flex h-10 flex-col items-center justify-center border-b border-r border-border px-1 text-xs",
                   isSameDay(day, new Date()) && "bg-primary/10"
                 )}
               >
-                <span className="text-xs text-muted-foreground capitalize">
+                <span className="text-[10px] text-muted-foreground capitalize">
                   {format(day, "EEE", { locale: ptBR })}
                 </span>
                 <span className="font-medium">{format(day, "d")}</span>
@@ -170,7 +170,7 @@ export function CalendarGrid({
                     date={day}
                     time={slot.time}
                     onClick={() => onSlotClick(day, slot.time)}
-                    className="relative h-12 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
+                    className="relative h-10 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
                   >
                     {slotAppointments.map((apt) => (
                       <DraggableAppointment
