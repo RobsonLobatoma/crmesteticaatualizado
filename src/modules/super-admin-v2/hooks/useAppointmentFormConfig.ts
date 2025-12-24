@@ -48,14 +48,22 @@ export function useAppointmentFormConfig() {
         })
         .eq("key", "appointment_form_config");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving form config:", error);
+        if (error.code === "42501" || error.message?.includes("policy")) {
+          toast.error("Sem permissão para salvar. Verifique se você é super admin.");
+        } else {
+          toast.error(`Erro ao salvar: ${error.message}`);
+        }
+        return false;
+      }
 
       setConfig(newConfig);
       toast.success("Configuração salva com sucesso!");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving form config:", error);
-      toast.error("Erro ao salvar configuração");
+      toast.error(error?.message || "Erro ao salvar configuração");
       return false;
     } finally {
       setIsSaving(false);
