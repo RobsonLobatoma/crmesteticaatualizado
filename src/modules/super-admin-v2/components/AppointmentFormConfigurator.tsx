@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -197,15 +197,18 @@ export function AppointmentFormConfigurator({
     })
   );
 
-  // Initialize local config when dialog opens
+  // Initialize local config when dialog opens via prop
+  useEffect(() => {
+    if (open && config && !isLoading) {
+      setLocalConfig({ ...config, fields: config.fields.map(f => ({ ...f })) });
+    } else if (!open) {
+      setLocalConfig(null);
+    }
+  }, [open, config, isLoading]);
+
   const currentConfig = localConfig || config;
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen) {
-      setLocalConfig({ ...config, fields: [...config.fields] });
-    } else {
-      setLocalConfig(null);
-    }
     onOpenChange(newOpen);
   };
 
@@ -227,10 +230,10 @@ export function AppointmentFormConfigurator({
 
   const handleToggleVisible = (id: string) => {
     setLocalConfig((prev) => {
-      if (!prev) return prev;
+      const current = prev || { ...config, fields: config.fields.map(f => ({ ...f })) };
       return {
-        ...prev,
-        fields: prev.fields.map((f) =>
+        ...current,
+        fields: current.fields.map((f) =>
           f.id === id ? { ...f, visible: !f.visible, required: !f.visible ? f.required : false } : f
         ),
       };
@@ -239,10 +242,10 @@ export function AppointmentFormConfigurator({
 
   const handleToggleRequired = (id: string) => {
     setLocalConfig((prev) => {
-      if (!prev) return prev;
+      const current = prev || { ...config, fields: config.fields.map(f => ({ ...f })) };
       return {
-        ...prev,
-        fields: prev.fields.map((f) =>
+        ...current,
+        fields: current.fields.map((f) =>
           f.id === id ? { ...f, required: !f.required } : f
         ),
       };
