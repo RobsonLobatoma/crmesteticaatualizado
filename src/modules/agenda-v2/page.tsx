@@ -151,39 +151,33 @@ const AgendaV2Page = () => {
   const totalAppointments = appointments.length;
 
   return (
-    <div className="flex h-full flex-col gap-4 p-4 lg:p-6">
+    <div className="flex h-full flex-col gap-2 p-3 lg:p-4">
       {/* Header */}
-      <header className="border-b border-border pb-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Recepção &amp; Agenda</h1>
-        <p className="text-sm text-muted-foreground">
+      <header className="border-b border-border pb-2">
+        <h1 className="text-lg font-semibold tracking-tight">Recepção &amp; Agenda</h1>
+        <p className="text-xs text-muted-foreground">
           Gerencie agendamentos, profissionais e lista de espera
         </p>
       </header>
 
       {/* KPIs */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Agendados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{scheduledToday}</p>
+      <section className="grid gap-2 md:grid-cols-3">
+        <Card className="py-1">
+          <CardContent className="flex items-center justify-between p-3">
+            <span className="text-xs font-medium text-muted-foreground">Agendados</span>
+            <span className="text-lg font-semibold">{scheduledToday}</span>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Confirmados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{confirmedToday}</p>
+        <Card className="py-1">
+          <CardContent className="flex items-center justify-between p-3">
+            <span className="text-xs font-medium text-muted-foreground">Confirmados</span>
+            <span className="text-lg font-semibold">{confirmedToday}</span>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Total do período</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{totalAppointments}</p>
+        <Card className="py-1">
+          <CardContent className="flex items-center justify-between p-3">
+            <span className="text-xs font-medium text-muted-foreground">Total do período</span>
+            <span className="text-lg font-semibold">{totalAppointments}</span>
           </CardContent>
         </Card>
       </section>
@@ -199,7 +193,7 @@ const AgendaV2Page = () => {
       />
 
       {/* Main Content */}
-      <div className="flex flex-1 gap-4 overflow-hidden">
+      <div className="flex flex-1 gap-3 overflow-hidden">
         {/* Form Sidebar */}
         <div className="hidden w-80 shrink-0 lg:block">
           <AppointmentForm
