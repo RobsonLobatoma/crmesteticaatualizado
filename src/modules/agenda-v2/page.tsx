@@ -1,157 +1,192 @@
+import { useState } from "react";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AGENDA_DAY_SLOTS, AGENDA_KPIS, AGENDA_NO_SHOWS, AGENDA_WAITLIST } from "./mock";
-import { StatusPill } from "@/components/dashboard/StatusPill";
+import { CalendarHeader } from "./components/CalendarHeader";
+import { CalendarGrid } from "./components/CalendarGrid";
+import { AppointmentForm } from "./components/AppointmentForm";
+import { AbsenceModal } from "./components/AbsenceModal";
+import { AppointmentDetails } from "./components/AppointmentDetails";
+import { useAppointments } from "./hooks/useAppointments";
+import { useProfessionals } from "./hooks/useProfessionals";
+import { CalendarView, AppointmentWithRelations, AppointmentFormData } from "./types";
+import { toast } from "sonner";
 
 const AgendaV2Page = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<CalendarView>("day");
+  const [showAbsenceModal, setShowAbsenceModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithRelations | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [formInitialData, setFormInitialData] = useState<{
+    date?: Date;
+    time?: string;
+    professionalId?: string;
+  }>({});
+
+  const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment, isCreating } =
+    useAppointments(currentDate, view);
+  const { professionals } = useProfessionals();
+
+  const handleSlotClick = (date: Date, time: string, professionalId?: string) => {
+    setFormInitialData({ date, time, professionalId });
+  };
+
+  const handleAppointmentClick = (appointment: AppointmentWithRelations) => {
+    setSelectedAppointment(appointment);
+    setShowDetails(true);
+  };
+
+  const handleFormSubmit = (data: AppointmentFormData) => {
+    const endDateTime = new Date(data.start_datetime);
+    endDateTime.setMinutes(endDateTime.getMinutes() + data.duration_minutes);
+
+    createAppointment({
+      client_id: data.client_id,
+      service_id: data.service_id,
+      professional_id: data.professional_id,
+      room_id: data.room_id ?? null,
+      equipment_id: data.equipment_id ?? null,
+      start_datetime: data.start_datetime,
+      end_datetime: endDateTime.toISOString(),
+      duration_minutes: data.duration_minutes,
+      notes: data.notes ?? null,
+      recurrence_type: data.recurrence_type,
+      recurrence_parent_id: null,
+      status: data.status,
+      send_sms: data.send_sms,
+      user_id: "",
+    });
+  };
+
+  const handleStatusChange = (status: string) => {
+    if (selectedAppointment) {
+      updateAppointment({ id: selectedAppointment.id, status });
+      setSelectedAppointment({ ...selectedAppointment, status });
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedAppointment) {
+      deleteAppointment(selectedAppointment.id);
+      setShowDetails(false);
+      setSelectedAppointment(null);
+    }
+  };
+
+  const handleWhatsApp = () => {
+    if (selectedAppointment?.client?.phone) {
+      const phone = selectedAppointment.client.phone.replace(/\D/g, "");
+      const message = `Olá ${selectedAppointment.client.name}! Confirmando seu agendamento.`;
+      window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(message)}`, "_blank");
+    } else {
+      toast.error("Cliente não possui telefone cadastrado");
+    }
+  };
+
+  const handleCreateSale = () => {
+    toast.info("Funcionalidade de venda em desenvolvimento");
+  };
+
+  // KPIs
+  const scheduledToday = appointments.filter((a) => a.status === "agendado").length;
+  const confirmedToday = appointments.filter((a) => a.status === "confirmado").length;
+  const totalAppointments = appointments.length;
+
   return (
-    <div className="flex flex-1 flex-col gap-4 px-4 py-8 lg:px-8">
-      <header className="border-b border-border/60 pb-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Recepção &amp; Agenda Inteligente</h1>
+    <div className="flex h-full flex-col gap-4 p-4 lg:p-6">
+      {/* Header */}
+      <header className="border-b border-border pb-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Recepção &amp; Agenda</h1>
         <p className="text-sm text-muted-foreground">
-          Agenda inteligente com visão por profissional, sala e acompanhamento de lista de espera e no-show.
+          Gerencie agendamentos, profissionais e lista de espera
         </p>
       </header>
 
+      {/* KPIs */}
       <section className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Agendados para hoje</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Agendados</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold tracking-tight">{AGENDA_KPIS.scheduledToday}</p>
+            <p className="text-2xl font-semibold">{scheduledToday}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Na lista de espera</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Confirmados</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold tracking-tight">{AGENDA_KPIS.waitlist}</p>
+            <p className="text-2xl font-semibold">{confirmedToday}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Taxa de no-show</CardTitle>
+            <CardTitle className="text-xs font-medium text-muted-foreground">Total do período</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold tracking-tight">{AGENDA_KPIS.noShowRate}%</p>
+            <p className="text-2xl font-semibold">{totalAppointments}</p>
           </CardContent>
         </Card>
       </section>
 
-      <Tabs defaultValue="day" className="mt-2 flex-1">
-        <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="day">Agenda diária</TabsTrigger>
-          <TabsTrigger value="waitlist">Lista de espera &amp; no-show</TabsTrigger>
-        </TabsList>
+      {/* Calendar Header */}
+      <CalendarHeader
+        currentDate={currentDate}
+        view={view}
+        onDateChange={setCurrentDate}
+        onViewChange={setView}
+        onTodayClick={() => setCurrentDate(new Date())}
+        onAbsenceClick={() => setShowAbsenceModal(true)}
+      />
 
-        <TabsContent value="day" className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.1fr)]">
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Timeline do dia</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 p-0">
-              {AGENDA_DAY_SLOTS.map((slot) => (
-                <div
-                  key={slot.id}
-                  className="flex items-center justify-between border-b px-4 py-3 text-sm last:border-b-0"
-                >
-                  <div>
-                    <p className="text-xs text-muted-foreground">{slot.time}</p>
-                    <p className="font-medium text-foreground">{slot.clientName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {slot.professional} • {slot.room}
-                    </p>
-                  </div>
-                  <div className="text-right text-xs">
-                    {slot.status === "confirmado" && <StatusPill label="Confirmado" tone="success" />}
-                    {slot.status === "em_confirmacao" && <StatusPill label="Em confirmação" tone="info" />}
-                    {slot.status === "no_show" && <StatusPill label="No-show" tone="danger" />}
-                  </div>
+      {/* Main Content */}
+      <div className="flex flex-1 gap-4 overflow-hidden">
+        {/* Form Sidebar */}
+        <div className="hidden w-80 shrink-0 lg:block">
+          <AppointmentForm
+            initialDate={formInitialData.date}
+            initialTime={formInitialData.time}
+            initialProfessionalId={formInitialData.professionalId}
+            onSubmit={handleFormSubmit}
+            isSubmitting={isCreating}
+          />
+        </div>
 
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+        {/* Calendar Grid */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {isLoading ? (
+            <div className="flex flex-1 items-center justify-center">
+              <p className="text-muted-foreground">Carregando...</p>
+            </div>
+          ) : (
+            <CalendarGrid
+              currentDate={currentDate}
+              view={view}
+              appointments={appointments}
+              professionals={professionals}
+              onAppointmentClick={handleAppointmentClick}
+              onSlotClick={handleSlotClick}
+            />
+          )}
+        </div>
+      </div>
 
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Resumo do dia</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p>
-                Esta visão consolida a agenda diária da recepção e, no futuro, será integrada ao WhatsApp para
-                confirmações automáticas e recados em massa.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* Modals */}
+      <AbsenceModal open={showAbsenceModal} onOpenChange={setShowAbsenceModal} />
 
-        <TabsContent value="waitlist" className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1.1fr)]">
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Lista de espera</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Paciente</TableHead>
-                    <TableHead>Procedimento</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                    <TableHead>Origem</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {AGENDA_WAITLIST.map((item) => (
-                    <TableRow key={item.id} className="text-sm">
-                      <TableCell>{item.clientName}</TableCell>
-                      <TableCell>{item.procedure}</TableCell>
-                      <TableCell className="capitalize">{item.priority}</TableCell>
-                      <TableCell>{item.origin}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">No-show recentes</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Paciente</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Motivo</TableHead>
-                    <TableHead>Remarcado?</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {AGENDA_NO_SHOWS.map((item) => (
-                    <TableRow key={item.id} className="text-sm">
-                      <TableCell>{item.clientName}</TableCell>
-                      <TableCell>{item.date}</TableCell>
-                      <TableCell className="max-w-[260px] text-xs text-muted-foreground">
-                        {item.reason}
-                      </TableCell>
-                      <TableCell>{item.rescheduled ? "Sim" : "Não"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <AppointmentDetails
+        appointment={selectedAppointment}
+        open={showDetails}
+        onOpenChange={setShowDetails}
+        onEdit={() => toast.info("Edição em desenvolvimento")}
+        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
+        onWhatsApp={handleWhatsApp}
+        onCreateSale={handleCreateSale}
+      />
     </div>
   );
 };
 
 export default AgendaV2Page;
-

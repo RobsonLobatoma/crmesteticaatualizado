@@ -14,6 +14,247 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      appointment_sales: {
+        Row: {
+          appointment_id: string | null
+          client_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          payment_status: string | null
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_sales_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          duration_minutes: number
+          end_datetime: string
+          equipment_id: string | null
+          id: string
+          notes: string | null
+          professional_id: string | null
+          recurrence_parent_id: string | null
+          recurrence_type: string | null
+          room_id: string | null
+          send_sms: boolean | null
+          service_id: string | null
+          start_datetime: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          duration_minutes?: number
+          end_datetime: string
+          equipment_id?: string | null
+          id?: string
+          notes?: string | null
+          professional_id?: string | null
+          recurrence_parent_id?: string | null
+          recurrence_type?: string | null
+          room_id?: string | null
+          send_sms?: boolean | null
+          service_id?: string | null
+          start_datetime: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          duration_minutes?: number
+          end_datetime?: string
+          equipment_id?: string | null
+          id?: string
+          notes?: string | null
+          professional_id?: string | null
+          recurrence_parent_id?: string | null
+          recurrence_type?: string | null
+          room_id?: string | null
+          send_sms?: boolean | null
+          service_id?: string | null
+          start_datetime?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_recurrence_parent_id_fkey"
+            columns: ["recurrence_parent_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          birth_date: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      equipments: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           compareceu: string | null
@@ -80,15 +321,251 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_absences: {
+        Row: {
+          absence_type: string | null
+          created_at: string | null
+          end_date: string
+          end_time: string | null
+          id: string
+          professional_id: string
+          reason: string | null
+          start_date: string
+          start_time: string | null
+          user_id: string
+        }
+        Insert: {
+          absence_type?: string | null
+          created_at?: string | null
+          end_date: string
+          end_time?: string | null
+          id?: string
+          professional_id: string
+          reason?: string | null
+          start_date: string
+          start_time?: string | null
+          user_id: string
+        }
+        Update: {
+          absence_type?: string | null
+          created_at?: string | null
+          end_date?: string
+          end_time?: string | null
+          id?: string
+          professional_id?: string
+          reason?: string | null
+          start_date?: string
+          start_time?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_absences_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professionals: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rooms: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          user_id: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          user_id: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          features: Json
+          id: string
+          is_active: boolean
+          name: string
+          payment_url: string | null
+          price: number
+          price_period: string | null
+          slug: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          name: string
+          payment_url?: string | null
+          price: number
+          price_period?: string | null
+          slug: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          name?: string
+          payment_url?: string | null
+          price?: number
+          price_period?: string | null
+          slug?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -215,6 +692,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "admin", "moderator", "user"],
+    },
   },
 } as const
