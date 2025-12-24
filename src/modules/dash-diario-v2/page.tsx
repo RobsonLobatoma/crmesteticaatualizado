@@ -83,7 +83,7 @@ const DashDiarioV2Page = () => {
   ];
 
   const cellInputClass =
-    "h-6 w-full px-0 text-center text-[11px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0";
+    "h-6 w-full max-w-[55px] px-0 text-center text-[11px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0";
 
   const soma = (campo: keyof (typeof entradas)[number]) =>
     entradas.reduce((acc, entrada) => acc + (Number(entrada[campo] || "0") || 0), 0);
