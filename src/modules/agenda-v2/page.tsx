@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, parseISO, setHours, setMinutes } from "date-fns";
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarHeader } from "./components/CalendarHeader";
 import { CalendarGrid } from "./components/CalendarGrid";
@@ -28,6 +29,46 @@ const AgendaV2Page = () => {
   const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment, isCreating, isUpdating } =
     useAppointments(currentDate, view);
   const { professionals } = useProfessionals();
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Minimum drag distance before activating
+      },
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || !active.data.current?.appointment) return;
+
+    const appointment = active.data.current.appointment as AppointmentWithRelations;
+    const dropData = over.data.current as { date: Date; time: string; professionalId?: string };
+
+    if (!dropData?.date || !dropData?.time) return;
+
+    // Calculate new start_datetime
+    const [hours, minutes] = dropData.time.split(":").map(Number);
+    let newStartDate = new Date(dropData.date);
+    newStartDate = setHours(newStartDate, hours);
+    newStartDate = setMinutes(newStartDate, minutes);
+
+    // Calculate new end_datetime based on duration
+    const newEndDate = new Date(newStartDate);
+    newEndDate.setMinutes(newEndDate.getMinutes() + appointment.duration_minutes);
+
+    // Update appointment
+    updateAppointment({
+      id: appointment.id,
+      start_datetime: newStartDate.toISOString(),
+      end_datetime: newEndDate.toISOString(),
+      professional_id: dropData.professionalId ?? appointment.professional_id,
+    });
+
+    toast.success("Agendamento movido com sucesso!");
+  };
 
   const handleSlotClick = (date: Date, time: string, professionalId?: string) => {
     setFormInitialData({ date, time, professionalId });
@@ -177,14 +218,16 @@ const AgendaV2Page = () => {
               <p className="text-muted-foreground">Carregando...</p>
             </div>
           ) : (
-            <CalendarGrid
-              currentDate={currentDate}
-              view={view}
-              appointments={appointments}
-              professionals={professionals}
-              onAppointmentClick={handleAppointmentClick}
-              onSlotClick={handleSlotClick}
-            />
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+              <CalendarGrid
+                currentDate={currentDate}
+                view={view}
+                appointments={appointments}
+                professionals={professionals}
+                onAppointmentClick={handleAppointmentClick}
+                onSlotClick={handleSlotClick}
+              />
+            </DndContext>
           )}
         </div>
       </div>

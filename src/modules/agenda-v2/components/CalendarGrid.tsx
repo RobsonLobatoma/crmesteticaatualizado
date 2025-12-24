@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { format, isSameDay, parseISO, startOfWeek, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppointmentWithRelations, CalendarView, Professional } from "../types";
-import { AppointmentCard } from "./AppointmentCard";
+import { DraggableAppointment } from "./DraggableAppointment";
+import { DroppableSlot } from "./DroppableSlot";
 import { cn } from "@/lib/utils";
 
 interface CalendarGridProps {
@@ -74,20 +75,24 @@ export function CalendarGrid({
               </div>
               {TIME_SLOTS.map((slot) => {
                 const slotAppointments = getAppointmentsForSlot(currentDate, slot.time);
+                const slotId = `slot-${format(currentDate, "yyyy-MM-dd")}-${slot.time}`;
                 return (
-                  <div
+                  <DroppableSlot
                     key={slot.time}
-                    className="relative h-16 border-b border-border/50 hover:bg-accent/10 cursor-pointer"
+                    id={slotId}
+                    date={currentDate}
+                    time={slot.time}
                     onClick={() => onSlotClick(currentDate, slot.time)}
+                    className="relative h-16 border-b border-border/50 hover:bg-accent/10 cursor-pointer"
                   >
                     {slotAppointments.map((apt) => (
-                      <AppointmentCard
+                      <DraggableAppointment
                         key={apt.id}
                         appointment={apt}
                         onClick={() => onAppointmentClick(apt)}
                       />
                     ))}
-                  </div>
+                  </DroppableSlot>
                 );
               })}
             </div>
@@ -102,20 +107,25 @@ export function CalendarGrid({
                 </div>
                 {TIME_SLOTS.map((slot) => {
                   const slotAppointments = getAppointmentsForSlot(currentDate, slot.time, prof.id);
+                  const slotId = `slot-${format(currentDate, "yyyy-MM-dd")}-${slot.time}-${prof.id}`;
                   return (
-                    <div
+                    <DroppableSlot
                       key={`${prof.id}-${slot.time}`}
-                      className="relative h-16 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
+                      id={slotId}
+                      date={currentDate}
+                      time={slot.time}
+                      professionalId={prof.id}
                       onClick={() => onSlotClick(currentDate, slot.time, prof.id)}
+                      className="relative h-16 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
                     >
                       {slotAppointments.map((apt) => (
-                        <AppointmentCard
+                        <DraggableAppointment
                           key={apt.id}
                           appointment={apt}
                           onClick={() => onAppointmentClick(apt)}
                         />
                       ))}
-                    </div>
+                    </DroppableSlot>
                   );
                 })}
               </div>
@@ -159,21 +169,25 @@ export function CalendarGrid({
               </div>
               {TIME_SLOTS.map((slot) => {
                 const slotAppointments = getAppointmentsForSlot(day, slot.time);
+                const slotId = `slot-${format(day, "yyyy-MM-dd")}-${slot.time}`;
                 return (
-                  <div
+                  <DroppableSlot
                     key={`${day.toISOString()}-${slot.time}`}
-                    className="relative h-12 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
+                    id={slotId}
+                    date={day}
+                    time={slot.time}
                     onClick={() => onSlotClick(day, slot.time)}
+                    className="relative h-12 border-b border-r border-border/50 hover:bg-accent/10 cursor-pointer"
                   >
                     {slotAppointments.map((apt) => (
-                      <AppointmentCard
+                      <DraggableAppointment
                         key={apt.id}
                         appointment={apt}
                         compact
                         onClick={() => onAppointmentClick(apt)}
                       />
                     ))}
-                  </div>
+                  </DroppableSlot>
                 );
               })}
             </div>
