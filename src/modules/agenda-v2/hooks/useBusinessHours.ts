@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/integrations/supabase/AuthProvider";
 
 export interface BusinessHoursConfig {
   start_hour: number;
@@ -26,13 +27,35 @@ const DEFAULT_CONFIG: BusinessHoursConfig = {
 };
 
 export function useBusinessHours() {
+  const { user } = useAuth();
   const [config, setConfig] = useState<BusinessHoursConfig>(DEFAULT_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchConfig = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const { data, error } = await supabase
+        const userKey = `user_${user.id}_business_hours`;
+        
+        // Primeiro tenta buscar config do usuário
+        const { data: userData } = await supabase
+          .from("app_settings")
+          .select("value")
+          .eq("key", userKey)
+          .single();
+
+        if (userData?.value) {
+          setConfig(userData.value as unknown as BusinessHoursConfig);
+          setIsLoading(false);
+          return;
+        }
+
+        // Fallback para config global
+        const { data: globalData, error } = await supabase
           .from("app_settings")
           .select("value")
           .eq("key", "business_hours_config")
@@ -42,8 +65,8 @@ export function useBusinessHours() {
           throw error;
         }
 
-        if (data?.value) {
-          setConfig(data.value as unknown as BusinessHoursConfig);
+        if (globalData?.value) {
+          setConfig(globalData.value as unknown as BusinessHoursConfig);
         }
       } catch (error) {
         console.error("Erro ao buscar configuração de horários:", error);
@@ -53,7 +76,7 @@ export function useBusinessHours() {
     };
 
     fetchConfig();
-  }, []);
+  }, [user]);
 
   const timeSlots = useMemo(() => {
     const slots: { time: string; hour: number; minute: number }[] = [];
