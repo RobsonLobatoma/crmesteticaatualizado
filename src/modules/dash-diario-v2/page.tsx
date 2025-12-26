@@ -88,7 +88,42 @@ const DashDiarioV2Page = () => {
   const soma = (campo: keyof (typeof entradas)[number]) =>
     entradas.reduce((acc, entrada) => acc + (Number(entrada[campo] || "0") || 0), 0);
 
-  const somaNumero = (valor: string) => Number(valor || "0") || 0;
+  const somaValorMonetario = () => {
+    return entradas.reduce((acc, entrada) => {
+      const valor = Number(
+        (entrada.valorFechadoHoje || "0")
+          .replace(/[^0-9,-]/g, "")
+          .replace(".", "")
+          .replace(",", ".")
+      ) || 0;
+      return acc + valor;
+    }, 0);
+  };
+
+  const totalFechamentos = soma("fechamentosHoje");
+  const totalCompareceram = soma("compareceramHoje");
+  const totalAvaliacoes = soma("avaliacoesHoje");
+  const totalValorFechado = somaValorMonetario();
+
+  const showRateMensal = totalAvaliacoes > 0 
+    ? ((totalCompareceram / totalAvaliacoes) * 100).toFixed(1) + "%" 
+    : "-";
+
+  const valorFechadoMesFormatado = totalValorFechado > 0 
+    ? `R$ ${totalValorFechado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+    : "R$ 0,00";
+
+  const fechamentoPorAvaliacao = totalCompareceram > 0
+    ? ((totalFechamentos / totalCompareceram) * 100).toFixed(1) + "%"
+    : "-";
+
+  const ticketReal = totalFechamentos > 0
+    ? `R$ ${(totalValorFechado / totalFechamentos).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+    : "-";
+
+  const valorPorAvaliacao = totalCompareceram > 0
+    ? `R$ ${(totalValorFechado / totalCompareceram).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+    : "-";
 
   const metricasMensais: { metrica: string; valor: string }[] = [
     { metrica: "Leads novos (Total)", valor: String(soma("leadsNovosTotal")) },
@@ -100,15 +135,15 @@ const DashDiarioV2Page = () => {
     },
     {
       metrica: "Avaliações marcadas para o mês (Data Avaliação)",
-      valor: String(soma("avaliacoesHoje")),
+      valor: String(totalAvaliacoes),
     },
-    { metrica: "Compareceram no mês", valor: String(soma("compareceramHoje")) },
-    { metrica: "Show rate do mês", valor: "-" },
-    { metrica: "Fechamentos no mês", valor: String(soma("fechamentosHoje")) },
-    { metrica: "R$ Fechado no mês", valor: "" },
-    { metrica: "Fechamento por avaliação (conv.)", valor: "" },
-    { metrica: "R$ por fechamento (ticket real)", valor: "" },
-    { metrica: "R$ por avaliação realizada", valor: "" },
+    { metrica: "Compareceram no mês", valor: String(totalCompareceram) },
+    { metrica: "Show rate do mês", valor: showRateMensal },
+    { metrica: "Fechamentos no mês", valor: String(totalFechamentos) },
+    { metrica: "R$ Fechado no mês", valor: valorFechadoMesFormatado },
+    { metrica: "Fechamento por avaliação (conv.)", valor: fechamentoPorAvaliacao },
+    { metrica: "R$ por fechamento (ticket real)", valor: ticketReal },
+    { metrica: "R$ por avaliação realizada", valor: valorPorAvaliacao },
   ];
 
   const parseDateFlexible = (value?: string | null): Date | null => {
