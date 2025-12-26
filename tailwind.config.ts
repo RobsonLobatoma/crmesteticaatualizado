@@ -63,6 +63,9 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      padding: {
+        safe: "env(safe-area-inset-bottom, 1rem)",
+      },
       boxShadow: {
         soft: "0 18px 45px -26px hsl(var(--primary) / 0.35)",
         elevated: "0 24px 70px -32px hsl(var(--primary) / 0.45)",
