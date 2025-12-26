@@ -162,7 +162,8 @@
   }
 
   .content-scroll > * {
-    min-width: max-content;
+    min-width: 0;
+    width: 100%;
   }
 }
 
