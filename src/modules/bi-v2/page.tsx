@@ -92,7 +92,7 @@ const BiV2Page = () => {
     const years = new Set<number>();
     (leads || []).forEach((lead: Lead) => {
       const date =
-        parseDateFlexible(lead.dataEntrada || lead.data) ||
+        parseDateFlexible(lead.dataEntrada) ||
         parseDateFlexible(lead.dataFechamento);
       if (date) {
         years.add(date.getFullYear());
@@ -128,7 +128,7 @@ const BiV2Page = () => {
     let monthClosedLeads = 0;
 
     (leads || []).forEach((lead: Lead) => {
-      const dataEntrada = parseDateFlexible(lead.dataEntrada || lead.data);
+      const dataEntrada = parseDateFlexible(lead.dataEntrada);
       const dataFechamento = parseDateFlexible(lead.dataFechamento);
       const dataUltimoContato = parseDateFlexible(lead.dataUltimoContato);
 

@@ -18,7 +18,6 @@ class LeadsService {
 
     return {
       id: row.id,
-      data: row.data || fallbackDate,
       responsavel: row.responsavel || "-",
       nome: row.nome,
       contato: row.contato,

@@ -180,7 +180,7 @@ const DashDiarioV2Page = () => {
 
   const handleOpenDetail = (entradaData: string) => {
     const leadsDaData = leads.filter((lead) =>
-      isSameDay(lead.dataEntrada || lead.data, entradaData),
+      isSameDay(lead.dataEntrada, entradaData),
     );
     setSelectedDate(entradaData);
     setSelectedDateLeads(leadsDaData);

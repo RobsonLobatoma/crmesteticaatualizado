@@ -70,7 +70,7 @@ export const criarEntradasDoMesComLeads = (
   const entradas = criarEntradasDoMes(ano, mesIndex);
 
   leads.forEach((lead) => {
-    const dataEntrada = parseDateFlexible(lead.dataEntrada || lead.data);
+    const dataEntrada = parseDateFlexible(lead.dataEntrada);
     if (!dataEntrada) return;
 
     if (
