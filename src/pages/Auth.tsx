@@ -349,23 +349,23 @@ const AuthPage = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Studio CRM</h1>
-          <p className="text-sm text-muted-foreground">
+    <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-background px-4 py-8 overflow-y-auto">
+      <div className="w-full max-w-md pb-safe">
+        <div className="mb-6 sm:mb-8 text-center space-y-2">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Studio CRM</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Acesse o painel da sua clínica com segurança via e-mail ou Google.
           </p>
         </div>
 
         <Card className="shadow-lg border-border/60 bg-card/95 backdrop-blur">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-semibold">
+          <CardHeader className="pb-4 px-4 sm:px-6">
+            <CardTitle className="text-base sm:text-lg font-semibold">
               {mode === "login" && "Acesse sua conta"}
               {mode === "signup" && "Crie sua conta"}
               {mode === "forgot" && "Recupere sua senha"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               {mode === "login" && "Entre com seu e-mail e senha para visualizar seus módulos do CRM."}
               {mode === "signup" &&
                 "Crie uma conta para gerenciar leads, agenda, financeiro e toda a operação da clínica."}
@@ -374,7 +374,7 @@ const AuthPage = () => {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 px-4 sm:px-6">
             {renderTabs()}
 
             {mode === "login" && renderLoginForm()}
