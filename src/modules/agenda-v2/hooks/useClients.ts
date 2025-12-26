@@ -26,7 +26,7 @@ export function useClients(searchTerm?: string) {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (client: Pick<Client, "name" | "phone" | "email" | "cpf" | "birth_date">) => {
+    mutationFn: async (client: { name: string; phone?: string | null; address?: string | null; birth_date?: string | null }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
