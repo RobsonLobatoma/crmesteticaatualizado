@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,13 +11,36 @@ interface LessonVideoModalProps {
   lesson: Lesson | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onComplete?: (lessonId: string) => void;
 }
 
 export function LessonVideoModal({
   lesson,
   open,
   onOpenChange,
+  onComplete,
 }: LessonVideoModalProps) {
+  const hasMarkedComplete = useRef(false);
+
+  // Reset flag when lesson changes
+  useEffect(() => {
+    hasMarkedComplete.current = false;
+  }, [lesson?.id]);
+
+  // Mark as complete after 10 seconds of watching
+  useEffect(() => {
+    if (!open || !lesson || hasMarkedComplete.current) return;
+
+    const timer = setTimeout(() => {
+      if (onComplete && !hasMarkedComplete.current) {
+        hasMarkedComplete.current = true;
+        onComplete(lesson.id);
+      }
+    }, 10000); // 10 seconds
+
+    return () => clearTimeout(timer);
+  }, [open, lesson, onComplete]);
+
   if (!lesson) return null;
 
   // Extract video embed URL
