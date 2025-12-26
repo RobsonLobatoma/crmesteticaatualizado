@@ -147,14 +147,12 @@
   }
 
   .app-sidebar {
-    width: 260px;
-    min-width: 260px;
     height: 100vh;
     flex-shrink: 0;
   }
 
   .app-content {
-    @apply flex-1 h-screen overflow-hidden flex flex-col;
+    @apply flex-1 h-screen overflow-hidden flex flex-col min-w-0;
   }
 
   .content-scroll {
