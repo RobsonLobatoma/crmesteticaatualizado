@@ -34,7 +34,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
@@ -80,9 +79,8 @@ export const AppLayout = () => {
       <div className="app-layout">
         <Sidebar
           collapsible="icon"
-          className="app-sidebar border-r border-sidebar-border bg-sidebar"
+          className="border-r border-sidebar-border bg-sidebar"
         >
-          <SidebarRail />
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel className="text-[11px] font-semibold uppercase tracking-wide text-sidebar-foreground/70">
