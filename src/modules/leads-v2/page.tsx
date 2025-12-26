@@ -28,7 +28,6 @@ const LeadsV2Page = () => {
   const { toast } = useToast();
   const { leads, createLead, updateLead, deleteLead } = useLeads();
   const [newLead, setNewLead] = useState<Omit<Lead, "id" | "status"> & { status?: string }>({
-    data: "",
     dataEntrada: "",
     responsavel: "",
     nome: "",
@@ -82,7 +81,6 @@ const LeadsV2Page = () => {
       });
 
       setNewLead({
-        data: "",
         dataEntrada: "",
         responsavel: "",
         nome: "",
@@ -197,7 +195,7 @@ const LeadsV2Page = () => {
   };
 
   const leadsHojeLista = leads.filter((lead) =>
-    isToday(lead.dataEntrada || lead.data),
+    isToday(lead.dataEntrada),
   );
   const leadsHoje = leadsHojeLista.length;
 
@@ -384,11 +382,11 @@ const LeadsV2Page = () => {
           <CardContent className="space-y-3 pt-0">
             <div className="grid gap-3 md:grid-cols-4 lg:grid-cols-6">
               <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Entrada</label>
                 <Input
                   type="date"
-                  value={newLead.data}
-                  onChange={(e) => handleChange("data", e.target.value)}
+                  value={newLead.dataEntrada}
+                  onChange={(e) => handleChange("dataEntrada", e.target.value)}
                 />
               </div>
               <div className="md:col-span-1">
@@ -463,14 +461,6 @@ const LeadsV2Page = () => {
                   <option value="Pós Venda">Pós Venda</option>
                   <option value="Indicação">Indicação</option>
                 </select>
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Entrada</label>
-                <Input
-                  type="date"
-                  value={newLead.dataEntrada}
-                  onChange={(e) => handleChange("dataEntrada", e.target.value)}
-                />
               </div>
               <div className="md:col-span-1">
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Último Contato</label>
@@ -642,14 +632,13 @@ const LeadsV2Page = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
+                  <TableHead>Data Entrada</TableHead>
                   <TableHead>Responsável</TableHead>
                   <TableHead>Nome do Cliente</TableHead>
                   <TableHead>Contato WhatsApp/@</TableHead>
                   <TableHead>Origem</TableHead>
                   <TableHead>Procedimento / Interesse</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Data Entrada</TableHead>
                   <TableHead>Data Último Contato</TableHead>
                   <TableHead>Data Agendamento (quando marcou)</TableHead>
                   <TableHead>Data Avaliação (dia marcado)</TableHead>
@@ -665,10 +654,21 @@ const LeadsV2Page = () => {
                   const isEditing = editingId === lead.id;
                   const current = isEditing && editingLead ? editingLead : lead;
 
-                  return (
-                    <TableRow key={lead.id} className="hover:bg-muted/40">
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{current.data}</TableCell>
-                      <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground">
+                    return (
+                      <TableRow key={lead.id} className="hover:bg-muted/40">
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                          {isEditing ? (
+                            <Input
+                              type="date"
+                              className="h-8 text-xs"
+                              value={current.dataEntrada}
+                              onChange={(e) => handleEditingChange("dataEntrada", e.target.value)}
+                            />
+                          ) : (
+                            current.dataEntrada
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground">
                         {isEditing ? (
                           <select
                             className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-[11px] text-foreground shadow-sm"
@@ -754,18 +754,6 @@ const LeadsV2Page = () => {
                           >
                             {current.status}
                           </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        {isEditing ? (
-                          <Input
-                            type="date"
-                            className="h-8 text-xs"
-                            value={current.dataEntrada}
-                            onChange={(e) => handleEditingChange("dataEntrada", e.target.value)}
-                          />
-                        ) : (
-                          current.dataEntrada
                         )}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">

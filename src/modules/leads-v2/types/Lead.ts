@@ -1,7 +1,6 @@
 // Interface idêntica ao Leads original
 export interface Lead {
   id: string;
-  data: string; // Data (geral)
   responsavel: string;
   nome: string;
   contato: string;
