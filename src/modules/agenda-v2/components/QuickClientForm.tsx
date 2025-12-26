@@ -15,8 +15,7 @@ export function QuickClientForm({ onSuccess, onCancel }: QuickClientFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    email: "",
-    cpf: "",
+    address: "",
     birth_date: "",
   });
 
@@ -26,8 +25,7 @@ export function QuickClientForm({ onSuccess, onCancel }: QuickClientFormProps) {
       {
         name: formData.name,
         phone: formData.phone || null,
-        email: formData.email || null,
-        cpf: formData.cpf || null,
+        address: formData.address || null,
         birth_date: formData.birth_date || null,
       },
       {
@@ -60,32 +58,21 @@ export function QuickClientForm({ onSuccess, onCancel }: QuickClientFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label>E-mail</Label>
+        <Label>Endereço</Label>
         <Input
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-          placeholder="email@exemplo.com"
+          value={formData.address}
+          onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
+          placeholder="Rua, número, bairro"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>CPF</Label>
-          <Input
-            value={formData.cpf}
-            onChange={(e) => setFormData((prev) => ({ ...prev, cpf: e.target.value }))}
-            placeholder="000.000.000-00"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Data de Nascimento</Label>
-          <Input
-            type="date"
-            value={formData.birth_date}
-            onChange={(e) => setFormData((prev) => ({ ...prev, birth_date: e.target.value }))}
-          />
-        </div>
+      <div className="space-y-2">
+        <Label>Data de Nascimento</Label>
+        <Input
+          type="date"
+          value={formData.birth_date}
+          onChange={(e) => setFormData((prev) => ({ ...prev, birth_date: e.target.value }))}
+        />
       </div>
 
       <div className="flex gap-2 pt-2">
