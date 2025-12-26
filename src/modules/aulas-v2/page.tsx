@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +11,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, CheckCircle2 } from "lucide-react";
 import { useLessons } from "./hooks/useLessons";
+import { useLessonProgress } from "./hooks/useLessonProgress";
 import { LessonFormModal } from "./components/LessonFormModal";
 import { LessonCard } from "./components/LessonCard";
 import { LessonVideoModal } from "./components/LessonVideoModal";
@@ -22,6 +24,8 @@ export default function AulasPage() {
   const { lessons, loading, createLesson, updateLesson, deleteLesson } =
     useLessons();
   const { isSuperAdmin, loading: loadingRole } = useIsSuperAdmin();
+  const { isCompleted, markAsCompleted, getOverallProgress, loading: loadingProgress } =
+    useLessonProgress();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
@@ -33,6 +37,11 @@ export default function AulasPage() {
     if (isSuperAdmin) return lessons;
     return lessons.filter((lesson) => lesson.is_active);
   }, [lessons, isSuperAdmin]);
+
+  // Calculate progress
+  const overallProgress = useMemo(() => {
+    return getOverallProgress(visibleLessons.length);
+  }, [getOverallProgress, visibleLessons.length]);
 
   // Group lessons by category
   const lessonsByCategory = useMemo(() => {
@@ -86,7 +95,11 @@ export default function AulasPage() {
     setPlayingLesson(lesson);
   };
 
-  if (loading || loadingRole) {
+  const handleVideoComplete = (lessonId: string) => {
+    markAsCompleted(lessonId);
+  };
+
+  if (loading || loadingRole || loadingProgress) {
     return (
       <div className="flex flex-1 items-center justify-center py-16">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -97,20 +110,43 @@ export default function AulasPage() {
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-8 lg:px-8 w-full min-w-0 overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Aulas sobre a Plataforma
-          </h1>
-          <p className="text-muted-foreground">
-            Capacite-se com nossos treinamentos exclusivos.
-          </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Aulas sobre a Plataforma
+            </h1>
+            <p className="text-muted-foreground">
+              Capacite-se com nossos treinamentos exclusivos.
+            </p>
+          </div>
+          {isSuperAdmin && (
+            <Button onClick={handleCreate} className="self-start">
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Aula
+            </Button>
+          )}
         </div>
-        {isSuperAdmin && (
-          <Button onClick={handleCreate} className="self-start">
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Aula
-          </Button>
+
+        {/* Progress indicator */}
+        {visibleLessons.length > 0 && (
+          <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="mb-1 flex items-center justify-between text-sm">
+                <span className="font-medium">Seu progresso</span>
+                <span className="text-muted-foreground">
+                  {overallProgress.completed} de {overallProgress.total} aulas concluídas
+                </span>
+              </div>
+              <Progress value={overallProgress.percentage} className="h-2" />
+            </div>
+            <span className="text-lg font-bold text-primary">
+              {overallProgress.percentage}%
+            </span>
+          </div>
         )}
       </div>
 
@@ -142,6 +178,7 @@ export default function AulasPage() {
                     key={lesson.id}
                     lesson={lesson}
                     isSuperAdmin={isSuperAdmin}
+                    isCompleted={isCompleted(lesson.id)}
                     onPlay={handlePlay}
                     onEdit={handleEdit}
                     onDelete={setDeletingLesson}
@@ -158,6 +195,7 @@ export default function AulasPage() {
         lesson={playingLesson}
         open={!!playingLesson}
         onOpenChange={(open) => !open && setPlayingLesson(null)}
+        onComplete={handleVideoComplete}
       />
 
       {/* Form Modal (Super Admin only) */}

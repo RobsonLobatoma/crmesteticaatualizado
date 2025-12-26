@@ -1,11 +1,11 @@
-import { Play, Pencil, Trash2 } from "lucide-react";
+import { Play, Pencil, Trash2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Lesson } from "../types/Lesson";
-import { cn } from "@/lib/utils";
 
 interface LessonCardProps {
   lesson: Lesson;
   isSuperAdmin: boolean;
+  isCompleted?: boolean;
   onPlay: (lesson: Lesson) => void;
   onEdit?: (lesson: Lesson) => void;
   onDelete?: (lesson: Lesson) => void;
@@ -14,6 +14,7 @@ interface LessonCardProps {
 export function LessonCard({
   lesson,
   isSuperAdmin,
+  isCompleted = false,
   onPlay,
   onEdit,
   onDelete,
@@ -47,6 +48,14 @@ export function LessonCard({
             <Play className="h-6 w-6 fill-current" />
           </div>
         </div>
+
+        {/* Completed badge */}
+        {isCompleted && (
+          <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-green-500 px-2 py-1 text-xs font-medium text-white shadow-md">
+            <CheckCircle2 className="h-3 w-3" />
+            <span>Concluído</span>
+          </div>
+        )}
 
         {/* Duration badge */}
         {lesson.duration && (
@@ -86,9 +95,14 @@ export function LessonCard({
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="mb-1 line-clamp-2 font-semibold text-foreground">
-          {lesson.title}
-        </h3>
+        <div className="mb-1 flex items-start justify-between gap-2">
+          <h3 className="line-clamp-2 font-semibold text-foreground">
+            {lesson.title}
+          </h3>
+          {isCompleted && (
+            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-500" />
+          )}
+        </div>
         {lesson.description && (
           <p className="line-clamp-2 text-sm text-muted-foreground">
             {lesson.description}
