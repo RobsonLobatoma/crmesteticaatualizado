@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { AgendaSettingsCards } from "@/components/settings/AgendaSettingsCards";
 
 const SettingsPage = () => {
   const { toast } = useToast();
@@ -130,6 +131,9 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
       </section>
+
+      {/* Seção: Configurações da Agenda */}
+      <AgendaSettingsCards />
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="border-border/80 bg-surface-elevated/95 shadow-soft">
