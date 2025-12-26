@@ -1,11 +1,11 @@
 import { useDroppable } from '@dnd-kit/core';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { StatusLead, ClientePotencial } from '@/types/crm';
+import { ClientePotencial } from '@/types/crm';
 import { CartaoCliente } from './CartaoCliente';
 
 interface ColunaKanbanProps {
-  id: StatusLead;
+  id: string;
   titulo: string;
   cor: string;
   clientes: ClientePotencial[];

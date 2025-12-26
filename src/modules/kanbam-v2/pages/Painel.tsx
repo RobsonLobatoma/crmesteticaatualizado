@@ -1,24 +1,27 @@
 import { useState } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { StatusLead, ClientePotencial, FiltrosKanban as FiltrosKanbanType } from '@/types/crm';
+import { ClientePotencial, FiltrosKanban as FiltrosKanbanType } from '@/types/crm';
 import { ColunaKanban } from '@/components/crm/ColunaKanban';
 import { FiltrosKanban } from '@/components/crm/FiltrosKanban';
 import { CartaoCliente } from '@/components/crm/CartaoCliente';
 import { useToast } from '@/hooks/use-toast';
+import { useCRMStatuses } from '../hooks/useCRMStatuses';
 
-const colunas = [
-  { id: 'novo' as StatusLead, titulo: 'Novo', cor: 'bg-blue-500' },
-  { id: 'qualificacao' as StatusLead, titulo: 'Em qualificação', cor: 'bg-yellow-500' },
-  { id: 'aguardando' as StatusLead, titulo: 'Aguardando atendente', cor: 'bg-orange-500' },
-  { id: 'atendimento' as StatusLead, titulo: 'Em atendimento', cor: 'bg-green-500' },
-  { id: 'finalizado' as StatusLead, titulo: 'Finalizado', cor: 'bg-emerald-600' },
-  { id: 'perdido' as StatusLead, titulo: 'Perdido', cor: 'bg-red-500' },
-  { id: 'voltar' as StatusLead, titulo: 'Voltar contato', cor: 'bg-purple-500' },
+// Colunas padrão para quando não há status cadastrados
+const colunasDefault = [
+  { id: 'novo', titulo: 'Novo', cor: 'bg-blue-500' },
+  { id: 'qualificacao', titulo: 'Em qualificação', cor: 'bg-yellow-500' },
+  { id: 'aguardando', titulo: 'Aguardando atendente', cor: 'bg-orange-500' },
+  { id: 'atendimento', titulo: 'Em atendimento', cor: 'bg-green-500' },
+  { id: 'finalizado', titulo: 'Finalizado', cor: 'bg-emerald-600' },
+  { id: 'perdido', titulo: 'Perdido', cor: 'bg-red-500' },
+  { id: 'voltar', titulo: 'Voltar contato', cor: 'bg-purple-500' },
 ];
 
 const PainelV2Page = () => {
   const { toast } = useToast();
+  const { statuses, isLoading: loadingStatuses } = useCRMStatuses();
   const [clientes, setClientes] = useState<ClientePotencial[]>([]);
   const [filtros, setFiltros] = useState<FiltrosKanbanType>({
     busca: '',
@@ -37,6 +40,11 @@ const PainelV2Page = () => {
     })
   );
 
+  // Usa status do banco ou colunas padrão
+  const colunas = statuses.length > 0
+    ? statuses.map(s => ({ id: s.slug, titulo: s.name, cor: s.color }))
+    : colunasDefault;
+
   const handleDragStart = (event: any) => {
     setActiveId(event.active.id);
   };
@@ -48,7 +56,7 @@ const PainelV2Page = () => {
     if (!over) return;
     
     const clienteId = active.id as string;
-    const novoStatus = over.id as StatusLead;
+    const novoStatus = over.id as string;
     
     const cliente = clientes.find(c => c.id === clienteId);
     const statusAnterior = cliente?.status;
@@ -59,7 +67,7 @@ const PainelV2Page = () => {
       setClientes(prevClientes => 
         prevClientes.map(c => 
           c.id === clienteId 
-            ? { ...c, status: novoStatus }
+            ? { ...c, status: novoStatus as any }
             : c
         )
       );
@@ -97,6 +105,17 @@ const PainelV2Page = () => {
   });
 
   const activeCliente = activeId ? clientes.find(c => c.id === activeId) : null;
+
+  if (loadingStatuses) {
+    return (
+      <div className="flex-1 px-4 pt-6 lg:px-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Quadro de Atendimento</h1>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 px-4 pt-6 lg:px-8">
