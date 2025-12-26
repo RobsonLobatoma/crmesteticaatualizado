@@ -132,7 +132,7 @@ export function ServiceFormModal({ open, onOpenChange, service, onSave, userId }
                 <FormItem>
                   <FormLabel>Duração (minutos)</FormLabel>
                   <FormControl>
-                    <Input type="number" min="5" max="480" placeholder="60" {...field} />
+                    <Input type="text" inputMode="numeric" placeholder="60" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
