@@ -45,19 +45,19 @@ export const criarEntradasDoMes = (ano: number, mesIndex: number): DashDiarioEnt
 
     return {
       data: format(data, "dd/MM/yyyy"),
-      leadsNovosTotal: "0",
-      leadsNovosWhatsapp: "0",
-      leadsNovosInstagram: "0",
-      conversadosTotal: "0",
-      conversadosWhatsapp: "0",
-      conversadosInstagram: "0",
-      followUpTotal: "0",
-      agendadasHojeTotal: "0",
-      avaliacoesHoje: "0",
-      compareceramHoje: "0",
-      showRatePercent: "0",
-      fechamentosHoje: "0",
-      valorFechadoHoje: "0",
+      leadsNovosTotal: "",
+      leadsNovosWhatsapp: "",
+      leadsNovosInstagram: "",
+      conversadosTotal: "",
+      conversadosWhatsapp: "",
+      conversadosInstagram: "",
+      followUpTotal: "",
+      agendadasHojeTotal: "",
+      avaliacoesHoje: "",
+      compareceramHoje: "",
+      showRatePercent: "",
+      fechamentosHoje: "",
+      valorFechadoHoje: "",
     };
   });
 };
