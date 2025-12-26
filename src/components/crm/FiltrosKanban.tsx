@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FiltrosKanban as FiltrosKanbanType } from '@/types/crm';
 import { Settings, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCRMResponsibles } from '@/modules/kanbam-v2/hooks/useCRMResponsibles';
 
 interface FiltrosKanbanProps {
   filtros: FiltrosKanbanType;
@@ -13,6 +14,8 @@ interface FiltrosKanbanProps {
 }
 
 export const FiltrosKanban = ({ filtros, onChange }: FiltrosKanbanProps) => {
+  const { responsibles, isLoading: loadingResponsibles } = useCRMResponsibles();
+
   const handleLimparFiltros = () => {
     onChange({
       busca: '',
@@ -52,9 +55,17 @@ export const FiltrosKanban = ({ filtros, onChange }: FiltrosKanbanProps) => {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="todos">Todos responsáveis</SelectItem>
-          <SelectItem value="Ana Paula">Ana Paula</SelectItem>
-          <SelectItem value="Carlos Eduardo">Carlos Eduardo</SelectItem>
-          <SelectItem value="Beatriz Lima">Beatriz Lima</SelectItem>
+          {loadingResponsibles ? (
+            <SelectItem value="_loading" disabled>Carregando...</SelectItem>
+          ) : responsibles.length === 0 ? (
+            <SelectItem value="_empty" disabled>Nenhum cadastrado</SelectItem>
+          ) : (
+            responsibles.map((responsible) => (
+              <SelectItem key={responsible.id} value={responsible.name}>
+                {responsible.name}
+              </SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
 
