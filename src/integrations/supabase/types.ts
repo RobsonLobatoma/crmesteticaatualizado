@@ -323,39 +323,54 @@ export type Database = {
       }
       lessons: {
         Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          category: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
           duration: string | null
           id: string
           is_active: boolean | null
+          thumbnail_url: string | null
           title: string
           updated_at: string | null
           user_id: string
+          video_type: string | null
           youtube_url: string
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
           duration?: string | null
           id?: string
           is_active?: boolean | null
+          thumbnail_url?: string | null
           title: string
           updated_at?: string | null
           user_id: string
+          video_type?: string | null
           youtube_url: string
         }
         Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
           duration?: string | null
           id?: string
           is_active?: boolean | null
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
+          video_type?: string | null
           youtube_url?: string
         }
         Relationships: []

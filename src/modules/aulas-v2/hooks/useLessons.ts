@@ -41,6 +41,10 @@ export function useLessons() {
         youtube_url: formData.youtube_url,
         duration: formData.duration || null,
         display_order: formData.display_order || 0,
+        video_type: formData.video_type || "youtube",
+        category: formData.category || null,
+        thumbnail_url: formData.thumbnail_url || null,
+        attachment_name: formData.attachment_name || null,
       });
 
       if (error) throw error;
@@ -64,6 +68,10 @@ export function useLessons() {
           youtube_url: formData.youtube_url,
           duration: formData.duration || null,
           display_order: formData.display_order || 0,
+          video_type: formData.video_type || "youtube",
+          category: formData.category || null,
+          thumbnail_url: formData.thumbnail_url || null,
+          attachment_name: formData.attachment_name || null,
         })
         .eq("id", id);
 
