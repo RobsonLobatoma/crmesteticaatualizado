@@ -32,6 +32,7 @@ const DURATION_OPTIONS = [
   { value: "60", label: "1 hora" },
   { value: "90", label: "1h 30min" },
   { value: "120", label: "2 horas" },
+  { value: "1440", label: "24h" },
 ];
 
 const RECURRENCE_OPTIONS = [
