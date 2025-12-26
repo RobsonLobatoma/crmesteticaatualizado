@@ -32,6 +32,7 @@ import WhatsappV2Page from "./modules/whatsapp-v2";
 import EstoqueV2Page from "./modules/estoque-v2";
 import PessoasV2Page from "./modules/pessoas-v2";
 import BiV2Page from "./modules/bi-v2";
+import AulasV2Page from "./modules/aulas-v2";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="pessoas-metas" element={<PessoasV2Page />} />
               <Route path="bi" element={<BiV2Page />} />
               <Route path="configuracoes" element={<SettingsPage />} />
+              <Route path="aulas" element={<AulasV2Page />} />
               <Route path="super-admin" element={<SuperAdminV2Page />}>
                 <Route index element={<SuperAdminV2MainPage />} />
               </Route>

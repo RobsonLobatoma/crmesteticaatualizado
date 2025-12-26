@@ -321,6 +321,45 @@ export type Database = {
         }
         Relationships: []
       }
+      lessons: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          duration: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          youtube_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          youtube_url: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          youtube_url?: string
+        }
+        Relationships: []
+      }
       professional_absences: {
         Row: {
           absence_type: string | null
