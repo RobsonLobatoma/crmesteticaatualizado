@@ -87,6 +87,11 @@ export function AppointmentDetails({
             <div>
               <p className="text-muted-foreground">Serviço</p>
               <p className="font-medium">{appointment.service?.name ?? "-"}</p>
+              {appointment.service?.price != null && (
+                <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                  R$ {Number(appointment.service.price).toFixed(2)}
+                </p>
+              )}
             </div>
             <div>
               <p className="text-muted-foreground">Sala</p>
