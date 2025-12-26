@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/integrations/supabase/AuthProvider";
 
 export interface BusinessHoursConfig {
   start_hour: number;
@@ -27,27 +28,50 @@ const DEFAULT_CONFIG: BusinessHoursConfig = {
 };
 
 export function useBusinessHoursConfig() {
+  const { user } = useAuth();
   const [config, setConfig] = useState<BusinessHoursConfig>(DEFAULT_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
 
+  const getUserKey = () => user ? `user_${user.id}_business_hours` : null;
+
   useEffect(() => {
-    fetchConfig();
-  }, []);
+    if (user) {
+      fetchConfig();
+    }
+  }, [user]);
 
   const fetchConfig = async () => {
+    if (!user) return;
+    
     try {
-      const { data, error } = await supabase
+      const userKey = getUserKey();
+      
+      // Primeiro tenta buscar config do usuário
+      const { data: userData, error: userError } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", userKey)
+        .single();
+
+      if (userData?.value) {
+        setConfig(userData.value as unknown as BusinessHoursConfig);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fallback para config global
+      const { data: globalData, error: globalError } = await supabase
         .from("app_settings")
         .select("value")
         .eq("key", "business_hours_config")
         .single();
 
-      if (error && error.code !== "PGRST116") {
-        throw error;
+      if (globalError && globalError.code !== "PGRST116") {
+        throw globalError;
       }
 
-      if (data?.value) {
-        setConfig(data.value as unknown as BusinessHoursConfig);
+      if (globalData?.value) {
+        setConfig(globalData.value as unknown as BusinessHoursConfig);
       }
     } catch (error) {
       console.error("Erro ao buscar configuração de horários:", error);
@@ -57,11 +81,22 @@ export function useBusinessHoursConfig() {
   };
 
   const saveConfig = async (newConfig: BusinessHoursConfig): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para salvar configurações.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     try {
+      const userKey = getUserKey()!;
+      
       const { data: existingData } = await supabase
         .from("app_settings")
         .select("id")
-        .eq("key", "business_hours_config")
+        .eq("key", userKey)
         .single();
 
       if (existingData) {
@@ -69,15 +104,17 @@ export function useBusinessHoursConfig() {
           .from("app_settings")
           .update({ 
             value: JSON.parse(JSON.stringify(newConfig)),
-            updated_at: new Date().toISOString() 
+            updated_at: new Date().toISOString(),
+            updated_by: user.id
           })
-          .eq("key", "business_hours_config");
+          .eq("key", userKey);
 
         if (error) throw error;
       } else {
         const { error } = await supabase.from("app_settings").insert([{
-          key: "business_hours_config",
+          key: userKey,
           value: JSON.parse(JSON.stringify(newConfig)),
+          updated_by: user.id
         }]);
 
         if (error) throw error;
