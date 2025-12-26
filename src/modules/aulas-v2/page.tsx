@@ -1,14 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,20 +10,53 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Loader2, ExternalLink } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useLessons } from "./hooks/useLessons";
 import { LessonFormModal } from "./components/LessonFormModal";
+import { LessonCard } from "./components/LessonCard";
+import { LessonVideoModal } from "./components/LessonVideoModal";
 import { Lesson, LessonFormData } from "./types/Lesson";
-import { RequireSuperAdmin } from "@/modules/super-admin-v2/components/RequireSuperAdmin";
+import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 
 export default function AulasPage() {
-  const { lessons, loading, createLesson, updateLesson, deleteLesson, toggleActive } =
+  const { lessons, loading, createLesson, updateLesson, deleteLesson } =
     useLessons();
+  const { isSuperAdmin, loading: loadingRole } = useIsSuperAdmin();
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [deletingLesson, setDeletingLesson] = useState<Lesson | null>(null);
+  const [playingLesson, setPlayingLesson] = useState<Lesson | null>(null);
+
+  // Filter lessons: super admins see all, regular users see only active
+  const visibleLessons = useMemo(() => {
+    if (isSuperAdmin) return lessons;
+    return lessons.filter((lesson) => lesson.is_active);
+  }, [lessons, isSuperAdmin]);
+
+  // Group lessons by category
+  const lessonsByCategory = useMemo(() => {
+    const groups: Record<string, Lesson[]> = {};
+
+    visibleLessons.forEach((lesson) => {
+      const category = lesson.category || "Geral";
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(lesson);
+    });
+
+    // Sort lessons within each category by display_order
+    Object.keys(groups).forEach((category) => {
+      groups[category].sort(
+        (a, b) => (a.display_order || 0) - (b.display_order || 0)
+      );
+    });
+
+    return groups;
+  }, [visibleLessons]);
+
+  const categories = Object.keys(lessonsByCategory).sort();
 
   const handleCreate = () => {
     setEditingLesson(null);
@@ -58,127 +82,96 @@ export default function AulasPage() {
     }
   };
 
-  const extractYoutubeId = (url: string) => {
-    const match = url.match(
-      /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
-    );
-    return match ? match[1] : null;
+  const handlePlay = (lesson: Lesson) => {
+    setPlayingLesson(lesson);
   };
 
+  if (loading || loadingRole) {
+    return (
+      <div className="flex flex-1 items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
-    <RequireSuperAdmin>
-      <div className="flex flex-1 flex-col gap-6 px-4 py-8 lg:px-8 w-full min-w-0 overflow-hidden">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Aulas</h1>
-            <p className="text-muted-foreground">
-              Gerencie os vídeos de treinamento e tutoriais
-            </p>
-          </div>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar Vídeo
-          </Button>
+    <div className="flex flex-1 flex-col gap-8 px-4 py-8 lg:px-8 w-full min-w-0 overflow-hidden">
+      {/* Header */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Aulas sobre a Plataforma
+          </h1>
+          <p className="text-muted-foreground">
+            Capacite-se com nossos treinamentos exclusivos.
+          </p>
         </div>
+        {isSuperAdmin && (
+          <Button onClick={handleCreate} className="self-start">
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Aula
+          </Button>
+        )}
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Vídeos Cadastrados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      {/* Content */}
+      {visibleLessons.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center py-16">
+          <p className="text-muted-foreground">
+            {isSuperAdmin
+              ? 'Nenhum vídeo cadastrado. Clique em "Nova Aula" para começar.'
+              : "Nenhum treinamento disponível no momento."}
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-10">
+          {categories.map((category) => (
+            <section key={category}>
+              {/* Category header */}
+              <div className="mb-4 flex items-center gap-4">
+                <h2 className="text-lg font-semibold text-foreground">
+                  {category}
+                </h2>
+                <div className="h-px flex-1 bg-border" />
               </div>
-            ) : lessons.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhum vídeo cadastrado. Clique em "Adicionar Vídeo" para começar.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">Ordem</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="w-24">Duração</TableHead>
-                    <TableHead className="w-20">Status</TableHead>
-                    <TableHead className="w-32 text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lessons.map((lesson) => (
-                    <TableRow key={lesson.id}>
-                      <TableCell className="font-medium">
-                        {lesson.display_order}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{lesson.title}</span>
-                          {extractYoutubeId(lesson.youtube_url) && (
-                            <a
-                              href={lesson.youtube_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-muted-foreground hover:text-primary"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate text-muted-foreground">
-                        {lesson.description || "-"}
-                      </TableCell>
-                      <TableCell>
-                        {lesson.duration ? (
-                          <Badge variant="secondary">{lesson.duration}</Badge>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={lesson.is_active}
-                          onCheckedChange={(checked) =>
-                            toggleActive(lesson.id, checked)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(lesson)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeletingLesson(lesson)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
 
+              {/* Cards grid */}
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {lessonsByCategory[category].map((lesson) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    isSuperAdmin={isSuperAdmin}
+                    onPlay={handlePlay}
+                    onEdit={handleEdit}
+                    onDelete={setDeletingLesson}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {/* Video Modal */}
+      <LessonVideoModal
+        lesson={playingLesson}
+        open={!!playingLesson}
+        onOpenChange={(open) => !open && setPlayingLesson(null)}
+      />
+
+      {/* Form Modal (Super Admin only) */}
+      {isSuperAdmin && (
         <LessonFormModal
           open={formOpen}
           onOpenChange={setFormOpen}
           lesson={editingLesson}
           onSave={handleSave}
         />
+      )}
 
+      {/* Delete Confirmation (Super Admin only) */}
+      {isSuperAdmin && (
         <AlertDialog
           open={!!deletingLesson}
           onOpenChange={(open) => !open && setDeletingLesson(null)}
@@ -202,7 +195,7 @@ export default function AulasPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
-    </RequireSuperAdmin>
+      )}
+    </div>
   );
 }
