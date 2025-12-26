@@ -31,6 +31,7 @@ export function LessonFormModal({
   open,
   onOpenChange,
   lesson,
+  onSave,
 }: LessonFormModalProps) {
   const [formData, setFormData] = useState<LessonFormData>({
     title: "",
@@ -81,9 +82,12 @@ export function LessonFormModal({
     }
 
     setSaving(true);
-    // onSave will be called from parent
+    const success = await onSave(formData);
     setSaving(false);
-    onOpenChange(false);
+
+    if (success) {
+      onOpenChange(false);
+    }
   };
 
   return (
