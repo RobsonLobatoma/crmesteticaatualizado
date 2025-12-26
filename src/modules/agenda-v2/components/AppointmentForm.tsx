@@ -185,18 +185,6 @@ export function AppointmentForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            {selectedClient && (
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">CPF</Label>
-                  <Input value={selectedClient.cpf ?? "-"} disabled className="h-8 text-sm" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Nascimento</Label>
-                  <Input value={selectedClient.birth_date ?? "-"} disabled className="h-8 text-sm" />
-                </div>
-              </div>
-            )}
           </div>
         ),
       });
