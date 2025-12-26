@@ -18,6 +18,7 @@ import {
   Package,
   UserCog,
   LineChart,
+  GraduationCap,
 } from "lucide-react";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -170,6 +171,18 @@ export const AppLayout = () => {
                       >
                         <Settings2 />
                         <span>Configurações</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Aulas e tutoriais">
+                      <NavLink
+                        to="/aulas"
+                        className="flex items-center gap-2"
+                        activeClassName="data-[active=true]"
+                      >
+                        <GraduationCap />
+                        <span>Aulas</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
