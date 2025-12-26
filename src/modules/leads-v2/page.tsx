@@ -509,8 +509,8 @@ const LeadsV2Page = () => {
               <div className="md:col-span-1">
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Valor Fechado (R$)</label>
                 <Input
-                  type="number"
-                  placeholder="0,00"
+                  type="text"
+                  placeholder="Ex: R$ 1.500,00"
                   value={newLead.valorFechado}
                   onChange={(e) => handleChange("valorFechado", e.target.value)}
                 />
@@ -822,7 +822,7 @@ const LeadsV2Page = () => {
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                         {isEditing ? (
                           <Input
-                            type="number"
+                            type="text"
                             className="h-8 text-xs"
                             value={current.valorFechado || ""}
                             onChange={(e) => handleEditingChange("valorFechado", e.target.value)}
