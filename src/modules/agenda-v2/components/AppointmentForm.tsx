@@ -336,14 +336,16 @@ export function AppointmentForm({
           <div key="room" className="space-y-2">
             <Label>{getFieldLabel("room", "Sala")} {isFieldRequired("room") && "*"}</Label>
             <Select
-              value={formData.room_id ?? ""}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, room_id: value === "" ? undefined : value }))}
+              value={formData.room_id ?? "_none"}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, room_id: value === "_none" ? undefined : value }))
+              }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecionar sala" />
+                <SelectValue placeholder="Nenhuma" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="_none">Nenhuma</SelectItem>
                 {rooms?.map((room) => (
                   <SelectItem key={room.id} value={room.id}>
                     {room.name}
