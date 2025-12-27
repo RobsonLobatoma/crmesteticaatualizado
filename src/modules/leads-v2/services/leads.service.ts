@@ -32,6 +32,16 @@ class LeadsService {
       dataFechamento: row.data_fechamento || undefined,
       valorFechado: row.valor_fechado || undefined,
       observacao: row.observacao || undefined,
+      // Novos campos de endereço
+      dataNascimento: row.data_nascimento || undefined,
+      cpf: row.cpf || undefined,
+      cep: row.cep || undefined,
+      endereco: row.endereco || undefined,
+      bairro: row.bairro || undefined,
+      cidade: row.cidade || undefined,
+      estado: row.estado || undefined,
+      numero: row.numero || undefined,
+      complemento: row.complemento || undefined,
     };
   }
 
@@ -134,6 +144,16 @@ class LeadsService {
       ...("dataFechamento" in rest && { data_fechamento: rest.dataFechamento }),
       ...("valorFechado" in rest && { valor_fechado: rest.valorFechado }),
       ...("observacao" in rest && { observacao: rest.observacao }),
+      // Novos campos de endereço
+      ...("dataNascimento" in rest && { data_nascimento: rest.dataNascimento }),
+      ...("cpf" in rest && { cpf: rest.cpf }),
+      ...("cep" in rest && { cep: rest.cep }),
+      ...("endereco" in rest && { endereco: rest.endereco }),
+      ...("bairro" in rest && { bairro: rest.bairro }),
+      ...("cidade" in rest && { cidade: rest.cidade }),
+      ...("estado" in rest && { estado: rest.estado }),
+      ...("numero" in rest && { numero: rest.numero }),
+      ...("complemento" in rest && { complemento: rest.complemento }),
     };
 
     const { data, error } = await supabase

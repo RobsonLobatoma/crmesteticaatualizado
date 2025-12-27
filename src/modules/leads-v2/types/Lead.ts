@@ -15,6 +15,16 @@ export interface Lead {
   dataFechamento?: string;
   valorFechado?: string;
   observacao?: string;
+  // Novos campos de endereço
+  dataNascimento?: string;
+  cpf?: string;
+  cep?: string;
+  endereco?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  numero?: string;
+  complemento?: string;
 }
 
 // DTO para criação (campos obrigatórios mínimos)
