@@ -55,6 +55,7 @@ const LeadsV2Page = () => {
     complemento: "",
   });
   const [cepLoading, setCepLoading] = useState(false);
+  const [editingCepLoading, setEditingCepLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -99,6 +100,35 @@ const LeadsV2Page = () => {
 
   const handleEditingChange = (field: keyof Lead, value: string) => {
     setEditingLead((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const handleEditingCepChange = async (value: string) => {
+    const formattedCep = formatCep(value);
+    handleEditingChange("cep", formattedCep);
+
+    const cleanCep = value.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      setEditingCepLoading(true);
+      try {
+        const address = await fetchAddressByCep(cleanCep);
+        if (address && editingLead) {
+          setEditingLead((prev) => prev ? {
+            ...prev,
+            endereco: address.logradouro,
+            bairro: address.bairro,
+            cidade: address.localidade,
+            estado: address.uf,
+          } : prev);
+        }
+      } finally {
+        setEditingCepLoading(false);
+      }
+    }
+  };
+
+  const handleEditingCpfChange = (value: string) => {
+    const formattedCpf = formatCpf(value);
+    handleEditingChange("cpf", formattedCpf);
   };
 
   const handleAddLead = async () => {
@@ -785,6 +815,15 @@ const LeadsV2Page = () => {
                   <TableHead>Compareceu?</TableHead>
                   <TableHead>Data Fechamento</TableHead>
                   <TableHead>Valor Fechado (R$)</TableHead>
+                  <TableHead>Data de Nascimento</TableHead>
+                  <TableHead>CPF</TableHead>
+                  <TableHead>CEP</TableHead>
+                  <TableHead>Endereço</TableHead>
+                  <TableHead>Número</TableHead>
+                  <TableHead>Bairro</TableHead>
+                  <TableHead>Cidade</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Complemento</TableHead>
                   <TableHead>Objeção / Observação</TableHead>
                   <TableHead className="w-[1%] whitespace-nowrap text-right">Ações</TableHead>
                 </TableRow>
@@ -969,6 +1008,124 @@ const LeadsV2Page = () => {
                           />
                         ) : (
                           current.valorFechado
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="date"
+                            className="h-8 text-xs"
+                            value={current.dataNascimento || ""}
+                            onChange={(e) => handleEditingChange("dataNascimento", e.target.value)}
+                          />
+                        ) : (
+                          current.dataNascimento
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            className="h-8 text-xs"
+                            placeholder="000.000.000-00"
+                            maxLength={14}
+                            value={current.cpf || ""}
+                            onChange={(e) => handleEditingCpfChange(e.target.value)}
+                          />
+                        ) : (
+                          current.cpf
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <div className="relative">
+                            <Input
+                              type="text"
+                              className="h-8 text-xs"
+                              placeholder="00000-000"
+                              maxLength={9}
+                              value={current.cep || ""}
+                              onChange={(e) => handleEditingCepChange(e.target.value)}
+                            />
+                            {editingCepLoading && (
+                              <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                            )}
+                          </div>
+                        ) : (
+                          current.cep ? formatCep(current.cep) : ""
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            className="h-8 text-xs"
+                            value={current.endereco || ""}
+                            onChange={(e) => handleEditingChange("endereco", e.target.value)}
+                          />
+                        ) : (
+                          current.endereco
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            className="h-8 text-xs"
+                            value={current.numero || ""}
+                            onChange={(e) => handleEditingChange("numero", e.target.value)}
+                          />
+                        ) : (
+                          current.numero
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            className="h-8 text-xs"
+                            value={current.bairro || ""}
+                            onChange={(e) => handleEditingChange("bairro", e.target.value)}
+                          />
+                        ) : (
+                          current.bairro
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            className="h-8 text-xs"
+                            value={current.cidade || ""}
+                            onChange={(e) => handleEditingChange("cidade", e.target.value)}
+                          />
+                        ) : (
+                          current.cidade
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            className="h-8 text-xs"
+                            maxLength={2}
+                            value={current.estado || ""}
+                            onChange={(e) => handleEditingChange("estado", e.target.value.toUpperCase())}
+                          />
+                        ) : (
+                          current.estado
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {isEditing ? (
+                          <Input
+                            type="text"
+                            className="h-8 text-xs"
+                            value={current.complemento || ""}
+                            onChange={(e) => handleEditingChange("complemento", e.target.value)}
+                          />
+                        ) : (
+                          current.complemento
                         )}
                       </TableCell>
                       <TableCell className="max-w-[220px] truncate text-xs text-muted-foreground">
