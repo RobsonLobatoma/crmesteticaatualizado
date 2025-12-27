@@ -141,14 +141,34 @@ const LeadsV2Page = () => {
       return;
     }
 
-    const hoje = new Date().toLocaleDateString("pt-BR");
+    // Normaliza strings vazias para undefined
+    const normalize = (val: string | undefined) => (val && val.trim() !== "" ? val : undefined);
 
     try {
       await createLead({
         nome: newLead.nome,
         contato: newLead.contato,
-        responsavel: newLead.responsavel || "-",
-        origem: newLead.origem || "Manual",
+        responsavel: normalize(newLead.responsavel) || "-",
+        origem: normalize(newLead.origem) || "Manual",
+        procedimento: normalize(newLead.procedimento),
+        status: normalize(newLead.status) || "Novo(hoje)",
+        dataEntrada: normalize(newLead.dataEntrada),
+        dataUltimoContato: normalize(newLead.dataUltimoContato),
+        dataAgendamento: normalize(newLead.dataAgendamento),
+        dataAvaliacao: normalize(newLead.dataAvaliacao),
+        compareceu: normalize(newLead.compareceu),
+        dataFechamento: normalize(newLead.dataFechamento),
+        valorFechado: normalize(newLead.valorFechado),
+        observacao: normalize(newLead.observacao),
+        dataNascimento: normalize(newLead.dataNascimento),
+        cpf: normalize(newLead.cpf),
+        cep: normalize(newLead.cep),
+        endereco: normalize(newLead.endereco),
+        numero: normalize(newLead.numero),
+        bairro: normalize(newLead.bairro),
+        cidade: normalize(newLead.cidade),
+        estado: normalize(newLead.estado),
+        complemento: normalize(newLead.complemento),
       });
 
       setNewLead({
@@ -165,7 +185,7 @@ const LeadsV2Page = () => {
         dataFechamento: "",
         valorFechado: "",
         observacao: "",
-        status: "Novo lead",
+        status: "Novo(hoje)",
         dataNascimento: "",
         cpf: "",
         cep: "",
