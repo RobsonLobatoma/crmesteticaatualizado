@@ -87,25 +87,33 @@ class LeadsService {
 
     const hoje = this.getHojePtBr();
 
-    const dtoAny: any = dto;
-
     const insertPayload = {
       user_id: userId,
-      data: dtoAny.data || hoje,
+      data: dto.dataEntrada || hoje,
       responsavel: dto.responsavel || "-",
       nome: dto.nome,
       contato: dto.contato,
       origem: dto.origem || "Manual",
-      procedimento: dtoAny.procedimento || "-",
-      status: dtoAny.status || "Novo lead",
-      data_entrada: dtoAny.dataEntrada || hoje,
-      data_ultimo_contato: dtoAny.dataUltimoContato || null,
-      data_agendamento: dtoAny.dataAgendamento || null,
-      data_avaliacao: dtoAny.dataAvaliacao || null,
-      compareceu: dtoAny.compareceu || null,
-      data_fechamento: dtoAny.dataFechamento || null,
-      valor_fechado: dtoAny.valorFechado || null,
-      observacao: dtoAny.observacao || null,
+      procedimento: dto.procedimento || "-",
+      status: dto.status || "Novo lead",
+      data_entrada: dto.dataEntrada || hoje,
+      data_ultimo_contato: dto.dataUltimoContato || null,
+      data_agendamento: dto.dataAgendamento || null,
+      data_avaliacao: dto.dataAvaliacao || null,
+      compareceu: dto.compareceu || null,
+      data_fechamento: dto.dataFechamento || null,
+      valor_fechado: dto.valorFechado || null,
+      observacao: dto.observacao || null,
+      // Campos de endereço
+      data_nascimento: dto.dataNascimento || null,
+      cpf: dto.cpf || null,
+      cep: dto.cep || null,
+      endereco: dto.endereco || null,
+      bairro: dto.bairro || null,
+      cidade: dto.cidade || null,
+      estado: dto.estado || null,
+      numero: dto.numero || null,
+      complemento: dto.complemento || null,
     };
 
     const { data, error } = await supabase
