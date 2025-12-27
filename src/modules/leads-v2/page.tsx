@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, PlusCircle } from "lucide-react";
+import { BarChart3, PlusCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Lead } from "./types/Lead";
 import { useLeads } from "./hooks/useLeads";
+import { fetchAddressByCep, formatCep, formatCpf } from "./utils/cepUtils";
 
 const LeadsV2Page = () => {
   const { toast } = useToast();
@@ -42,7 +43,18 @@ const LeadsV2Page = () => {
     valorFechado: "",
     observacao: "",
     status: "Novo lead",
+    // Novos campos
+    dataNascimento: "",
+    cpf: "",
+    cep: "",
+    endereco: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
+    numero: "",
+    complemento: "",
   });
+  const [cepLoading, setCepLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -54,6 +66,35 @@ const LeadsV2Page = () => {
 
   const handleChange = (field: keyof typeof newLead, value: string) => {
     setNewLead((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCepChange = async (value: string) => {
+    const formattedCep = formatCep(value);
+    handleChange("cep", formattedCep);
+
+    const cleanCep = value.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      setCepLoading(true);
+      try {
+        const address = await fetchAddressByCep(cleanCep);
+        if (address) {
+          setNewLead((prev) => ({
+            ...prev,
+            endereco: address.logradouro,
+            bairro: address.bairro,
+            cidade: address.localidade,
+            estado: address.uf,
+          }));
+        }
+      } finally {
+        setCepLoading(false);
+      }
+    }
+  };
+
+  const handleCpfChange = (value: string) => {
+    const formattedCpf = formatCpf(value);
+    handleChange("cpf", formattedCpf);
   };
 
   const handleEditingChange = (field: keyof Lead, value: string) => {
@@ -95,6 +136,15 @@ const LeadsV2Page = () => {
         valorFechado: "",
         observacao: "",
         status: "Novo lead",
+        dataNascimento: "",
+        cpf: "",
+        cep: "",
+        endereco: "",
+        bairro: "",
+        cidade: "",
+        estado: "",
+        numero: "",
+        complemento: "",
       });
     } catch {
       // Os toasts de erro já são tratados dentro do hook useLeads
@@ -513,6 +563,96 @@ const LeadsV2Page = () => {
                   placeholder="Ex: R$ 1.500,00"
                   value={newLead.valorFechado}
                   onChange={(e) => handleChange("valorFechado", e.target.value)}
+                />
+              </div>
+              
+              {/* Novos campos de endereço */}
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data de Nascimento</label>
+                <Input
+                  type="date"
+                  value={newLead.dataNascimento}
+                  onChange={(e) => handleChange("dataNascimento", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">CPF</label>
+                <Input
+                  type="text"
+                  placeholder="000.000.000-00"
+                  maxLength={14}
+                  value={newLead.cpf}
+                  onChange={(e) => handleCpfChange(e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">CEP</label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="00000-000"
+                    maxLength={9}
+                    value={newLead.cep}
+                    onChange={(e) => handleCepChange(e.target.value)}
+                  />
+                  {cepLoading && (
+                    <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Endereço</label>
+                <Input
+                  type="text"
+                  placeholder="Rua, Avenida..."
+                  value={newLead.endereco}
+                  onChange={(e) => handleChange("endereco", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Número</label>
+                <Input
+                  type="text"
+                  placeholder="Nº"
+                  value={newLead.numero}
+                  onChange={(e) => handleChange("numero", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Bairro</label>
+                <Input
+                  type="text"
+                  placeholder="Bairro"
+                  value={newLead.bairro}
+                  onChange={(e) => handleChange("bairro", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Cidade</label>
+                <Input
+                  type="text"
+                  placeholder="Cidade"
+                  value={newLead.cidade}
+                  onChange={(e) => handleChange("cidade", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Estado</label>
+                <Input
+                  type="text"
+                  placeholder="UF"
+                  maxLength={2}
+                  value={newLead.estado}
+                  onChange={(e) => handleChange("estado", e.target.value.toUpperCase())}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Complemento</label>
+                <Input
+                  type="text"
+                  placeholder="Apto, Bloco..."
+                  value={newLead.complemento}
+                  onChange={(e) => handleChange("complemento", e.target.value)}
                 />
               </div>
               <div className="md:col-span-3 lg:col-span-6">

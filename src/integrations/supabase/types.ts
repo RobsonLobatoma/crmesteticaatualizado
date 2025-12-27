@@ -317,17 +317,26 @@ export type Database = {
       }
       leads: {
         Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
           compareceu: string | null
+          complemento: string | null
           contato: string
+          cpf: string | null
           created_at: string
           data: string | null
           data_agendamento: string | null
           data_avaliacao: string | null
           data_entrada: string | null
           data_fechamento: string | null
+          data_nascimento: string | null
           data_ultimo_contato: string | null
+          endereco: string | null
+          estado: string | null
           id: string
           nome: string
+          numero: string | null
           observacao: string | null
           origem: string | null
           procedimento: string | null
@@ -338,17 +347,26 @@ export type Database = {
           valor_fechado: string | null
         }
         Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
           compareceu?: string | null
+          complemento?: string | null
           contato: string
+          cpf?: string | null
           created_at?: string
           data?: string | null
           data_agendamento?: string | null
           data_avaliacao?: string | null
           data_entrada?: string | null
           data_fechamento?: string | null
+          data_nascimento?: string | null
           data_ultimo_contato?: string | null
+          endereco?: string | null
+          estado?: string | null
           id?: string
           nome: string
+          numero?: string | null
           observacao?: string | null
           origem?: string | null
           procedimento?: string | null
@@ -359,17 +377,26 @@ export type Database = {
           valor_fechado?: string | null
         }
         Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
           compareceu?: string | null
+          complemento?: string | null
           contato?: string
+          cpf?: string | null
           created_at?: string
           data?: string | null
           data_agendamento?: string | null
           data_avaliacao?: string | null
           data_entrada?: string | null
           data_fechamento?: string | null
+          data_nascimento?: string | null
           data_ultimo_contato?: string | null
+          endereco?: string | null
+          estado?: string | null
           id?: string
           nome?: string
+          numero?: string | null
           observacao?: string | null
           origem?: string | null
           procedimento?: string | null
