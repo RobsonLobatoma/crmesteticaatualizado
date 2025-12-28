@@ -21,10 +21,56 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import type { Service } from "../hooks/useMasterData";
 
+// Converte texto livre para minutos
+const parseDurationToMinutes = (input: string): number | null => {
+  const trimmed = input.trim().toLowerCase();
+  if (!trimmed) return null;
+  
+  // Formato "1h30" ou "1h30m" ou "1h 30"
+  const hourMinMatch = trimmed.match(/^(\d+)\s*h\s*(\d+)?\s*m?i?n?$/);
+  if (hourMinMatch) {
+    const hours = parseInt(hourMinMatch[1], 10);
+    const mins = hourMinMatch[2] ? parseInt(hourMinMatch[2], 10) : 0;
+    return hours * 60 + mins;
+  }
+  
+  // Formato "1:30" (hora:minuto)
+  const colonMatch = trimmed.match(/^(\d+):(\d+)$/);
+  if (colonMatch) {
+    const hours = parseInt(colonMatch[1], 10);
+    const mins = parseInt(colonMatch[2], 10);
+    return hours * 60 + mins;
+  }
+  
+  // Formato "90min" ou "90m" ou "90 minutos" ou apenas número
+  const minMatch = trimmed.match(/^(\d+)\s*(min|m|minutos)?$/);
+  if (minMatch) {
+    return parseInt(minMatch[1], 10);
+  }
+  
+  // Formato apenas "1h"
+  const hourOnlyMatch = trimmed.match(/^(\d+)\s*h$/);
+  if (hourOnlyMatch) {
+    return parseInt(hourOnlyMatch[1], 10) * 60;
+  }
+  
+  return null;
+};
+
+// Converte minutos para formato legível
+const formatMinutesToDisplay = (minutes: number | null | undefined): string => {
+  if (!minutes) return "";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h > 0 && m > 0) return `${h}h${m}min`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
+};
+
 const schema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(100),
   price: z.coerce.number().min(0, "Preço deve ser positivo").optional(),
-  duration_minutes: z.coerce.number().min(5, "Mínimo 5 minutos").max(480, "Máximo 8 horas").optional(),
+  duration: z.string().optional(),
   is_active: z.boolean(),
 });
 
@@ -47,7 +93,7 @@ export function ServiceFormModal({ open, onOpenChange, service, onSave, userId }
     defaultValues: {
       name: "",
       price: 0,
-      duration_minutes: 60,
+      duration: "1h",
       is_active: true,
     },
   });
@@ -58,14 +104,14 @@ export function ServiceFormModal({ open, onOpenChange, service, onSave, userId }
         form.reset({
           name: service.name,
           price: service.price ?? 0,
-          duration_minutes: service.duration_minutes ?? 60,
+          duration: formatMinutesToDisplay(service.duration_minutes),
           is_active: service.is_active,
         });
       } else {
         form.reset({
           name: "",
           price: 0,
-          duration_minutes: 60,
+          duration: "1h",
           is_active: true,
         });
       }
@@ -74,10 +120,16 @@ export function ServiceFormModal({ open, onOpenChange, service, onSave, userId }
 
   const handleSubmit = async (values: FormValues) => {
     setIsSaving(true);
+    
+    // Converte o texto de duração para minutos
+    const durationMinutes = values.duration 
+      ? parseDurationToMinutes(values.duration) 
+      : 60;
+    
     const data = {
       name: values.name,
       price: values.price ?? null,
-      duration_minutes: values.duration_minutes ?? 60,
+      duration_minutes: durationMinutes ?? 60,
       is_active: values.is_active,
       user_id: userId,
     };
@@ -127,12 +179,16 @@ export function ServiceFormModal({ open, onOpenChange, service, onSave, userId }
 
             <FormField
               control={form.control}
-              name="duration_minutes"
+              name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Duração (minutos)</FormLabel>
+                  <FormLabel>Duração</FormLabel>
                   <FormControl>
-                    <Input type="text" inputMode="numeric" placeholder="60" {...field} />
+                    <Input 
+                      type="text" 
+                      placeholder="1h30, 1:30, 90min, 2h" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
