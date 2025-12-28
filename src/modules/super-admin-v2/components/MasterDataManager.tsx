@@ -282,11 +282,20 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      servicesHook.services.map((s) => (
+                      servicesHook.services.map((s) => {
+                        const formatDuration = (minutes: number | null | undefined): string => {
+                          if (!minutes) return "-";
+                          const h = Math.floor(minutes / 60);
+                          const m = minutes % 60;
+                          if (h > 0 && m > 0) return `${h}h${m}min`;
+                          if (h > 0) return `${h}h`;
+                          return `${m}min`;
+                        };
+                        return (
                         <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
                           <TableCell>{formatCurrency(s.price)}</TableCell>
-                          <TableCell>{s.duration_minutes ? `${s.duration_minutes} min` : "-"}</TableCell>
+                          <TableCell>{formatDuration(s.duration_minutes)}</TableCell>
                           <TableCell>
                             <Badge variant={s.is_active ? "default" : "secondary"}>
                               {s.is_active ? "Ativo" : "Inativo"}
@@ -317,7 +326,8 @@ export function MasterDataManager({ open, onOpenChange }: Props) {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
