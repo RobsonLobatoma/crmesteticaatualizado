@@ -1,3 +1,11 @@
+// Interface para Tags personalizadas de leads
+export interface LeadTag {
+  id: string;
+  name: string;
+  color: string;
+  is_active: boolean;
+}
+
 // Interface idêntica ao Leads original
 export interface Lead {
   id: string;
@@ -25,6 +33,8 @@ export interface Lead {
   estado?: string;
   numero?: string;
   complemento?: string;
+  // Campo de tags
+  tags?: string[];
 }
 
 // DTO para criação (campos obrigatórios mínimos + opcionais)
@@ -53,6 +63,8 @@ export interface CreateLeadDTO {
   estado?: string;
   numero?: string;
   complemento?: string;
+  // Tags
+  tags?: string[];
 }
 
 // DTO para edição (todos opcionais exceto id)
