@@ -42,6 +42,8 @@ class LeadsService {
       estado: row.estado || undefined,
       numero: row.numero || undefined,
       complemento: row.complemento || undefined,
+      // Tags
+      tags: row.tags || [],
     };
   }
 
@@ -114,6 +116,8 @@ class LeadsService {
       estado: dto.estado || null,
       numero: dto.numero || null,
       complemento: dto.complemento || null,
+      // Tags
+      tags: dto.tags || [],
     };
 
     const { data, error } = await supabase
@@ -162,6 +166,8 @@ class LeadsService {
       ...("estado" in rest && { estado: rest.estado }),
       ...("numero" in rest && { numero: rest.numero }),
       ...("complemento" in rest && { complemento: rest.complemento }),
+      // Tags
+      ...("tags" in rest && { tags: rest.tags }),
     };
 
     const { data, error } = await supabase

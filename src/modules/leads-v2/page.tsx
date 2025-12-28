@@ -23,11 +23,16 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Lead } from "./types/Lead";
 import { useLeads } from "./hooks/useLeads";
+import { useLeadTags } from "./hooks/useLeadTags";
 import { fetchAddressByCep, formatCep, formatCpf } from "./utils/cepUtils";
+import { TagsManager } from "./components/TagsManager";
+import { TagsSelector, TagsBadges } from "./components/TagsSelector";
 
 const LeadsV2Page = () => {
   const { toast } = useToast();
   const { leads, createLead, updateLead, deleteLead } = useLeads();
+  const { tags: availableTags, refresh: refreshTags } = useLeadTags();
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [newLead, setNewLead] = useState<Omit<Lead, "id" | "status"> & { status?: string }>({
     dataEntrada: "",
     responsavel: "",
@@ -53,11 +58,13 @@ const LeadsV2Page = () => {
     estado: "",
     numero: "",
     complemento: "",
+    tags: [],
   });
   const [cepLoading, setCepLoading] = useState(false);
   const [editingCepLoading, setEditingCepLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [editingTags, setEditingTags] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [responsavelFilter, setResponsavelFilter] = useState<string>("");
   const [origemFilter, setOrigemFilter] = useState<string>("");
@@ -169,6 +176,7 @@ const LeadsV2Page = () => {
         cidade: normalize(newLead.cidade),
         estado: normalize(newLead.estado),
         complemento: normalize(newLead.complemento),
+        tags: selectedTags,
       });
 
       setNewLead({
@@ -195,7 +203,9 @@ const LeadsV2Page = () => {
         estado: "",
         numero: "",
         complemento: "",
+        tags: [],
       });
+      setSelectedTags([]);
     } catch {
       // Os toasts de erro já são tratados dentro do hook useLeads
     }
@@ -204,11 +214,13 @@ const LeadsV2Page = () => {
   const handleStartEdit = (lead: Lead) => {
     setEditingId(lead.id);
     setEditingLead(lead);
+    setEditingTags(lead.tags || []);
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditingLead(null);
+    setEditingTags([]);
   };
 
   const handleSaveEdit = async () => {
@@ -224,9 +236,10 @@ const LeadsV2Page = () => {
     }
 
     try {
-      await updateLead(editingLead);
+      await updateLead({ ...editingLead, tags: editingTags });
       setEditingId(null);
       setEditingLead(null);
+      setEditingTags([]);
     } catch {
       // Os toasts de erro já são tratados dentro do hook useLeads
     }
@@ -435,6 +448,7 @@ const LeadsV2Page = () => {
                     <TableHead className="text-[11px]">Responsável</TableHead>
                     <TableHead className="text-[11px]">Origem</TableHead>
                     <TableHead className="text-[11px]">Status</TableHead>
+                    <TableHead className="text-[11px]">Tags</TableHead>
                     <TableHead className="text-[11px]">Data entrada</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -446,6 +460,9 @@ const LeadsV2Page = () => {
                       <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
                       <TableCell className="text-[11px]">{lead.origem}</TableCell>
                       <TableCell className="text-[11px]">{lead.status}</TableCell>
+                      <TableCell className="text-[11px]">
+                        <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
+                      </TableCell>
                       <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
                     </TableRow>
                   ))}
@@ -468,15 +485,18 @@ const LeadsV2Page = () => {
                   Preencha a linha abaixo para cadastrar rapidamente um lead recebido hoje.
                 </CardDescription>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="inline-flex items-center gap-1 rounded-full border-border/80 bg-surface-subtle text-xs"
-                onClick={handleAddLead}
-              >
-                <PlusCircle className="h-3 w-3" />
-                Salvar lead
-              </Button>
+              <div className="flex items-center gap-2">
+                <TagsManager onTagsChange={refreshTags} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="inline-flex items-center gap-1 rounded-full border-border/80 bg-surface-subtle text-xs"
+                  onClick={handleAddLead}
+                >
+                  <PlusCircle className="h-3 w-3" />
+                  Salvar lead
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-3 pt-0">
@@ -705,7 +725,16 @@ const LeadsV2Page = () => {
                   onChange={(e) => handleChange("complemento", e.target.value)}
                 />
               </div>
-              <div className="md:col-span-3 lg:col-span-6">
+              <div className="md:col-span-2 lg:col-span-2">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Tags</label>
+                <TagsSelector
+                  availableTags={availableTags}
+                  selectedTagIds={selectedTags}
+                  onChange={setSelectedTags}
+                  placeholder="Selecionar tags..."
+                />
+              </div>
+              <div className="md:col-span-3 lg:col-span-4">
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Objeção / Observação</label>
                 <Input
                   placeholder="Detalhes importantes do lead (interesse, objeção, procedimento...)"
@@ -844,6 +873,7 @@ const LeadsV2Page = () => {
                   <TableHead>Cidade</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Complemento</TableHead>
+                  <TableHead>Tags</TableHead>
                   <TableHead>Objeção / Observação</TableHead>
                   <TableHead className="w-[1%] whitespace-nowrap text-right">Ações</TableHead>
                 </TableRow>
@@ -1146,6 +1176,18 @@ const LeadsV2Page = () => {
                           />
                         ) : (
                           current.complemento
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs">
+                        {isEditing ? (
+                          <TagsSelector
+                            availableTags={availableTags}
+                            selectedTagIds={editingTags}
+                            onChange={setEditingTags}
+                            className="w-[200px]"
+                          />
+                        ) : (
+                          <TagsBadges tags={availableTags} tagIds={current.tags || []} maxVisible={2} size="xs" />
                         )}
                       </TableCell>
                       <TableCell className="max-w-[220px] truncate text-xs text-muted-foreground">

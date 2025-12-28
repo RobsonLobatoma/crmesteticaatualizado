@@ -315,6 +315,33 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_tags: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           bairro: string | null
@@ -342,6 +369,7 @@ export type Database = {
           procedimento: string | null
           responsavel: string | null
           status: string
+          tags: string[] | null
           updated_at: string
           user_id: string
           valor_fechado: string | null
@@ -372,6 +400,7 @@ export type Database = {
           procedimento?: string | null
           responsavel?: string | null
           status?: string
+          tags?: string[] | null
           updated_at?: string
           user_id: string
           valor_fechado?: string | null
@@ -402,6 +431,7 @@ export type Database = {
           procedimento?: string | null
           responsavel?: string | null
           status?: string
+          tags?: string[] | null
           updated_at?: string
           user_id?: string
           valor_fechado?: string | null
