@@ -14,11 +14,17 @@ const colunasDefault = [
   { id: 'novo', titulo: 'Novo', cor: 'bg-blue-500' },
   { id: 'qualificacao', titulo: 'Em qualificação', cor: 'bg-yellow-500' },
   { id: 'aguardando', titulo: 'Aguardando atendente', cor: 'bg-orange-500' },
-  { id: 'atendimento', titulo: 'Em atendimento', cor: 'bg-green-500' },
-  { id: 'finalizado', titulo: 'Finalizado', cor: 'bg-emerald-600' },
+  { id: 'em_atendimento', titulo: 'Em atendimento', cor: 'bg-green-500' },
+  { id: 'fechou', titulo: 'Fechou', cor: 'bg-emerald-600' },
   { id: 'perdido', titulo: 'Perdido', cor: 'bg-red-500' },
   { id: 'voltar', titulo: 'Voltar contato', cor: 'bg-purple-500' },
 ];
+
+// Mapear status legados para novos slugs
+const statusLegacyMap: Record<string, string> = {
+  'finalizado': 'fechou',
+  'atendimento': 'em_atendimento',
+};
 
 const PainelV2Page = () => {
   const { toast } = useToast();
@@ -47,25 +53,31 @@ const PainelV2Page = () => {
     : colunasDefault;
 
   // Mapear clientes do banco para o formato esperado pelo componente
+  // Aplica mapeamento de status legados para novos slugs
   const clientes: ClientePotencial[] = useMemo(() => {
-    return clients.map(c => ({
-      id: c.id,
-      nome: c.nome,
-      telefone: c.telefone,
-      email: c.email || undefined,
-      status: c.status as ClientePotencial['status'],
-      responsavel: c.responsavel || undefined,
-      origem: c.origem || undefined,
-      ultimaMensagem: c.ultima_mensagem || undefined,
-      horarioUltimaMensagem: c.horario_ultima_mensagem || undefined,
-      dataCriacao: c.data_criacao,
-      ultimaInteracao: c.ultima_interacao,
-      tags: c.tags || [],
-      observacoes: c.observacoes || undefined,
-      totalMensagens: c.total_mensagens,
-      mensagensNaoLidas: c.mensagens_nao_lidas,
-      urgente: c.urgente,
-    }));
+    return clients.map(c => {
+      // Mapeia status legado para novo slug se necessário
+      const mappedStatus = statusLegacyMap[c.status] || c.status;
+      
+      return {
+        id: c.id,
+        nome: c.nome,
+        telefone: c.telefone,
+        email: c.email || undefined,
+        status: mappedStatus as ClientePotencial['status'],
+        responsavel: c.responsavel || undefined,
+        origem: c.origem || undefined,
+        ultimaMensagem: c.ultima_mensagem || undefined,
+        horarioUltimaMensagem: c.horario_ultima_mensagem || undefined,
+        dataCriacao: c.data_criacao,
+        ultimaInteracao: c.ultima_interacao,
+        tags: c.tags || [],
+        observacoes: c.observacoes || undefined,
+        totalMensagens: c.total_mensagens,
+        mensagensNaoLidas: c.mensagens_nao_lidas,
+        urgente: c.urgente,
+      };
+    });
   }, [clients]);
 
   const handleDragStart = (event: any) => {

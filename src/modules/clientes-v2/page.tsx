@@ -1,18 +1,39 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CLIENTS, VISITS } from "./mock";
-import type { ClientSummary } from "./types";
 import { TableCard } from "@/components/dashboard/TableCard";
+import { useClients, Client } from "./hooks/useClients";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ClientesV2Page = () => {
-  const [selectedClient, setSelectedClient] = useState<ClientSummary | null>(null);
+  const { clients, isLoading } = useClients();
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const clientVisits = useMemo(
-    () => (selectedClient ? VISITS.filter((v) => v.clientId === selectedClient.id) : []),
-    [selectedClient]
-  );
+  // Calcula idade a partir da data de nascimento
+  const calculateAge = (birthDate: string | null): number | null => {
+    if (!birthDate) return null;
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Extrai cidade do endereço (formato: "rua, num - bairro, cidade/estado")
+  const extractCity = (address: string | null): string => {
+    if (!address) return "-";
+    const parts = address.split(",");
+    if (parts.length >= 2) {
+      const lastPart = parts[parts.length - 1].trim();
+      const cityState = lastPart.split("/");
+      return cityState[0]?.trim() || "-";
+    }
+    return "-";
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 px-4 py-8 lg:px-8">
@@ -26,30 +47,45 @@ const ClientesV2Page = () => {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)]">
         <TableCard title="Pacientes">
           <div className="space-y-1">
-            {CLIENTS.map((client) => {
-              const isSelected = selectedClient?.id === client.id;
-              return (
-                <button
-                  key={client.id}
-                  type="button"
-                  onClick={() => setSelectedClient(client)}
-                  className={`flex w-full items-center justify-between border-b px-4 py-3 text-left text-sm transition-colors last:border-b-0 ${
-                    isSelected ? "bg-primary/5" : "hover:bg-surface-elevated/70"
-                  }`}
-                >
-                  <div>
-                    <p className="font-medium">{client.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {client.city} • {client.phone}
-                    </p>
-                  </div>
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>Última visita</p>
-                    <p className="font-medium text-foreground">{client.lastVisit}</p>
-                  </div>
-                </button>
-              );
-            })}
+            {isLoading ? (
+              <div className="space-y-2 p-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : clients.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground">Nenhum cliente cadastrado.</p>
+            ) : (
+              clients.map((client) => {
+                const isSelected = selectedClient?.id === client.id;
+                return (
+                  <button
+                    key={client.id}
+                    type="button"
+                    onClick={() => setSelectedClient(client)}
+                    className={`flex w-full items-center justify-between border-b px-4 py-3 text-left text-sm transition-colors last:border-b-0 ${
+                      isSelected ? "bg-primary/5" : "hover:bg-surface-elevated/70"
+                    }`}
+                  >
+                    <div>
+                      <p className="font-medium">{client.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {extractCity(client.address)} • {client.phone || "-"}
+                      </p>
+                    </div>
+                    <div className="text-right text-xs text-muted-foreground">
+                      <p>Cadastro</p>
+                      <p className="font-medium text-foreground">
+                        {client.created_at 
+                          ? new Date(client.created_at).toLocaleDateString('pt-BR')
+                          : "-"
+                        }
+                      </p>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </TableCard>
 
@@ -67,29 +103,28 @@ const ClientesV2Page = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Idade</p>
-                    <p className="text-sm font-medium">{selectedClient.age} anos</p>
+                    <p className="text-sm font-medium">
+                      {calculateAge(selectedClient.birth_date) 
+                        ? `${calculateAge(selectedClient.birth_date)} anos`
+                        : "-"
+                      }
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Cidade</p>
-                    <p className="text-sm font-medium">{selectedClient.city}</p>
+                    <p className="text-sm font-medium">{extractCity(selectedClient.address)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Telefone</p>
-                    <p className="text-sm font-medium">{selectedClient.phone}</p>
+                    <p className="text-sm font-medium">{selectedClient.phone || "-"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Sessões</p>
-                    <p className="text-sm font-medium">{selectedClient.sessionsCount}</p>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="text-sm font-medium">{selectedClient.email || "-"}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Ticket médio</p>
-                    <p className="text-sm font-medium">
-                      {selectedClient.averageTicket.toLocaleString("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                        maximumFractionDigits: 0,
-                      })}
-                    </p>
+                    <p className="text-xs text-muted-foreground">CPF</p>
+                    <p className="text-sm font-medium">{selectedClient.cpf || "-"}</p>
                   </div>
                 </div>
 
@@ -101,8 +136,18 @@ const ClientesV2Page = () => {
                   </TabsList>
 
                   <TabsContent value="summary" className="mt-3 text-sm text-muted-foreground">
-                    Esta área trará um resumo clínico e financeiro integrado do paciente, combinando agenda,
-                    financeiro e prontuário.
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Endereço</p>
+                        <p className="text-sm">{selectedClient.address || "Não informado"}</p>
+                      </div>
+                      {selectedClient.notes && (
+                        <div>
+                          <p className="text-xs text-muted-foreground">Observações</p>
+                          <p className="text-sm">{selectedClient.notes}</p>
+                        </div>
+                      )}
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="history" className="mt-3">
@@ -116,14 +161,11 @@ const ClientesV2Page = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {clientVisits.map((visit) => (
-                          <TableRow key={visit.id} className="text-sm">
-                            <TableCell>{visit.date}</TableCell>
-                            <TableCell>{visit.professional}</TableCell>
-                            <TableCell>{visit.procedure}</TableCell>
-                            <TableCell className="capitalize">{visit.status}</TableCell>
-                          </TableRow>
-                        ))}
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
+                            Histórico de atendimentos será integrado em breve.
+                          </TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
                   </TabsContent>
@@ -162,4 +204,3 @@ const ClientesV2Page = () => {
 };
 
 export default ClientesV2Page;
-
