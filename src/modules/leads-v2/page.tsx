@@ -206,16 +206,16 @@ const LeadsV2Page = () => {
     const statusMap: Record<string, string> = {
       'Novo lead': 'novo',
       'Novo(hoje)': 'novo',
-      'Em Atendimento': 'atendimento',
+      'Em Atendimento': 'em_atendimento',
       'Qualificado': 'qualificacao',
       'Não Qualificado': 'perdido',
       'Avaliação Confirmada': 'aguardando',
-      'Compareceu': 'atendimento',
+      'Compareceu': 'em_atendimento',
       'Faltou': 'voltar',
       'Proposta Enviada': 'qualificacao',
-      'Fechou': 'finalizado',
+      'Fechou': 'fechou',
       'Não Fechou': 'perdido',
-      'Pós Venda': 'finalizado',
+      'Pós Venda': 'fechou',
       'Indicação': 'novo',
     };
 
