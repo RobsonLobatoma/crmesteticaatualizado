@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, PlusCircle, Loader2 } from "lucide-react";
+import { BarChart3, PlusCircle, Loader2, Kanban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import { useLeadTags } from "./hooks/useLeadTags";
 import { fetchAddressByCep, formatCep, formatCpf } from "./utils/cepUtils";
 import { TagsManager } from "./components/TagsManager";
 import { TagsSelector, TagsBadges } from "./components/TagsSelector";
+import { supabase } from "@/integrations/supabase/client";
 
 const LeadsV2Page = () => {
   const { toast } = useToast();
@@ -138,6 +139,134 @@ const LeadsV2Page = () => {
     handleEditingChange("cpf", formattedCpf);
   };
 
+  // Função para transferir lead com status "Fechou" para tabela clients
+  const transferToClients = async (lead: Lead) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Verificar se já existe cliente com mesmo telefone
+    const { data: existingClient } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('phone', lead.contato)
+      .maybeSingle();
+
+    if (existingClient) {
+      toast({
+        title: "Cliente já existe",
+        description: "Este contato já está cadastrado como cliente.",
+      });
+      return;
+    }
+
+    // Montar endereço completo
+    const addressParts = [
+      lead.endereco,
+      lead.numero ? `Nº ${lead.numero}` : null,
+      lead.complemento,
+      lead.bairro,
+      lead.cidade && lead.estado ? `${lead.cidade}/${lead.estado}` : lead.cidade || lead.estado,
+    ].filter(Boolean);
+    const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : null;
+
+    const { error } = await supabase
+      .from('clients')
+      .insert({
+        user_id: user.id,
+        name: lead.nome,
+        phone: lead.contato,
+        cpf: lead.cpf || null,
+        birth_date: lead.dataNascimento || null,
+        address: fullAddress,
+        notes: lead.observacao || null,
+      });
+
+    if (!error) {
+      toast({
+        title: "Cliente criado!",
+        description: `${lead.nome} foi adicionado à lista de clientes.`,
+      });
+    }
+  };
+
+  // Função para enviar lead para o Kanban
+  const sendToKanban = async (lead: Lead) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Mapear status do lead para slug do CRM
+    const statusMap: Record<string, string> = {
+      'Novo lead': 'novo',
+      'Novo(hoje)': 'novo',
+      'Em Atendimento': 'atendimento',
+      'Qualificado': 'qualificacao',
+      'Não Qualificado': 'perdido',
+      'Avaliação Confirmada': 'aguardando',
+      'Compareceu': 'atendimento',
+      'Faltou': 'voltar',
+      'Proposta Enviada': 'qualificacao',
+      'Fechou': 'finalizado',
+      'Não Fechou': 'perdido',
+      'Pós Venda': 'finalizado',
+      'Indicação': 'novo',
+    };
+
+    const crmStatus = statusMap[lead.status] || 'novo';
+
+    // Verificar se já existe no Kanban
+    const { data: existing } = await supabase
+      .from('crm_clients')
+      .select('id')
+      .eq('lead_id', lead.id)
+      .maybeSingle();
+
+    if (existing) {
+      toast({
+        title: "Lead já no Kanban",
+        description: "Este lead já foi enviado para o quadro de atendimento.",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('crm_clients')
+      .insert({
+        user_id: user.id,
+        lead_id: lead.id,
+        nome: lead.nome,
+        telefone: lead.contato,
+        status: crmStatus,
+        responsavel: lead.responsavel || null,
+        origem: lead.origem || null,
+        tags: lead.tags || [],
+        observacoes: lead.observacao || null,
+        total_mensagens: 0,
+        mensagens_nao_lidas: 0,
+        urgente: false,
+      });
+
+    if (!error) {
+      toast({
+        title: "Enviado para Kanban!",
+        description: `${lead.nome} foi adicionado ao quadro de atendimento.`,
+      });
+    } else {
+      toast({
+        title: "Erro ao enviar para Kanban",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleAddLead = async () => {
     if (!newLead.nome || !newLead.contato) {
       toast({
@@ -178,6 +307,41 @@ const LeadsV2Page = () => {
         complemento: normalize(newLead.complemento),
         tags: selectedTags,
       });
+
+      // Se status for "Fechou", transferir para clientes automaticamente
+      if (newLead.status === "Fechou") {
+        // Buscar o lead recém criado (último com esse nome e contato)
+        const { data: newLeads } = await supabase
+          .from('leads')
+          .select('*')
+          .eq('nome', newLead.nome)
+          .eq('contato', newLead.contato)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (newLeads && newLeads.length > 0) {
+          const createdLead: Lead = {
+            id: newLeads[0].id,
+            nome: newLeads[0].nome,
+            contato: newLeads[0].contato,
+            responsavel: newLeads[0].responsavel || '-',
+            origem: newLeads[0].origem || 'Manual',
+            procedimento: newLeads[0].procedimento || '',
+            status: newLeads[0].status,
+            dataEntrada: newLeads[0].data_entrada || '',
+            cpf: newLeads[0].cpf || '',
+            endereco: newLeads[0].endereco || '',
+            bairro: newLeads[0].bairro || '',
+            cidade: newLeads[0].cidade || '',
+            estado: newLeads[0].estado || '',
+            numero: newLeads[0].numero || '',
+            complemento: newLeads[0].complemento || '',
+            observacao: newLeads[0].observacao || '',
+            tags: newLeads[0].tags || [],
+          };
+          await transferToClients(createdLead);
+        }
+      }
 
       setNewLead({
         dataEntrada: "",
@@ -235,8 +399,18 @@ const LeadsV2Page = () => {
       return;
     }
 
+    // Verificar se o status mudou para "Fechou"
+    const originalLead = leads.find(l => l.id === editingId);
+    const statusChangedToFechou = originalLead?.status !== "Fechou" && editingLead.status === "Fechou";
+
     try {
       await updateLead({ ...editingLead, tags: editingTags });
+      
+      // Se status mudou para "Fechou", transferir para clientes
+      if (statusChangedToFechou) {
+        await transferToClients({ ...editingLead, tags: editingTags });
+      }
+
       setEditingId(null);
       setEditingLead(null);
       setEditingTags([]);
@@ -1222,6 +1396,15 @@ const LeadsV2Page = () => {
                           </div>
                         ) : (
                           <div className="flex justify-end gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 w-7 rounded-full p-0"
+                              onClick={() => sendToKanban(lead)}
+                              title="Enviar para Kanban"
+                            >
+                              <Kanban className="h-3.5 w-3.5" />
+                            </Button>
                             <Button
                               size="sm"
                               variant="outline"

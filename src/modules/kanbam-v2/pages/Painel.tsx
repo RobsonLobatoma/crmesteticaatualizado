@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ClientePotencial, FiltrosKanban as FiltrosKanbanType } from '@/types/crm';
@@ -7,6 +7,7 @@ import { FiltrosKanban } from '@/components/crm/FiltrosKanban';
 import { CartaoCliente } from '@/components/crm/CartaoCliente';
 import { useToast } from '@/hooks/use-toast';
 import { useCRMStatuses } from '../hooks/useCRMStatuses';
+import { useCRMClients } from '../hooks/useCRMClients';
 
 // Colunas padrão para quando não há status cadastrados
 const colunasDefault = [
@@ -22,7 +23,7 @@ const colunasDefault = [
 const PainelV2Page = () => {
   const { toast } = useToast();
   const { statuses, isLoading: loadingStatuses } = useCRMStatuses();
-  const [clientes, setClientes] = useState<ClientePotencial[]>([]);
+  const { clients, isLoading: loadingClients, updateStatus } = useCRMClients();
   const [filtros, setFiltros] = useState<FiltrosKanbanType>({
     busca: '',
     responsavel: 'todos',
@@ -45,6 +46,28 @@ const PainelV2Page = () => {
     ? statuses.map(s => ({ id: s.slug, titulo: s.name, cor: s.color }))
     : colunasDefault;
 
+  // Mapear clientes do banco para o formato esperado pelo componente
+  const clientes: ClientePotencial[] = useMemo(() => {
+    return clients.map(c => ({
+      id: c.id,
+      nome: c.nome,
+      telefone: c.telefone,
+      email: c.email || undefined,
+      status: c.status as ClientePotencial['status'],
+      responsavel: c.responsavel || undefined,
+      origem: c.origem || undefined,
+      ultimaMensagem: c.ultima_mensagem || undefined,
+      horarioUltimaMensagem: c.horario_ultima_mensagem || undefined,
+      dataCriacao: c.data_criacao,
+      ultimaInteracao: c.ultima_interacao,
+      tags: c.tags || [],
+      observacoes: c.observacoes || undefined,
+      totalMensagens: c.total_mensagens,
+      mensagensNaoLidas: c.mensagens_nao_lidas,
+      urgente: c.urgente,
+    }));
+  }, [clients]);
+
   const handleDragStart = (event: any) => {
     setActiveId(event.active.id);
   };
@@ -64,13 +87,8 @@ const PainelV2Page = () => {
     if (statusAnterior && statusAnterior !== novoStatus && cliente) {
       const colunaDestino = colunas.find(col => col.id === novoStatus);
       
-      setClientes(prevClientes => 
-        prevClientes.map(c => 
-          c.id === clienteId 
-            ? { ...c, status: novoStatus as any }
-            : c
-        )
-      );
+      // Atualizar no banco de dados
+      updateStatus.mutate({ id: clienteId, status: novoStatus });
 
       if (colunaDestino) {
         toast({
@@ -106,7 +124,7 @@ const PainelV2Page = () => {
 
   const activeCliente = activeId ? clientes.find(c => c.id === activeId) : null;
 
-  if (loadingStatuses) {
+  if (loadingStatuses || loadingClients) {
     return (
       <div className="flex-1 px-4 pt-6 lg:px-8">
         <div className="mb-6">

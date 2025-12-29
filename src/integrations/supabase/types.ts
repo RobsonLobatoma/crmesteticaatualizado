@@ -234,6 +234,83 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_clients: {
+        Row: {
+          created_at: string | null
+          data_criacao: string | null
+          email: string | null
+          horario_ultima_mensagem: string | null
+          id: string
+          lead_id: string | null
+          mensagens_nao_lidas: number | null
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          responsavel: string | null
+          status: string
+          tags: string[] | null
+          telefone: string
+          total_mensagens: number | null
+          ultima_interacao: string | null
+          ultima_mensagem: string | null
+          updated_at: string | null
+          urgente: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_criacao?: string | null
+          email?: string | null
+          horario_ultima_mensagem?: string | null
+          id?: string
+          lead_id?: string | null
+          mensagens_nao_lidas?: number | null
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel?: string | null
+          status?: string
+          tags?: string[] | null
+          telefone: string
+          total_mensagens?: number | null
+          ultima_interacao?: string | null
+          ultima_mensagem?: string | null
+          updated_at?: string | null
+          urgente?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_criacao?: string | null
+          email?: string | null
+          horario_ultima_mensagem?: string | null
+          id?: string
+          lead_id?: string | null
+          mensagens_nao_lidas?: number | null
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel?: string | null
+          status?: string
+          tags?: string[] | null
+          telefone?: string
+          total_mensagens?: number | null
+          ultima_interacao?: string | null
+          ultima_mensagem?: string | null
+          updated_at?: string | null
+          urgente?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_clients_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_responsibles: {
         Row: {
           created_at: string
