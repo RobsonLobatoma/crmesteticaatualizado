@@ -9,8 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/integrations/supabase/AuthProvider";
 import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
-import { Loader2, Shield, User, Mail, UserPlus, UserMinus, Crown } from "lucide-react";
+import { Loader2, Shield, User, Mail, UserPlus, UserMinus, Crown, Tags, PlusCircle, Pencil, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCRMStatuses, CRMStatus } from "@/modules/kanbam-v2/hooks/useCRMStatuses";
+import { StatusFormModal } from "@/modules/kanbam-v2/components/StatusFormModal";
 
 type AppRole = "super_admin" | "admin" | "moderator" | "user";
 
@@ -32,6 +34,11 @@ const SettingsPage = () => {
   const [usersModalOpen, setUsersModalOpen] = useState(false);
   const [invitesModalOpen, setInvitesModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  // Status management
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [editingStatus, setEditingStatus] = useState<CRMStatus | null>(null);
+  const { statuses, isLoading: statusesLoading, createStatus, updateStatus, deleteStatus } = useCRMStatuses();
 
   const fetchUsersWithRoles = async () => {
     if (!isSuperAdmin) {
@@ -495,8 +502,108 @@ const SettingsPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Seção: Configurações da Agenda */}
-      <AgendaSettingsCards />
+      {/* Status Management Panel */}
+      <section className="grid gap-4 md:grid-cols-2">
+        <Card className="border-border/80 bg-surface-elevated/95 shadow-soft">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Tags className="h-4 w-4" />
+              Gerenciar Status
+            </CardTitle>
+            <CardDescription>
+              Crie, edite e exclua os status disponíveis para leads e kanban.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {statusesLoading ? "Carregando..." : `${statuses.length} status cadastrados`}
+              </p>
+              <Button 
+                size="sm" 
+                onClick={() => { 
+                  setEditingStatus(null); 
+                  setStatusModalOpen(true); 
+                }}
+              >
+                <PlusCircle className="h-4 w-4 mr-1" /> Novo Status
+              </Button>
+            </div>
+            
+            <ScrollArea className="max-h-[300px]">
+              <div className="space-y-2 pr-4">
+                {statuses.map((status) => (
+                  <div 
+                    key={status.id} 
+                    className="flex items-center justify-between rounded-lg border px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded ${status.color}`} />
+                      <span className="text-sm font-medium">{status.name}</span>
+                      <span className="text-xs text-muted-foreground">({status.slug})</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 px-2"
+                        onClick={() => { 
+                          setEditingStatus(status); 
+                          setStatusModalOpen(true); 
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 px-2 text-destructive hover:text-destructive"
+                        onClick={() => deleteStatus.mutate(status.id)}
+                        disabled={deleteStatus.isPending}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {statuses.length === 0 && !statusesLoading && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nenhum status cadastrado. Clique em "Novo Status" para começar.
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Status Form Modal */}
+      <StatusFormModal
+        open={statusModalOpen}
+        onOpenChange={setStatusModalOpen}
+        status={editingStatus}
+        onSubmit={(data) => {
+          if (editingStatus) {
+            updateStatus.mutate(
+              { id: editingStatus.id, ...data }, 
+              { onSuccess: () => setStatusModalOpen(false) }
+            );
+          } else {
+            createStatus.mutate(
+              { 
+                name: data.name, 
+                slug: data.slug, 
+                color: data.color, 
+                display_order: data.display_order, 
+                user_id: user?.id || '', 
+                is_active: true 
+              }, 
+              { onSuccess: () => setStatusModalOpen(false) }
+            );
+          }
+        }}
+        isLoading={createStatus.isPending || updateStatus.isPending}
+      />
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="border-border/80 bg-surface-elevated/95 shadow-soft">

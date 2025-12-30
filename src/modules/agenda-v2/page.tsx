@@ -98,6 +98,13 @@ const AgendaV2Page = () => {
       status: data.status,
       send_sms: data.send_sms,
       user_id: "",
+    }, {
+      onSuccess: () => {
+        // Navigate to the scheduled date
+        const appointmentDate = new Date(data.start_datetime);
+        setCurrentDate(appointmentDate);
+        toast.success("Agendamento criado com sucesso!");
+      }
     });
   };
 
