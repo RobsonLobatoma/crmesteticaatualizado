@@ -503,7 +503,7 @@ const SettingsPage = () => {
       </Dialog>
 
       {/* Status Management Panel */}
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Card className="border-border/80 bg-surface-elevated/95 shadow-soft">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -530,14 +530,15 @@ const SettingsPage = () => {
               </Button>
             </div>
             
-            <ScrollArea className="max-h-[300px]">
-              <div className="space-y-2 pr-4">
-                {statuses.map((status) => (
+            <ScrollArea className="h-[350px] border rounded-lg p-2">
+              <div className="space-y-2 pr-2">
+                {statuses.map((status, index) => (
                   <div 
                     key={status.id} 
-                    className="flex items-center justify-between rounded-lg border px-3 py-2"
+                    className="flex items-center justify-between rounded-lg border px-3 py-2 bg-surface-subtle/50"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground w-5">{index + 1}.</span>
                       <div className={`w-3 h-3 rounded ${status.color}`} />
                       <span className="text-sm font-medium">{status.name}</span>
                       <span className="text-xs text-muted-foreground">({status.slug})</span>
@@ -567,12 +568,22 @@ const SettingsPage = () => {
                   </div>
                 ))}
                 {statuses.length === 0 && !statusesLoading && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum status cadastrado. Clique em "Novo Status" para começar.
-                  </p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Tags className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum status cadastrado.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Clique em "Novo Status" para começar.
+                    </p>
+                  </div>
                 )}
               </div>
             </ScrollArea>
+            
+            <p className="text-xs text-muted-foreground text-center pt-2 border-t">
+              Os status são sincronizados automaticamente com Leads e Kanban.
+            </p>
           </CardContent>
         </Card>
       </section>

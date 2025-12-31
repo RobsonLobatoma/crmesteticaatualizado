@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { BarChart3, PlusCircle, Loader2, Kanban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,15 @@ import { fetchAddressByCep, formatCep, formatCpf } from "./utils/cepUtils";
 import { TagsManager } from "./components/TagsManager";
 import { TagsSelector, TagsBadges } from "./components/TagsSelector";
 import { supabase } from "@/integrations/supabase/client";
+import { useCRMStatuses } from "@/modules/kanbam-v2/hooks/useCRMStatuses";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const LeadsV2Page = () => {
   const { toast } = useToast();
@@ -72,6 +81,11 @@ const LeadsV2Page = () => {
   const [startDateFilter, setStartDateFilter] = useState<string>("");
   const [endDateFilter, setEndDateFilter] = useState<string>("");
   const [isHojeDetailOpen, setIsHojeDetailOpen] = useState(false);
+  const [hojeCurrentPage, setHojeCurrentPage] = useState(1);
+  const LEADS_PER_PAGE = 10;
+  
+  // Usar status do CRM
+  const { statuses: crmStatuses } = useCRMStatuses();
 
   const handleChange = (field: keyof typeof newLead, value: string) => {
     setNewLead((prev) => ({ ...prev, [field]: value }));
@@ -486,6 +500,13 @@ const LeadsV2Page = () => {
   );
   const leadsHoje = leadsHojeLista.length;
 
+  // Paginação para leads de hoje
+  const totalHojePages = Math.ceil(leadsHojeLista.length / LEADS_PER_PAGE);
+  const paginatedHojeLeads = useMemo(() => {
+    const startIndex = (hojeCurrentPage - 1) * LEADS_PER_PAGE;
+    return leadsHojeLista.slice(startIndex, startIndex + LEADS_PER_PAGE);
+  }, [leadsHojeLista, hojeCurrentPage]);
+
   const filteredLeads = leads.filter((lead) => {
     const matchStatus = statusFilter ? lead.status === statusFilter : true;
     const matchResponsavel = responsavelFilter ? lead.responsavel === responsavelFilter : true;
@@ -601,47 +622,94 @@ const LeadsV2Page = () => {
         </div>
       </header>
 
-      <Dialog open={isHojeDetailOpen} onOpenChange={setIsHojeDetailOpen}>
+      <Dialog open={isHojeDetailOpen} onOpenChange={(open) => {
+        setIsHojeDetailOpen(open);
+        if (!open) setHojeCurrentPage(1);
+      }}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Leads cadastrados hoje</DialogTitle>
             <DialogDescription>
-              Lista de todos os leads cadastrados na data de hoje.
+              Lista de todos os leads cadastrados na data de hoje ({leadsHoje} leads).
             </DialogDescription>
           </DialogHeader>
 
           {leadsHojeLista.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum lead cadastrado hoje.</p>
           ) : (
-            <div className="max-h-[400px] overflow-y-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-[11px]">Nome</TableHead>
-                    <TableHead className="text-[11px]">Contato</TableHead>
-                    <TableHead className="text-[11px]">Responsável</TableHead>
-                    <TableHead className="text-[11px]">Origem</TableHead>
-                    <TableHead className="text-[11px]">Status</TableHead>
-                    <TableHead className="text-[11px]">Tags</TableHead>
-                    <TableHead className="text-[11px]">Data entrada</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {leadsHojeLista.map((lead) => (
-                    <TableRow key={lead.id} className="h-7">
-                      <TableCell className="text-[11px]">{lead.nome}</TableCell>
-                      <TableCell className="text-[11px]">{lead.contato}</TableCell>
-                      <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
-                      <TableCell className="text-[11px]">{lead.origem}</TableCell>
-                      <TableCell className="text-[11px]">{lead.status}</TableCell>
-                      <TableCell className="text-[11px]">
-                        <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
-                      </TableCell>
-                      <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
+            <div className="space-y-4">
+              <div className="max-h-[350px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-[11px] w-10">#</TableHead>
+                      <TableHead className="text-[11px]">Nome</TableHead>
+                      <TableHead className="text-[11px]">Contato</TableHead>
+                      <TableHead className="text-[11px]">Responsável</TableHead>
+                      <TableHead className="text-[11px]">Origem</TableHead>
+                      <TableHead className="text-[11px]">Status</TableHead>
+                      <TableHead className="text-[11px]">Tags</TableHead>
+                      <TableHead className="text-[11px]">Data entrada</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedHojeLeads.map((lead, index) => (
+                      <TableRow key={lead.id} className="h-7">
+                        <TableCell className="text-[11px] font-medium text-muted-foreground">
+                          {(hojeCurrentPage - 1) * LEADS_PER_PAGE + index + 1}
+                        </TableCell>
+                        <TableCell className="text-[11px]">{lead.nome}</TableCell>
+                        <TableCell className="text-[11px]">{lead.contato}</TableCell>
+                        <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
+                        <TableCell className="text-[11px]">{lead.origem}</TableCell>
+                        <TableCell className="text-[11px]">{lead.status}</TableCell>
+                        <TableCell className="text-[11px]">
+                          <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
+                        </TableCell>
+                        <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {totalHojePages > 1 && (
+                <div className="flex items-center justify-between border-t pt-4">
+                  <p className="text-xs text-muted-foreground">
+                    Mostrando {(hojeCurrentPage - 1) * LEADS_PER_PAGE + 1} a {Math.min(hojeCurrentPage * LEADS_PER_PAGE, leadsHoje)} de {leadsHoje} leads
+                  </p>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setHojeCurrentPage(p => Math.max(1, p - 1))}
+                          className={hojeCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalHojePages }, (_, i) => i + 1).slice(
+                        Math.max(0, hojeCurrentPage - 2),
+                        Math.min(totalHojePages, hojeCurrentPage + 1)
+                      ).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setHojeCurrentPage(page)}
+                            isActive={hojeCurrentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setHojeCurrentPage(p => Math.min(totalHojePages, p + 1))}
+                          className={hojeCurrentPage === totalHojePages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -742,18 +810,26 @@ const LeadsV2Page = () => {
                   value={newLead.status}
                   onChange={(e) => handleChange("status", e.target.value)}
                 >
-                  <option value="Novo(hoje)">Novo(hoje)</option>
-                  <option value="Em Atendimento">Em Atendimento</option>
-                  <option value="Qualificado">Qualificado</option>
-                  <option value="Não Qualificado">Não Qualificado</option>
-                  <option value="Avaliação Confirmada">Avaliação Confirmada</option>
-                  <option value="Compareceu">Compareceu</option>
-                  <option value="Faltou">Faltou</option>
-                  <option value="Proposta Enviada">Proposta Enviada</option>
-                  <option value="Fechou">Fechou</option>
-                  <option value="Não Fechou">Não Fechou</option>
-                  <option value="Pós Venda">Pós Venda</option>
-                  <option value="Indicação">Indicação</option>
+                  {crmStatuses.length > 0 ? (
+                    crmStatuses.map((status) => (
+                      <option key={status.id} value={status.name}>{status.name}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Novo(hoje)">Novo(hoje)</option>
+                      <option value="Em Atendimento">Em Atendimento</option>
+                      <option value="Qualificado">Qualificado</option>
+                      <option value="Não Qualificado">Não Qualificado</option>
+                      <option value="Avaliação Confirmada">Avaliação Confirmada</option>
+                      <option value="Compareceu">Compareceu</option>
+                      <option value="Faltou">Faltou</option>
+                      <option value="Proposta Enviada">Proposta Enviada</option>
+                      <option value="Fechou">Fechou</option>
+                      <option value="Não Fechou">Não Fechou</option>
+                      <option value="Pós Venda">Pós Venda</option>
+                      <option value="Indicação">Indicação</option>
+                    </>
+                  )}
                 </select>
               </div>
               <div className="md:col-span-1">
@@ -1138,18 +1214,26 @@ const LeadsV2Page = () => {
                               value={current.status}
                               onChange={(e) => handleEditingChange("status", e.target.value)}
                             >
-                              <option value="Novo(hoje)">Novo(hoje)</option>
-                              <option value="Em Atendimento">Em Atendimento</option>
-                              <option value="Qualificado">Qualificado</option>
-                              <option value="Não Qualificado">Não Qualificado</option>
-                              <option value="Avaliação Confirmada">Avaliação Confirmada</option>
-                              <option value="Compareceu">Compareceu</option>
-                              <option value="Faltou">Faltou</option>
-                              <option value="Proposta Enviada">Proposta Enviada</option>
-                              <option value="Fechou">Fechou</option>
-                              <option value="Não Fechou">Não Fechou</option>
-                              <option value="Pós Venda">Pós Venda</option>
-                              <option value="Indicação">Indicação</option>
+                              {crmStatuses.length > 0 ? (
+                                crmStatuses.map((status) => (
+                                  <option key={status.id} value={status.name}>{status.name}</option>
+                                ))
+                              ) : (
+                                <>
+                                  <option value="Novo(hoje)">Novo(hoje)</option>
+                                  <option value="Em Atendimento">Em Atendimento</option>
+                                  <option value="Qualificado">Qualificado</option>
+                                  <option value="Não Qualificado">Não Qualificado</option>
+                                  <option value="Avaliação Confirmada">Avaliação Confirmada</option>
+                                  <option value="Compareceu">Compareceu</option>
+                                  <option value="Faltou">Faltou</option>
+                                  <option value="Proposta Enviada">Proposta Enviada</option>
+                                  <option value="Fechou">Fechou</option>
+                                  <option value="Não Fechou">Não Fechou</option>
+                                  <option value="Pós Venda">Pós Venda</option>
+                                  <option value="Indicação">Indicação</option>
+                                </>
+                              )}
                             </select>
                           ) : (
                             <Badge
