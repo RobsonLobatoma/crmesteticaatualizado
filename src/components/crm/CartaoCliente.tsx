@@ -19,7 +19,8 @@ export const CartaoCliente = ({ cliente }: CartaoClienteProps) => {
 
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  } : undefined;
+    touchAction: 'none',
+  } : { touchAction: 'none' as const };
 
   const handleClick = (e: React.MouseEvent) => {
     // Não navegar se estiver arrastando
@@ -34,12 +35,15 @@ export const CartaoCliente = ({ cliente }: CartaoClienteProps) => {
       {...listeners}
       {...attributes}
       className={cn(
-        "cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-50"
+        "cursor-grab active:cursor-grabbing touch-none",
+        isDragging && "opacity-50 z-50"
       )}
     >
       <Card 
-        className="hover:shadow-lg transition-all duration-200 relative overflow-visible"
+        className={cn(
+          "hover:shadow-lg transition-all duration-200 relative overflow-visible",
+          isDragging && "shadow-2xl ring-2 ring-primary"
+        )}
         onClick={handleClick}
       >
         <CardContent className="p-3 space-y-2">
