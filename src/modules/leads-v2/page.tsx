@@ -626,23 +626,24 @@ const LeadsV2Page = () => {
         setIsHojeDetailOpen(open);
         if (!open) setHojeCurrentPage(1);
       }}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Leads cadastrados hoje</DialogTitle>
             <DialogDescription>
-              Lista de todos os leads cadastrados na data de hoje ({leadsHoje} leads).
+              Lista de todos os leads cadastrados na data de hoje ({leadsHoje} {leadsHoje === 1 ? 'lead' : 'leads'}).
             </DialogDescription>
           </DialogHeader>
 
           {leadsHojeLista.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum lead cadastrado hoje.</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">Nenhum lead cadastrado hoje.</p>
           ) : (
-            <div className="space-y-4">
-              <div className="max-h-[350px] overflow-y-auto">
+            <div className="flex flex-col flex-1 min-h-0">
+              {/* Tabela com scroll */}
+              <div className="flex-1 overflow-auto border rounded-md">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
-                      <TableHead className="text-[11px] w-10">#</TableHead>
+                      <TableHead className="text-[11px] w-12 text-center">#</TableHead>
                       <TableHead className="text-[11px]">Nome</TableHead>
                       <TableHead className="text-[11px]">Contato</TableHead>
                       <TableHead className="text-[11px]">Responsável</TableHead>
@@ -653,31 +654,39 @@ const LeadsV2Page = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedHojeLeads.map((lead, index) => (
-                      <TableRow key={lead.id} className="h-7">
-                        <TableCell className="text-[11px] font-medium text-muted-foreground">
-                          {(hojeCurrentPage - 1) * LEADS_PER_PAGE + index + 1}
-                        </TableCell>
-                        <TableCell className="text-[11px]">{lead.nome}</TableCell>
-                        <TableCell className="text-[11px]">{lead.contato}</TableCell>
-                        <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
-                        <TableCell className="text-[11px]">{lead.origem}</TableCell>
-                        <TableCell className="text-[11px]">{lead.status}</TableCell>
-                        <TableCell className="text-[11px]">
-                          <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
-                        </TableCell>
-                        <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
-                      </TableRow>
-                    ))}
+                    {paginatedHojeLeads.map((lead, index) => {
+                      const globalIndex = (hojeCurrentPage - 1) * LEADS_PER_PAGE + index + 1;
+                      return (
+                        <TableRow key={lead.id} className="h-10">
+                          <TableCell className="text-[11px] font-semibold text-center text-primary">
+                            {globalIndex}
+                          </TableCell>
+                          <TableCell className="text-[11px] font-medium">{lead.nome}</TableCell>
+                          <TableCell className="text-[11px]">{lead.contato}</TableCell>
+                          <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
+                          <TableCell className="text-[11px]">{lead.origem}</TableCell>
+                          <TableCell className="text-[11px]">
+                            <Badge variant="outline" className="text-[10px]">
+                              {lead.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-[11px]">
+                            <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
+                          </TableCell>
+                          <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
-              {totalHojePages > 1 && (
-                <div className="flex items-center justify-between border-t pt-4">
-                  <p className="text-xs text-muted-foreground">
-                    Mostrando {(hojeCurrentPage - 1) * LEADS_PER_PAGE + 1} a {Math.min(hojeCurrentPage * LEADS_PER_PAGE, leadsHoje)} de {leadsHoje} leads
-                  </p>
+              {/* Barra de paginação sempre visível */}
+              <div className="flex items-center justify-between border-t pt-4 mt-4 shrink-0">
+                <p className="text-xs text-muted-foreground">
+                  Mostrando {Math.min((hojeCurrentPage - 1) * LEADS_PER_PAGE + 1, leadsHoje)} a {Math.min(hojeCurrentPage * LEADS_PER_PAGE, leadsHoje)} de {leadsHoje} {leadsHoje === 1 ? 'lead' : 'leads'}
+                </p>
+                {totalHojePages > 1 && (
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -686,20 +695,36 @@ const LeadsV2Page = () => {
                           className={hojeCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
-                      {Array.from({ length: totalHojePages }, (_, i) => i + 1).slice(
-                        Math.max(0, hojeCurrentPage - 2),
-                        Math.min(totalHojePages, hojeCurrentPage + 1)
-                      ).map((page) => (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            onClick={() => setHojeCurrentPage(page)}
-                            isActive={hojeCurrentPage === page}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
+                      {Array.from({ length: totalHojePages }, (_, i) => i + 1).map((page) => {
+                        // Mostrar primeira, última e páginas próximas da atual
+                        const showPage = page === 1 || 
+                                        page === totalHojePages || 
+                                        Math.abs(page - hojeCurrentPage) <= 1;
+                        const showEllipsisBefore = page === hojeCurrentPage - 2 && hojeCurrentPage > 3;
+                        const showEllipsisAfter = page === hojeCurrentPage + 2 && hojeCurrentPage < totalHojePages - 2;
+                        
+                        if (showEllipsisBefore || showEllipsisAfter) {
+                          return (
+                            <PaginationItem key={`ellipsis-${page}`}>
+                              <span className="px-2 text-muted-foreground">...</span>
+                            </PaginationItem>
+                          );
+                        }
+                        
+                        if (!showPage) return null;
+                        
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setHojeCurrentPage(page)}
+                              isActive={hojeCurrentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
                       <PaginationItem>
                         <PaginationNext
                           onClick={() => setHojeCurrentPage(p => Math.min(totalHojePages, p + 1))}
@@ -708,8 +733,8 @@ const LeadsV2Page = () => {
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
