@@ -1125,9 +1125,10 @@ const LeadsV2Page = () => {
           <CardContent className="pt-4 pb-2">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data Entrada</TableHead>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12 text-center">#</TableHead>
+                      <TableHead>Data Entrada</TableHead>
                     <TableHead>Responsável</TableHead>
                     <TableHead>Nome do Cliente</TableHead>
                     <TableHead>Contato WhatsApp/@</TableHead>
@@ -1154,10 +1155,11 @@ const LeadsV2Page = () => {
                     <TableHead className="w-[1%] whitespace-nowrap text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {filteredLeads.map((lead) => {
-                    const isEditing = editingId === lead.id;
-                    const current = isEditing && editingLead ? editingLead : lead;
+                  <TableBody>
+                    {paginatedFilteredLeads.map((lead, index) => {
+                      const globalIndex = (tableCurrentPage - 1) * LEADS_PER_PAGE + index + 1;
+                      const isEditing = editingId === lead.id;
+                      const current = isEditing && editingLead ? editingLead : lead;
 
                       return (
                         <TableRow key={lead.id} className="hover:bg-muted/40">
