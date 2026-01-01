@@ -82,6 +82,7 @@ const LeadsV2Page = () => {
   const [endDateFilter, setEndDateFilter] = useState<string>("");
   const [isHojeDetailOpen, setIsHojeDetailOpen] = useState(false);
   const [hojeCurrentPage, setHojeCurrentPage] = useState(1);
+  const [tableCurrentPage, setTableCurrentPage] = useState(1);
   const LEADS_PER_PAGE = 10;
   
   // Usar status do CRM
@@ -517,6 +518,13 @@ const LeadsV2Page = () => {
 
     return matchStatus && matchResponsavel && matchOrigem && matchDateRange;
   });
+
+  // Paginação para tabela principal
+  const totalTablePages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
+  const paginatedFilteredLeads = useMemo(() => {
+    const startIndex = (tableCurrentPage - 1) * LEADS_PER_PAGE;
+    return filteredLeads.slice(startIndex, startIndex + LEADS_PER_PAGE);
+  }, [filteredLeads, tableCurrentPage]);
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -1111,6 +1119,7 @@ const LeadsV2Page = () => {
                 setOrigemFilter("");
                 setStartDateFilter("");
                 setEndDateFilter("");
+                setTableCurrentPage(1);
               }}
             >
               Limpar filtros
@@ -1163,6 +1172,9 @@ const LeadsV2Page = () => {
 
                       return (
                         <TableRow key={lead.id} className="hover:bg-muted/40">
+                          <TableCell className="text-center text-xs font-semibold text-primary">
+                            {globalIndex}
+                          </TableCell>
                           <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                             {isEditing ? (
                               <Input
@@ -1532,6 +1544,59 @@ const LeadsV2Page = () => {
                 </TableBody>
               </Table>
             </div>
+            
+            {/* Barra de paginação sempre visível */}
+            <div className="flex items-center justify-between border-t pt-4 mt-4">
+              <p className="text-xs text-muted-foreground">
+                Mostrando {Math.min((tableCurrentPage - 1) * LEADS_PER_PAGE + 1, filteredLeads.length)} a {Math.min(tableCurrentPage * LEADS_PER_PAGE, filteredLeads.length)} de {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'}
+              </p>
+              {totalTablePages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setTableCurrentPage(p => Math.max(1, p - 1))}
+                        className={tableCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalTablePages }, (_, i) => i + 1).map((page) => {
+                      const showPage = page === 1 || 
+                                      page === totalTablePages || 
+                                      Math.abs(page - tableCurrentPage) <= 1;
+                      
+                      if (!showPage) {
+                        if (page === 2 && tableCurrentPage > 3) {
+                          return <PaginationItem key={`ellipsis-start`}><span className="px-2 text-muted-foreground">...</span></PaginationItem>;
+                        }
+                        if (page === totalTablePages - 1 && tableCurrentPage < totalTablePages - 2) {
+                          return <PaginationItem key={`ellipsis-end`}><span className="px-2 text-muted-foreground">...</span></PaginationItem>;
+                        }
+                        return null;
+                      }
+                      
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setTableCurrentPage(page)}
+                            isActive={tableCurrentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setTableCurrentPage(p => Math.min(totalTablePages, p + 1))}
+                        className={tableCurrentPage === totalTablePages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
+            
             <p className="mt-3 text-center text-xs text-muted-foreground border-t pt-3">
               Dica: use este painel todos os dias para garantir que nenhum lead fique sem retorno.
             </p>
