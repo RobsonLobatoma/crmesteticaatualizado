@@ -659,6 +659,7 @@ const LeadsV2Page = () => {
                       <TableHead className="text-[11px]">Status</TableHead>
                       <TableHead className="text-[11px]">Tags</TableHead>
                       <TableHead className="text-[11px]">Data entrada</TableHead>
+                      <TableHead className="text-[11px]" title="Objeção / Observação">Obs.</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -682,6 +683,9 @@ const LeadsV2Page = () => {
                             <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
                           </TableCell>
                           <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
+                          <TableCell className="text-[11px] max-w-[120px] truncate" title={lead.observacao || ""}>
+                            {lead.observacao || "-"}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
