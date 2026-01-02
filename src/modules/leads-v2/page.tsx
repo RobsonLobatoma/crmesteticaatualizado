@@ -20,6 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Lead } from "./types/Lead";
 import { useLeads } from "./hooks/useLeads";
@@ -683,8 +689,26 @@ const LeadsV2Page = () => {
                             <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
                           </TableCell>
                           <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
-                          <TableCell className="text-[11px] max-w-[120px] truncate" title={lead.observacao || ""}>
-                            {lead.observacao || "-"}
+                          <TableCell className="text-[11px] max-w-[120px]">
+                            {lead.observacao ? (
+                              <TooltipProvider delayDuration={200}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="block truncate cursor-help">
+                                      {lead.observacao}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent 
+                                    side="top" 
+                                    className="max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
+                                  >
+                                    <p className="text-xs">{lead.observacao}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
