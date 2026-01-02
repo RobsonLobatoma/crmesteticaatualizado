@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import { Plus, Search, User, Loader2 } from "lucide-react";
+import { Plus, Search, User, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,11 +10,15 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { useClients } from "../hooks/useClients";
 import { useProfessionals } from "../hooks/useProfessionals";
 import { useRooms, useEquipments, useServices } from "../hooks/useResources";
 import { useFormConfig } from "../hooks/useFormConfig";
-import { AppointmentFormData, Client } from "../types";
+import { AppointmentFormData, Client, Service } from "../types";
 import { QuickClientForm } from "./QuickClientForm";
 
 interface AppointmentFormProps {
@@ -73,6 +77,7 @@ export function AppointmentForm({
   const [formData, setFormData] = useState<AppointmentFormData>({
     client_id: "",
     service_id: "",
+    service_ids: [],
     professional_id: initialProfessionalId ?? "",
     room_id: undefined,
     equipment_id: undefined,
@@ -86,6 +91,7 @@ export function AppointmentForm({
 
   const [date, setDate] = useState(initialDate ? format(initialDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
   const [time, setTime] = useState(initialTime ?? "09:00");
+  const [servicePopoverOpen, setServicePopoverOpen] = useState(false);
 
   useEffect(() => {
     if (initialDate) setDate(format(initialDate, "yyyy-MM-dd"));
@@ -96,10 +102,38 @@ export function AppointmentForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const startDateTime = new Date(`${date}T${time}:00`);
+    // Usar o primeiro serviço selecionado como service_id principal (compatibilidade)
+    const primaryServiceId = formData.service_ids?.length ? formData.service_ids[0] : formData.service_id;
     onSubmit({
       ...formData,
+      service_id: primaryServiceId,
       start_datetime: startDateTime.toISOString(),
     });
+  };
+
+  const toggleService = (serviceId: string) => {
+    setFormData((prev) => {
+      const currentIds = prev.service_ids || [];
+      const isSelected = currentIds.includes(serviceId);
+      const newIds = isSelected
+        ? currentIds.filter((id) => id !== serviceId)
+        : [...currentIds, serviceId];
+      return {
+        ...prev,
+        service_ids: newIds,
+        service_id: newIds.length > 0 ? newIds[0] : "",
+      };
+    });
+  };
+
+  const getSelectedServicesLabel = () => {
+    const selectedIds = formData.service_ids || [];
+    if (selectedIds.length === 0) return "Selecionar serviço(s)";
+    if (selectedIds.length === 1) {
+      const service = services?.find((s) => s.id === selectedIds[0]);
+      return service?.name || "1 serviço";
+    }
+    return `${selectedIds.length} serviços selecionados`;
   };
 
   const handleSelectClient = (client: Client) => {
@@ -190,29 +224,77 @@ export function AppointmentForm({
       });
     }
 
-    // Service field
+    // Service field (multi-select)
     if (isFieldVisible("service")) {
+      const selectedIds = formData.service_ids || [];
       fieldComponents.push({
         id: "service",
         order: getFieldOrder("service"),
         component: (
           <div key="service" className="space-y-2">
             <Label>{getFieldLabel("service", "Serviço")} {isFieldRequired("service") && "*"}</Label>
-            <Select
-              value={formData.service_id}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, service_id: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar serviço" />
-              </SelectTrigger>
-              <SelectContent>
-                {services?.map((service) => (
-                  <SelectItem key={service.id} value={service.id}>
-                    {service.name} {service.price && `- R$ ${service.price}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={servicePopoverOpen} onOpenChange={setServicePopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={servicePopoverOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  <span className="truncate">{getSelectedServicesLabel()}</span>
+                  <Check className={cn("ml-2 h-4 w-4 shrink-0 opacity-0", selectedIds.length > 0 && "opacity-100")} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <ScrollArea className="h-[250px]">
+                  <div className="p-2 space-y-1">
+                    {services?.map((service) => {
+                      const isSelected = selectedIds.includes(service.id);
+                      return (
+                        <div
+                          key={service.id}
+                          className={cn(
+                            "flex items-center gap-3 rounded-md px-3 py-2 cursor-pointer hover:bg-accent transition-colors",
+                            isSelected && "bg-accent"
+                          )}
+                          onClick={() => toggleService(service.id)}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleService(service.id)}
+                            className="pointer-events-none"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{service.name}</p>
+                            {service.price && (
+                              <p className="text-xs text-muted-foreground">R$ {service.price}</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
+            {/* Badges dos serviços selecionados */}
+            {selectedIds.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {selectedIds.map((id) => {
+                  const service = services?.find((s) => s.id === id);
+                  return service ? (
+                    <Badge
+                      key={id}
+                      variant="secondary"
+                      className="text-xs cursor-pointer hover:bg-destructive/20"
+                      onClick={() => toggleService(id)}
+                    >
+                      {service.name} ×
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
         ),
       });
@@ -469,12 +551,15 @@ export function AppointmentForm({
     professionals,
     rooms,
     equipments,
+    servicePopoverOpen,
   ]);
 
   // Determine required fields for submit validation
   const canSubmit = useMemo(() => {
     if (isFieldRequired("client") && !formData.client_id) return false;
-    if (isFieldRequired("service") && !formData.service_id) return false;
+    // Verificar se pelo menos um serviço foi selecionado
+    const hasService = (formData.service_ids?.length ?? 0) > 0 || !!formData.service_id;
+    if (isFieldRequired("service") && !hasService) return false;
     if (isFieldRequired("professional") && !formData.professional_id) return false;
     if (isFieldRequired("date") && !date) return false;
     if (isFieldRequired("time") && !time) return false;

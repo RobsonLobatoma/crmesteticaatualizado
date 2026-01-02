@@ -691,21 +691,20 @@ const LeadsV2Page = () => {
                           <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
                           <TableCell className="text-[11px] max-w-[120px]">
                             {lead.observacao ? (
-                              <TooltipProvider delayDuration={200}>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="block truncate cursor-help">
-                                      {lead.observacao}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent 
-                                    side="top" 
-                                    className="max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
-                                  >
-                                    <p className="text-xs">{lead.observacao}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <Tooltip delayDuration={200}>
+                                <TooltipTrigger asChild>
+                                  <span className="block truncate cursor-help">
+                                    {lead.observacao}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                  side="top" 
+                                  align="center"
+                                  className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words bg-popover text-popover-foreground"
+                                >
+                                  <p className="text-xs">{lead.observacao}</p>
+                                </TooltipContent>
+                              </Tooltip>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
