@@ -26,6 +26,7 @@ export type CalendarView = "day" | "week" | "month";
 export interface AppointmentFormData {
   client_id: string;
   service_id: string;
+  service_ids?: string[]; // Para múltiplos serviços
   professional_id: string;
   room_id?: string;
   equipment_id?: string;
