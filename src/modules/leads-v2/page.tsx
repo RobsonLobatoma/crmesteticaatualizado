@@ -90,6 +90,7 @@ const LeadsV2Page = () => {
   const [hojeCurrentPage, setHojeCurrentPage] = useState(1);
   const [tableCurrentPage, setTableCurrentPage] = useState(1);
   const [hojeSearchFilter, setHojeSearchFilter] = useState("");
+  const [tableSearchFilter, setTableSearchFilter] = useState("");
   const LEADS_PER_PAGE = 10;
   
   // Usar status do CRM
@@ -525,16 +526,41 @@ const LeadsV2Page = () => {
     return filteredHojeLeads.slice(startIndex, startIndex + LEADS_PER_PAGE);
   }, [filteredHojeLeads, hojeCurrentPage]);
 
-  const filteredLeads = leads.filter((lead) => {
-    const matchStatus = statusFilter ? lead.status === statusFilter : true;
-    const matchResponsavel = responsavelFilter ? lead.responsavel === responsavelFilter : true;
-    const matchOrigem = origemFilter ? lead.origem === origemFilter : true;
-    const matchDateRange = startDateFilter || endDateFilter
-      ? isWithinRange(lead.dataEntrada, startDateFilter, endDateFilter)
-      : true;
+  // Função de normalização para pesquisa
+  const normalizeText = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
 
-    return matchStatus && matchResponsavel && matchOrigem && matchDateRange;
-  });
+  const normalizePhone = (phone: string) => {
+    return phone.replace(/\D/g, '');
+  };
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter((lead) => {
+      const matchStatus = statusFilter ? lead.status === statusFilter : true;
+      const matchResponsavel = responsavelFilter ? lead.responsavel === responsavelFilter : true;
+      const matchOrigem = origemFilter ? lead.origem === origemFilter : true;
+      const matchDateRange = startDateFilter || endDateFilter
+        ? isWithinRange(lead.dataEntrada, startDateFilter, endDateFilter)
+        : true;
+
+      // Filtro de pesquisa por nome ou telefone
+      let matchSearch = true;
+      if (tableSearchFilter.trim()) {
+        const searchTerm = normalizeText(tableSearchFilter.trim());
+        const searchDigits = normalizePhone(tableSearchFilter);
+        const matchNome = normalizeText(lead.nome).includes(searchTerm);
+        const matchContato = normalizeText(lead.contato).includes(searchTerm);
+        const matchContatoDigits = searchDigits.length >= 3 && normalizePhone(lead.contato).includes(searchDigits);
+        matchSearch = matchNome || matchContato || matchContatoDigits;
+      }
+
+      return matchStatus && matchResponsavel && matchOrigem && matchDateRange && matchSearch;
+    });
+  }, [leads, statusFilter, responsavelFilter, origemFilter, startDateFilter, endDateFilter, tableSearchFilter]);
 
   // Paginação para tabela principal
   const totalTablePages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
@@ -1171,16 +1197,30 @@ const LeadsV2Page = () => {
                 onChange={(e) => setEndDateFilter(e.target.value)}
               />
             </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted-foreground">Pesquisar</span>
+              <Input
+                type="text"
+                placeholder="Nome ou telefone..."
+                className="h-8 min-w-[180px] text-[11px]"
+                value={tableSearchFilter}
+                onChange={(e) => {
+                  setTableSearchFilter(e.target.value);
+                  setTableCurrentPage(1);
+                }}
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"
-              className="mt-1 h-8 rounded-full px-3 text-[11px]"
+              className="mt-auto h-8 rounded-full px-3 text-[11px]"
               onClick={() => {
                 setStatusFilter("");
                 setResponsavelFilter("");
                 setOrigemFilter("");
                 setStartDateFilter("");
                 setEndDateFilter("");
+                setTableSearchFilter("");
                 setTableCurrentPage(1);
               }}
             >
@@ -1550,15 +1590,35 @@ const LeadsV2Page = () => {
                             <TagsBadges tags={availableTags} tagIds={current.tags || []} maxVisible={2} size="xs" />
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[220px] truncate text-xs text-muted-foreground">
+                        <TableCell className="max-w-[220px] text-xs text-muted-foreground">
                           {isEditing ? (
                             <Input
                               className="h-8 text-xs"
                               value={current.observacao || ""}
                               onChange={(e) => handleEditingChange("observacao", e.target.value)}
                             />
+                          ) : current.observacao ? (
+                            <TooltipProvider>
+                              <Tooltip delayDuration={200}>
+                                <TooltipTrigger asChild>
+                                  <span 
+                                    className="block truncate cursor-help" 
+                                    title={current.observacao}
+                                  >
+                                    {current.observacao}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                  side="top" 
+                                  align="center"
+                                  className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
+                                >
+                                  <p className="text-xs">{current.observacao}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           ) : (
-                            current.observacao
+                            <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-right">
