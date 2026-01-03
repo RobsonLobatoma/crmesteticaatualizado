@@ -89,6 +89,7 @@ const LeadsV2Page = () => {
   const [isHojeDetailOpen, setIsHojeDetailOpen] = useState(false);
   const [hojeCurrentPage, setHojeCurrentPage] = useState(1);
   const [tableCurrentPage, setTableCurrentPage] = useState(1);
+  const [hojeSearchFilter, setHojeSearchFilter] = useState("");
   const LEADS_PER_PAGE = 10;
   
   // Usar status do CRM
@@ -507,12 +508,22 @@ const LeadsV2Page = () => {
   );
   const leadsHoje = leadsHojeLista.length;
 
+  // Filtro de pesquisa para leads de hoje
+  const filteredHojeLeads = useMemo(() => {
+    if (!hojeSearchFilter.trim()) return leadsHojeLista;
+    const searchLower = hojeSearchFilter.toLowerCase().trim();
+    return leadsHojeLista.filter((lead) =>
+      lead.nome.toLowerCase().includes(searchLower) ||
+      lead.contato.toLowerCase().includes(searchLower)
+    );
+  }, [leadsHojeLista, hojeSearchFilter]);
+
   // Paginação para leads de hoje
-  const totalHojePages = Math.ceil(leadsHojeLista.length / LEADS_PER_PAGE);
+  const totalHojePages = Math.ceil(filteredHojeLeads.length / LEADS_PER_PAGE);
   const paginatedHojeLeads = useMemo(() => {
     const startIndex = (hojeCurrentPage - 1) * LEADS_PER_PAGE;
-    return leadsHojeLista.slice(startIndex, startIndex + LEADS_PER_PAGE);
-  }, [leadsHojeLista, hojeCurrentPage]);
+    return filteredHojeLeads.slice(startIndex, startIndex + LEADS_PER_PAGE);
+  }, [filteredHojeLeads, hojeCurrentPage]);
 
   const filteredLeads = leads.filter((lead) => {
     const matchStatus = statusFilter ? lead.status === statusFilter : true;
@@ -638,7 +649,10 @@ const LeadsV2Page = () => {
 
       <Dialog open={isHojeDetailOpen} onOpenChange={(open) => {
         setIsHojeDetailOpen(open);
-        if (!open) setHojeCurrentPage(1);
+        if (!open) {
+          setHojeCurrentPage(1);
+          setHojeSearchFilter("");
+        }
       }}>
         <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
           <DialogHeader>
@@ -648,129 +662,150 @@ const LeadsV2Page = () => {
             </DialogDescription>
           </DialogHeader>
 
+          {/* Filtro de pesquisa */}
+          <div className="flex items-center gap-2 pb-2">
+            <Input
+              placeholder="Pesquisar por nome ou telefone..."
+              value={hojeSearchFilter}
+              onChange={(e) => {
+                setHojeSearchFilter(e.target.value);
+                setHojeCurrentPage(1);
+              }}
+              className="max-w-sm h-9 text-sm"
+            />
+            {hojeSearchFilter && (
+              <span className="text-xs text-muted-foreground">
+                {filteredHojeLeads.length} resultado(s)
+              </span>
+            )}
+          </div>
+
           {leadsHojeLista.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">Nenhum lead cadastrado hoje.</p>
+          ) : filteredHojeLeads.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">Nenhum lead encontrado com essa pesquisa.</p>
           ) : (
-            <div className="flex flex-col flex-1 min-h-0">
-              {/* Tabela com scroll */}
-              <div className="flex-1 overflow-auto border rounded-md">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-background z-10">
-                    <TableRow>
-                      <TableHead className="text-[11px] w-12 text-center">#</TableHead>
-                      <TableHead className="text-[11px]">Nome</TableHead>
-                      <TableHead className="text-[11px]">Contato</TableHead>
-                      <TableHead className="text-[11px]">Responsável</TableHead>
-                      <TableHead className="text-[11px]">Origem</TableHead>
-                      <TableHead className="text-[11px]">Status</TableHead>
-                      <TableHead className="text-[11px]">Tags</TableHead>
-                      <TableHead className="text-[11px]">Data entrada</TableHead>
-                      <TableHead className="text-[11px]" title="Objeção / Observação">Obs.</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedHojeLeads.map((lead, index) => {
-                      const globalIndex = (hojeCurrentPage - 1) * LEADS_PER_PAGE + index + 1;
-                      return (
-                        <TableRow key={lead.id} className="h-10">
-                          <TableCell className="text-[11px] font-semibold text-center text-primary">
-                            {globalIndex}
-                          </TableCell>
-                          <TableCell className="text-[11px] font-medium">{lead.nome}</TableCell>
-                          <TableCell className="text-[11px]">{lead.contato}</TableCell>
-                          <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
-                          <TableCell className="text-[11px]">{lead.origem}</TableCell>
-                          <TableCell className="text-[11px]">
-                            <Badge variant="outline" className="text-[10px]">
-                              {lead.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-[11px]">
-                            <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
-                          </TableCell>
-                          <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
-                          <TableCell className="text-[11px] max-w-[120px]">
-                            {lead.observacao ? (
-                              <Tooltip delayDuration={200}>
-                                <TooltipTrigger asChild>
-                                  <span className="block truncate cursor-help">
-                                    {lead.observacao}
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent 
-                                  side="top" 
-                                  align="center"
-                                  className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words bg-popover text-popover-foreground"
-                                >
-                                  <p className="text-xs">{lead.observacao}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Barra de paginação sempre visível */}
-              <div className="flex items-center justify-between border-t pt-4 mt-4 shrink-0">
-                <p className="text-xs text-muted-foreground">
-                  Mostrando {Math.min((hojeCurrentPage - 1) * LEADS_PER_PAGE + 1, leadsHoje)} a {Math.min(hojeCurrentPage * LEADS_PER_PAGE, leadsHoje)} de {leadsHoje} {leadsHoje === 1 ? 'lead' : 'leads'}
-                </p>
-                {totalHojePages > 1 && (
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setHojeCurrentPage(p => Math.max(1, p - 1))}
-                          className={hojeCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: totalHojePages }, (_, i) => i + 1).map((page) => {
-                        // Mostrar primeira, última e páginas próximas da atual
-                        const showPage = page === 1 || 
-                                        page === totalHojePages || 
-                                        Math.abs(page - hojeCurrentPage) <= 1;
-                        const showEllipsisBefore = page === hojeCurrentPage - 2 && hojeCurrentPage > 3;
-                        const showEllipsisAfter = page === hojeCurrentPage + 2 && hojeCurrentPage < totalHojePages - 2;
-                        
-                        if (showEllipsisBefore || showEllipsisAfter) {
-                          return (
-                            <PaginationItem key={`ellipsis-${page}`}>
-                              <span className="px-2 text-muted-foreground">...</span>
-                            </PaginationItem>
-                          );
-                        }
-                        
-                        if (!showPage) return null;
-                        
+            <TooltipProvider>
+              <div className="flex flex-col flex-1 min-h-0">
+                {/* Tabela com scroll */}
+                <div className="flex-1 overflow-auto border rounded-md">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead className="text-[11px] w-12 text-center">#</TableHead>
+                        <TableHead className="text-[11px]">Nome</TableHead>
+                        <TableHead className="text-[11px]">Contato</TableHead>
+                        <TableHead className="text-[11px]">Responsável</TableHead>
+                        <TableHead className="text-[11px]">Origem</TableHead>
+                        <TableHead className="text-[11px]">Status</TableHead>
+                        <TableHead className="text-[11px]">Tags</TableHead>
+                        <TableHead className="text-[11px]">Data entrada</TableHead>
+                        <TableHead className="text-[11px]" title="Objeção / Observação">Obs.</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedHojeLeads.map((lead, index) => {
+                        const globalIndex = (hojeCurrentPage - 1) * LEADS_PER_PAGE + index + 1;
                         return (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              onClick={() => setHojeCurrentPage(page)}
-                              isActive={hojeCurrentPage === page}
-                              className="cursor-pointer"
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
+                          <TableRow key={lead.id} className="h-10">
+                            <TableCell className="text-[11px] font-semibold text-center text-primary">
+                              {globalIndex}
+                            </TableCell>
+                            <TableCell className="text-[11px] font-medium">{lead.nome}</TableCell>
+                            <TableCell className="text-[11px]">{lead.contato}</TableCell>
+                            <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
+                            <TableCell className="text-[11px]">{lead.origem}</TableCell>
+                            <TableCell className="text-[11px]">
+                              <Badge variant="outline" className="text-[10px]">
+                                {lead.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-[11px]">
+                              <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
+                            </TableCell>
+                            <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
+                            <TableCell className="text-[11px] max-w-[120px]">
+                              {lead.observacao ? (
+                                <Tooltip delayDuration={200}>
+                                  <TooltipTrigger asChild>
+                                    <span className="block truncate cursor-help">
+                                      {lead.observacao}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent 
+                                    side="top" 
+                                    align="center"
+                                    className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
+                                  >
+                                    <p className="text-xs">{lead.observacao}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
                         );
                       })}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => setHojeCurrentPage(p => Math.min(totalHojePages, p + 1))}
-                          className={hojeCurrentPage === totalHojePages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Barra de paginação sempre visível */}
+                <div className="flex items-center justify-between border-t pt-4 mt-4 shrink-0">
+                  <p className="text-xs text-muted-foreground">
+                    Mostrando {Math.min((hojeCurrentPage - 1) * LEADS_PER_PAGE + 1, filteredHojeLeads.length)} a {Math.min(hojeCurrentPage * LEADS_PER_PAGE, filteredHojeLeads.length)} de {filteredHojeLeads.length} {filteredHojeLeads.length === 1 ? 'lead' : 'leads'}
+                  </p>
+                  {totalHojePages > 1 && (
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setHojeCurrentPage(p => Math.max(1, p - 1))}
+                            className={hojeCurrentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                        {Array.from({ length: totalHojePages }, (_, i) => i + 1).map((page) => {
+                          const showPage = page === 1 || 
+                                          page === totalHojePages || 
+                                          Math.abs(page - hojeCurrentPage) <= 1;
+                          const showEllipsisBefore = page === hojeCurrentPage - 2 && hojeCurrentPage > 3;
+                          const showEllipsisAfter = page === hojeCurrentPage + 2 && hojeCurrentPage < totalHojePages - 2;
+                          
+                          if (showEllipsisBefore || showEllipsisAfter) {
+                            return (
+                              <PaginationItem key={`ellipsis-${page}`}>
+                                <span className="px-2 text-muted-foreground">...</span>
+                              </PaginationItem>
+                            );
+                          }
+                          
+                          if (!showPage) return null;
+                          
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setHojeCurrentPage(page)}
+                                isActive={hojeCurrentPage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() => setHojeCurrentPage(p => Math.min(totalHojePages, p + 1))}
+                            className={hojeCurrentPage === totalHojePages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </div>
               </div>
-            </div>
+            </TooltipProvider>
           )}
         </DialogContent>
       </Dialog>
