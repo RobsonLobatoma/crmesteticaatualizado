@@ -435,6 +435,7 @@ export type Database = {
           data_entrada: string | null
           data_fechamento: string | null
           data_nascimento: string | null
+          data_procedimento: string | null
           data_ultimo_contato: string | null
           endereco: string | null
           estado: string | null
@@ -466,6 +467,7 @@ export type Database = {
           data_entrada?: string | null
           data_fechamento?: string | null
           data_nascimento?: string | null
+          data_procedimento?: string | null
           data_ultimo_contato?: string | null
           endereco?: string | null
           estado?: string | null
@@ -497,6 +499,7 @@ export type Database = {
           data_entrada?: string | null
           data_fechamento?: string | null
           data_nascimento?: string | null
+          data_procedimento?: string | null
           data_ultimo_contato?: string | null
           endereco?: string | null
           estado?: string | null
