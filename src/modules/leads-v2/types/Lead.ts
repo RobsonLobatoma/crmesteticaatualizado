@@ -19,6 +19,7 @@ export interface Lead {
   dataUltimoContato?: string;
   dataAgendamento?: string;
   dataAvaliacao?: string;
+  dataProcedimento?: string;
   compareceu?: string;
   dataFechamento?: string;
   valorFechado?: string;
@@ -49,6 +50,7 @@ export interface CreateLeadDTO {
   dataUltimoContato?: string;
   dataAgendamento?: string;
   dataAvaliacao?: string;
+  dataProcedimento?: string;
   compareceu?: string;
   dataFechamento?: string;
   valorFechado?: string;
