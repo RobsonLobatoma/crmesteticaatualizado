@@ -241,24 +241,44 @@ const LeadsV2Page = () => {
       return;
     }
 
-    // Mapear status do lead para slug do CRM
-    const statusMap: Record<string, string> = {
-      'Novo lead': 'novo',
-      'Novo(hoje)': 'novo',
-      'Em Atendimento': 'em_atendimento',
-      'Qualificado': 'qualificacao',
-      'Não Qualificado': 'perdido',
-      'Avaliação Confirmada': 'aguardando',
-      'Compareceu': 'em_atendimento',
-      'Faltou': 'voltar',
-      'Proposta Enviada': 'qualificacao',
-      'Fechou': 'fechou',
-      'Não Fechou': 'perdido',
-      'Pós Venda': 'fechou',
-      'Indicação': 'novo',
-    };
-
-    const crmStatus = statusMap[lead.status] || 'novo';
+    // Buscar status do CRM que corresponde ao status do lead (por nome)
+    // O Kanban usa o slug do crm_statuses, então precisamos encontrar o status correspondente
+    const matchingCrmStatus = crmStatuses.find(s => 
+      s.name.toLowerCase().trim() === lead.status.toLowerCase().trim()
+    );
+    
+    // Se encontrou correspondência, usa o slug; senão, tenta mapear para slugs comuns ou usa 'novo' como fallback
+    let crmStatus = 'novo';
+    if (matchingCrmStatus) {
+      crmStatus = matchingCrmStatus.slug;
+    } else {
+      // Mapeamento de fallback para status comuns
+      const statusFallbackMap: Record<string, string> = {
+        'novo lead': 'novo_hoje',
+        'novo(hoje)': 'novo_hoje',
+        'em atendimento': 'em_atendimento',
+        'qualificado': 'qualificado',
+        'não qualificado': 'nao_qualificado',
+        'avaliação confirmada': 'avaliacao_agendada',
+        'avaliação agendada': 'avaliacao_agendada',
+        'compareceu': 'compareceu',
+        'faltou': 'reagendou',
+        'proposta enviada': 'proposta_enviada',
+        'fechou': 'fechou',
+        'não fechou': 'nao_fechou',
+        'pós venda': 'pos_venda',
+        'pós-venda': 'pos_venda',
+        'indicação': 'indicacao',
+        'reagendou': 'reagendou',
+        'follow-up': 'follow_up',
+        'cancelou avaliação': 'cancelou_avaliacao',
+        'cancelou procedimento': 'cancelou_procedimento',
+        'aguardando retorno': 'aguardando_retorno',
+        'aguardando os dados': 'aguardando_os_dados',
+      };
+      const normalizedStatus = lead.status.toLowerCase().trim();
+      crmStatus = statusFallbackMap[normalizedStatus] || 'novo_hoje';
+    }
 
     // Verificar se já existe no Kanban
     const { data: existing } = await supabase
