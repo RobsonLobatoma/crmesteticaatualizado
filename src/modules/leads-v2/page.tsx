@@ -86,6 +86,7 @@ const LeadsV2Page = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [responsavelFilter, setResponsavelFilter] = useState<string>("");
   const [origemFilter, setOrigemFilter] = useState<string>("");
+  const [tagFilter, setTagFilter] = useState<string>("");
   const [startDateFilter, setStartDateFilter] = useState<string>("");
   const [endDateFilter, setEndDateFilter] = useState<string>("");
   const [isHojeDetailOpen, setIsHojeDetailOpen] = useState(false);
@@ -575,9 +576,12 @@ const LeadsV2Page = () => {
         matchSearch = matchNome || matchContato || matchContatoDigits;
       }
 
-      return matchStatus && matchResponsavel && matchOrigem && matchDateRange && matchSearch;
+      // Filtro por tag
+      const matchTag = tagFilter ? (lead.tags || []).includes(tagFilter) : true;
+
+      return matchStatus && matchResponsavel && matchOrigem && matchDateRange && matchSearch && matchTag;
     });
-  }, [leads, statusFilter, responsavelFilter, origemFilter, startDateFilter, endDateFilter, tableSearchFilter]);
+  }, [leads, statusFilter, responsavelFilter, origemFilter, startDateFilter, endDateFilter, tableSearchFilter, tagFilter]);
 
   // Paginação para tabela principal
   const totalTablePages = Math.ceil(filteredLeads.length / LEADS_PER_PAGE);
@@ -586,35 +590,15 @@ const LeadsV2Page = () => {
     return filteredLeads.slice(startIndex, startIndex + LEADS_PER_PAGE);
   }, [filteredLeads, tableCurrentPage]);
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case "Novo(hoje)":
-        return "border-muted text-muted-foreground bg-muted/40";
-      case "Em Atendimento":
-        return "border-sky-500/40 text-sky-600 dark:text-sky-300 bg-sky-500/10";
-      case "Qualificado":
-        return "border-emerald-500/40 text-emerald-600 dark:text-emerald-300 bg-emerald-500/10";
-      case "Não Qualificado":
-        return "border-destructive/60 text-destructive bg-destructive/5";
-      case "Avaliação Confirmada":
-        return "border-indigo-500/40 text-indigo-600 dark:text-indigo-300 bg-indigo-500/10";
-      case "Compareceu":
-        return "border-emerald-500/40 text-emerald-600 dark:text-emerald-300 bg-emerald-500/10";
-      case "Faltou":
-        return "border-amber-500/40 text-amber-700 dark:text-amber-300 bg-amber-500/10";
-      case "Proposta Enviada":
-        return "border-sky-500/40 text-sky-600 dark:text-sky-300 bg-sky-500/10";
-      case "Fechou":
-        return "border-emerald-500/40 text-emerald-600 dark:text-emerald-300 bg-emerald-500/10";
-      case "Não Fechou":
-        return "border-destructive/60 text-destructive bg-destructive/5";
-      case "Pós Venda":
-        return "border-violet-500/40 text-violet-600 dark:text-violet-300 bg-violet-500/10";
-      case "Indicação":
-        return "border-teal-500/40 text-teal-600 dark:text-teal-300 bg-teal-500/10";
-      default:
-        return "border-muted text-muted-foreground bg-muted/40";
+  const getStatusBadgeClass = (statusName: string) => {
+    const crmStatus = crmStatuses.find(s => s.name === statusName);
+    if (crmStatus && crmStatus.color) {
+      // crmStatus.color is like "bg-blue-500", convert to badge classes
+      const colorBase = crmStatus.color.replace('bg-', '');
+      return `border-${colorBase}/40 text-${colorBase} bg-${colorBase}/10`;
     }
+    // Fallback for unknown statuses
+    return "border-muted text-muted-foreground bg-muted/40";
   };
 
   return (
@@ -1159,21 +1143,15 @@ const LeadsV2Page = () => {
               <select
                 className="flex h-8 min-w-[150px] rounded-md border border-input bg-background px-2 text-[11px] text-foreground shadow-sm"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setTableCurrentPage(1);
+                }}
               >
                 <option value="">Todos</option>
-                <option value="Novo(hoje)">Novo(hoje)</option>
-                <option value="Em Atendimento">Em Atendimento</option>
-                <option value="Qualificado">Qualificado</option>
-                <option value="Não Qualificado">Não Qualificado</option>
-                <option value="Avaliação Confirmada">Avaliação Confirmada</option>
-                <option value="Compareceu">Compareceu</option>
-                <option value="Faltou">Faltou</option>
-                <option value="Proposta Enviada">Proposta Enviada</option>
-                <option value="Fechou">Fechou</option>
-                <option value="Não Fechou">Não Fechou</option>
-                <option value="Pós Venda">Pós Venda</option>
-                <option value="Indicação">Indicação</option>
+                {crmStatuses.map((status) => (
+                  <option key={status.id} value={status.name}>{status.name}</option>
+                ))}
               </select>
             </div>
             <div className="flex flex-col gap-1">
@@ -1202,6 +1180,22 @@ const LeadsV2Page = () => {
                 <option value="Anúncio">Anúncio</option>
                 <option value="Indicação">Indicação</option>
                 <option value="Promoção">Promoção</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted-foreground">Tags</span>
+              <select
+                className="flex h-8 min-w-[150px] rounded-md border border-input bg-background px-2 text-[11px] text-foreground shadow-sm"
+                value={tagFilter}
+                onChange={(e) => {
+                  setTagFilter(e.target.value);
+                  setTableCurrentPage(1);
+                }}
+              >
+                <option value="">Todas</option>
+                {availableTags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>{tag.name}</option>
+                ))}
               </select>
             </div>
             <div className="flex flex-col gap-1">
@@ -1246,6 +1240,7 @@ const LeadsV2Page = () => {
                 setStartDateFilter("");
                 setEndDateFilter("");
                 setTableSearchFilter("");
+                setTagFilter("");
                 setTableCurrentPage(1);
               }}
             >
@@ -1397,26 +1392,14 @@ const LeadsV2Page = () => {
                                   value={current.status}
                                   onChange={(e) => handleEditingChange("status", e.target.value)}
                                 >
-                                  {crmStatuses.length > 0 ? (
-                                    crmStatuses.map((status) => (
-                                      <option key={status.id} value={status.name}>{status.name}</option>
-                                    ))
-                                  ) : (
-                                    <>
-                                      <option value="Novo(hoje)">Novo(hoje)</option>
-                                      <option value="Em Atendimento">Em Atendimento</option>
-                                      <option value="Qualificado">Qualificado</option>
-                                      <option value="Não Qualificado">Não Qualificado</option>
-                                      <option value="Avaliação Confirmada">Avaliação Confirmada</option>
-                                      <option value="Compareceu">Compareceu</option>
-                                      <option value="Faltou">Faltou</option>
-                                      <option value="Proposta Enviada">Proposta Enviada</option>
-                                      <option value="Fechou">Fechou</option>
-                                      <option value="Não Fechou">Não Fechou</option>
-                                      <option value="Pós Venda">Pós Venda</option>
-                                      <option value="Indicação">Indicação</option>
-                                    </>
+                                  <option value="">Selecione...</option>
+                                  {/* Adiciona o status atual se não estiver na lista de crmStatuses */}
+                                  {current.status && !crmStatuses.some(s => s.name === current.status) && (
+                                    <option value={current.status}>{current.status} (antigo)</option>
                                   )}
+                                  {crmStatuses.map((status) => (
+                                    <option key={status.id} value={status.name}>{status.name}</option>
+                                  ))}
                                 </select>
                               ) : (
                                 <Badge
