@@ -14,6 +14,17 @@ export interface Client {
   updated_at: string | null;
   valor_fechado?: number | null;
   data_fechamento?: string | null;
+  // Campos adicionais do lead
+  procedimento?: string | null;
+  origem?: string | null;
+  responsavel?: string | null;
+  data_agendamento?: string | null;
+  data_avaliacao?: string | null;
+  data_procedimento?: string | null;
+  data_entrada?: string | null;
+  data_ultimo_contato?: string | null;
+  compareceu?: string | null;
+  tags?: string[] | null;
 }
 
 const formatAddress = (lead: any): string | null => {
@@ -36,7 +47,7 @@ export const useClients = () => {
         .from('leads')
         .select('*')
         .eq('status', 'Fechou')
-        .order('created_at', { ascending: false });
+        .order('data_fechamento', { ascending: false });
       
       if (error) throw error;
       
@@ -54,6 +65,16 @@ export const useClients = () => {
         updated_at: lead.updated_at,
         valor_fechado: lead.valor_fechado ? parseFloat(lead.valor_fechado) : null,
         data_fechamento: lead.data_fechamento,
+        procedimento: lead.procedimento,
+        origem: lead.origem,
+        responsavel: lead.responsavel,
+        data_agendamento: lead.data_agendamento,
+        data_avaliacao: lead.data_avaliacao,
+        data_procedimento: lead.data_procedimento,
+        data_entrada: lead.data_entrada,
+        data_ultimo_contato: lead.data_ultimo_contato,
+        compareceu: lead.compareceu,
+        tags: lead.tags,
       } as Client));
     },
   });
