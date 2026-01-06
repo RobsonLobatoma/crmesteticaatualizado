@@ -96,7 +96,7 @@ const ClientesV2Page = () => {
           <CardContent className="space-y-4">
             {selectedClient ? (
               <>
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="grid gap-3 md:grid-cols-4">
                   <div>
                     <p className="text-xs text-muted-foreground">Nome</p>
                     <p className="text-sm font-medium">{selectedClient.name}</p>
@@ -126,6 +126,19 @@ const ClientesV2Page = () => {
                     <p className="text-xs text-muted-foreground">CPF</p>
                     <p className="text-sm font-medium">{selectedClient.cpf || "-"}</p>
                   </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Data Nascimento</p>
+                    <p className="text-sm font-medium">
+                      {selectedClient.birth_date 
+                        ? new Date(selectedClient.birth_date).toLocaleDateString('pt-BR')
+                        : "-"
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Origem</p>
+                    <p className="text-sm font-medium">{selectedClient.origem || "-"}</p>
+                  </div>
                 </div>
 
                 <Tabs defaultValue="summary" className="mt-2">
@@ -136,15 +149,107 @@ const ClientesV2Page = () => {
                   </TabsList>
 
                   <TabsContent value="summary" className="mt-3 text-sm text-muted-foreground">
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Procedimento</p>
+                          <p className="text-sm font-medium text-foreground">{selectedClient.procedimento || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Valor Fechado</p>
+                          <p className="text-sm font-medium text-primary">
+                            {selectedClient.valor_fechado 
+                              ? `R$ ${selectedClient.valor_fechado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                              : "-"
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Data Fechamento</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {selectedClient.data_fechamento 
+                              ? new Date(selectedClient.data_fechamento).toLocaleDateString('pt-BR')
+                              : "-"
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Responsável</p>
+                          <p className="text-sm font-medium text-foreground">{selectedClient.responsavel || "-"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Data Entrada</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {selectedClient.data_entrada 
+                              ? new Date(selectedClient.data_entrada).toLocaleDateString('pt-BR')
+                              : "-"
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Último Contato</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {selectedClient.data_ultimo_contato 
+                              ? new Date(selectedClient.data_ultimo_contato).toLocaleDateString('pt-BR')
+                              : "-"
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Data Agendamento</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {selectedClient.data_agendamento 
+                              ? new Date(selectedClient.data_agendamento).toLocaleDateString('pt-BR')
+                              : "-"
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Data Avaliação</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {selectedClient.data_avaliacao 
+                              ? new Date(selectedClient.data_avaliacao).toLocaleDateString('pt-BR')
+                              : "-"
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Data Procedimento</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {selectedClient.data_procedimento 
+                              ? new Date(selectedClient.data_procedimento).toLocaleDateString('pt-BR')
+                              : "-"
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Compareceu</p>
+                          <p className="text-sm font-medium text-foreground">{selectedClient.compareceu || "-"}</p>
+                        </div>
+                      </div>
+                      
                       <div>
-                        <p className="text-xs text-muted-foreground">Endereço</p>
+                        <p className="text-xs text-muted-foreground">Endereço Completo</p>
                         <p className="text-sm">{selectedClient.address || "Não informado"}</p>
                       </div>
+                      
+                      {selectedClient.tags && selectedClient.tags.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Tags</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedClient.tags.map((tag, idx) => (
+                              <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       {selectedClient.notes && (
                         <div>
                           <p className="text-xs text-muted-foreground">Observações</p>
-                          <p className="text-sm">{selectedClient.notes}</p>
+                          <p className="text-sm whitespace-pre-wrap">{selectedClient.notes}</p>
                         </div>
                       )}
                     </div>
