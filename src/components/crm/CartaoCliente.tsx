@@ -4,12 +4,22 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { ClientePotencial } from '@/types/crm';
-import { Phone, Bell } from 'lucide-react';
+import { Phone, Bell, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CartaoClienteProps {
   cliente: ClientePotencial;
 }
+
+const formatDate = (dateStr: string | undefined): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('pt-BR', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+};
 
 export const CartaoCliente = ({ cliente }: CartaoClienteProps) => {
   const navigate = useNavigate();
@@ -84,13 +94,14 @@ export const CartaoCliente = ({ cliente }: CartaoClienteProps) => {
           </p>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-1.5">
+          <div className="flex items-center justify-between pt-1.5 border-t border-border/30 mt-1">
             <Badge variant="outline" className="text-xs">
-              {cliente.responsavel}
+              {cliente.responsavel || 'Sem responsável'}
             </Badge>
-            <span className="text-xs text-muted-foreground">
-              {cliente.horarioUltimaMensagem}
-            </span>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              <span>{formatDate(cliente.dataCriacao)}</span>
+            </div>
           </div>
         </CardContent>
       </Card>
