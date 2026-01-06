@@ -152,45 +152,20 @@ const PainelV2Page = () => {
 
   return (
     <div className="flex-1 px-4 pt-6 lg:px-8 flex flex-col">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Quadro de Atendimento</h1>
-        <p className="text-muted-foreground">Gerencie seus leads através do funil de vendas</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Quadro de Atendimento</h1>
+          <p className="text-muted-foreground">Gerencie seus leads através do funil de vendas</p>
+        </div>
+        <div className="flex items-center gap-2 bg-surface-elevated/95 border border-border/80 rounded-lg px-4 py-2">
+          <span className="text-2xl font-bold text-primary">{clientesFiltrados.length}</span>
+          <span className="text-sm text-muted-foreground">clientes ativos</span>
+        </div>
       </div>
 
       <FiltrosKanban filtros={filtros} onChange={setFiltros} />
 
       <div className="flex gap-4 flex-1 min-h-0">
-        {/* Sidebar com métricas - visível apenas em desktop */}
-        <div className="hidden lg:flex flex-col w-64 shrink-0 space-y-4">
-          <Card className="border-border/80 bg-surface-elevated/95 shadow-soft">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Resumo do Quadro</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {colunas.map(coluna => {
-                const count = clientesFiltrados.filter(c => c.status === coluna.id).length;
-                return (
-                  <div key={coluna.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={cn("w-2 h-2 rounded-full", coluna.cor)} />
-                      <span className="text-sm truncate max-w-[140px]">{coluna.titulo}</span>
-                    </div>
-                    <Badge variant="outline" className="text-xs">{count}</Badge>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-          
-          <Card className="border-border/80 bg-surface-elevated/95 shadow-soft">
-            <CardContent className="pt-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{clientesFiltrados.length}</p>
-                <p className="text-sm text-muted-foreground">clientes ativos</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Área principal do Kanban */}
         <div className="flex-1 flex flex-col min-w-0">
