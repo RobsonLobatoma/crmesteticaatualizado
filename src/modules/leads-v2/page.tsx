@@ -1266,8 +1266,61 @@ const LeadsV2Page = () => {
             >
               Limpar filtros
             </Button>
-            <Button variant="outline" size="sm" className="mt-1 h-8 rounded-full px-3 text-[11px]">
-              Exportar planilha
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-1 h-8 rounded-full px-3 text-[11px]"
+              onClick={() => {
+                const leadsToExport = filteredLeads;
+                if (leadsToExport.length === 0) {
+                  toast({
+                    title: "Nenhum lead para exportar",
+                    description: "Não há leads com os filtros atuais.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                const lines = leadsToExport.map((lead, idx) => {
+                  return [
+                    `#${idx + 1}`,
+                    `Nome: ${lead.nome}`,
+                    `Contato: ${lead.contato}`,
+                    `Responsável: ${lead.responsavel || '-'}`,
+                    `Origem: ${lead.origem || '-'}`,
+                    `Procedimento: ${lead.procedimento || '-'}`,
+                    `Status: ${lead.status}`,
+                    `Data Entrada: ${lead.dataEntrada || '-'}`,
+                    `Data Último Contato: ${lead.dataUltimoContato || '-'}`,
+                    `Data Agendamento: ${lead.dataAgendamento || '-'}`,
+                    `Data Avaliação: ${lead.dataAvaliacao || '-'}`,
+                    `Data Procedimento: ${lead.dataProcedimento || '-'}`,
+                    `Compareceu: ${lead.compareceu || '-'}`,
+                    `Data Fechamento: ${lead.dataFechamento || '-'}`,
+                    `Valor Fechado: ${lead.valorFechado || '-'}`,
+                    `Observação: ${lead.observacao || '-'}`,
+                    '---'
+                  ].join('\n');
+                });
+                
+                const content = `LEADS EXPORTADOS - ${new Date().toLocaleDateString('pt-BR')}\nTotal: ${leadsToExport.length} leads\n\n${lines.join('\n')}`;
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `leads_${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                toast({
+                  title: "Exportação concluída!",
+                  description: `${leadsToExport.length} leads exportados com sucesso.`,
+                });
+              }}
+            >
+              Exportar TXT
             </Button>
             <ColumnManager columns={columnConfig} onChange={setColumnConfig} />
           </div>
