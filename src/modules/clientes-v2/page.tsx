@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TableCard } from "@/components/dashboard/TableCard";
 import { useClients, Client } from "./hooks/useClients";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { SensitiveData } from "@/components/ui/SensitiveData";
+import { maskCPF, maskPhone, maskAddress, extractCity } from "@/lib/sensitiveDataUtils";
 const ClientesV2Page = () => {
   const { clients, isLoading } = useClients();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -21,18 +22,6 @@ const ClientesV2Page = () => {
       age--;
     }
     return age;
-  };
-
-  // Extrai cidade do endereço (formato: "rua, num - bairro, cidade/estado")
-  const extractCity = (address: string | null): string => {
-    if (!address) return "-";
-    const parts = address.split(",");
-    if (parts.length >= 2) {
-      const lastPart = parts[parts.length - 1].trim();
-      const cityState = lastPart.split("/");
-      return cityState[0]?.trim() || "-";
-    }
-    return "-";
   };
 
   return (
@@ -116,7 +105,12 @@ const ClientesV2Page = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Telefone</p>
-                    <p className="text-sm font-medium">{selectedClient.phone || "-"}</p>
+                    <SensitiveData 
+                      maskedValue={maskPhone(selectedClient.phone)} 
+                      fullValue={selectedClient.phone || "-"}
+                      label="telefone"
+                      size="sm"
+                    />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Email</p>
@@ -124,7 +118,12 @@ const ClientesV2Page = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">CPF</p>
-                    <p className="text-sm font-medium">{selectedClient.cpf || "-"}</p>
+                    <SensitiveData 
+                      maskedValue={maskCPF(selectedClient.cpf)} 
+                      fullValue={selectedClient.cpf || "-"}
+                      label="CPF"
+                      size="sm"
+                    />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Data Nascimento</p>
@@ -230,7 +229,12 @@ const ClientesV2Page = () => {
                       
                       <div>
                         <p className="text-xs text-muted-foreground">Endereço Completo</p>
-                        <p className="text-sm">{selectedClient.address || "Não informado"}</p>
+                        <SensitiveData 
+                          maskedValue={maskAddress(selectedClient.address)} 
+                          fullValue={selectedClient.address || "Não informado"}
+                          label="endereço"
+                          size="sm"
+                        />
                       </div>
                       
                       {selectedClient.tags && selectedClient.tags.length > 0 && (
