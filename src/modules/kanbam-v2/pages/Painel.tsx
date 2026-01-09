@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ClientePotencial, FiltrosKanban as FiltrosKanbanType } from '@/types/crm';
@@ -334,45 +334,40 @@ const PainelV2Page = () => {
 
       <FiltrosKanban filtros={filtros} onChange={setFiltros} />
 
-      <div className="flex gap-4 flex-1 min-h-0">
-
-        {/* Área principal do Kanban */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <DndContext 
-            sensors={sensors}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <ScrollArea className="w-full pb-4 flex-1">
-              <div className="flex gap-3 p-1">
-                {colunas.map(coluna => {
-                  const clientesColuna = clientesFiltrados.filter(c => c.status === coluna.id);
-                  return (
-                    <ColunaKanban
-                      key={coluna.id}
-                      id={coluna.id}
-                      titulo={coluna.titulo}
-                      cor={coluna.cor}
-                      clientes={clientesColuna}
-                      total={clientesColuna.length}
-                    />
-                  );
-                })}
-              </div>
-            </ScrollArea>
-            
-            <DragOverlay>
-              {activeCliente ? <CartaoCliente cliente={activeCliente} /> : null}
-            </DragOverlay>
-          </DndContext>
-
-          {/* Barra inferior apenas com dica */}
-          <div className="mt-4 pt-3 border-t border-border">
-            <p className="text-center text-xs text-muted-foreground">
-              Dica: arraste os cards entre as colunas para atualizar o status. Clique no card para ver detalhes.
-            </p>
+      {/* Área principal do Kanban com scroll nativo */}
+      <DndContext 
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-1 w-full overflow-auto">
+          <div className="flex w-max gap-3 pb-6">
+            {colunas.map(coluna => {
+              const clientesColuna = clientesFiltrados.filter(c => c.status === coluna.id);
+              return (
+                <ColunaKanban
+                  key={coluna.id}
+                  id={coluna.id}
+                  titulo={coluna.titulo}
+                  cor={coluna.cor}
+                  clientes={clientesColuna}
+                  total={clientesColuna.length}
+                />
+              );
+            })}
           </div>
         </div>
+        
+        <DragOverlay>
+          {activeCliente ? <CartaoCliente cliente={activeCliente} /> : null}
+        </DragOverlay>
+      </DndContext>
+
+      {/* Barra inferior com dica */}
+      <div className="pt-3 border-t border-border">
+        <p className="text-center text-xs text-muted-foreground">
+          Dica: arraste os cards entre as colunas para atualizar o status. Clique no card para ver detalhes.
+        </p>
       </div>
     </div>
   );
