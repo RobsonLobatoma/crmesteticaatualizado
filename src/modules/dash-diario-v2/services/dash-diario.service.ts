@@ -69,117 +69,84 @@ export const criarEntradasDoMesComLeads = (
 ): DashDiarioEntry[] => {
   const entradas = criarEntradasDoMes(ano, mesIndex);
 
+  // Função auxiliar para verificar se uma data pertence ao mês/ano selecionado e retornar o índice do dia
+  const getDayIndexForDate = (dateStr?: string | null): number | null => {
+    const date = parseDateFlexible(dateStr);
+    if (!date) return null;
+    if (date.getFullYear() !== ano || date.getMonth() !== mesIndex) return null;
+    return date.getDate() - 1; // índice 0-based
+  };
+
   leads.forEach((lead) => {
-    const dataEntrada = parseDateFlexible(lead.dataEntrada);
-    if (!dataEntrada) return;
-
-    if (
-      dataEntrada.getFullYear() !== ano ||
-      dataEntrada.getMonth() !== mesIndex
-    ) {
-      return;
-    }
-
-    const dia = dataEntrada.getDate();
-    const index = dia - 1;
-    if (!entradas[index]) return;
-
-    const entrada = entradas[index];
     const origem = (lead.origem || "").toLowerCase();
     const status = (lead.status || "").toLowerCase();
 
-    // Leads novos
-    entrada.leadsNovosTotal = increment(entrada.leadsNovosTotal);
-    if (origem === "whatsapp") {
-      entrada.leadsNovosWhatsapp = increment(entrada.leadsNovosWhatsapp);
-    }
-    if (origem === "instagram") {
-      entrada.leadsNovosInstagram = increment(entrada.leadsNovosInstagram);
-    }
-
-    // Conversados (usa dataUltimoContato)
-    const dataUltimoContato = parseDateFlexible(lead.dataUltimoContato);
-    if (dataUltimoContato) {
-      const mesmoDia =
-        dataUltimoContato.getFullYear() === ano &&
-        dataUltimoContato.getMonth() === mesIndex &&
-        dataUltimoContato.getDate() === dia;
-
-      if (mesmoDia) {
-        entrada.conversadosTotal = increment(entrada.conversadosTotal);
-        if (origem === "whatsapp") {
-          entrada.conversadosWhatsapp = increment(
-            entrada.conversadosWhatsapp,
-          );
-        }
-        if (origem === "instagram") {
-          entrada.conversadosInstagram = increment(
-            entrada.conversadosInstagram,
-          );
-        }
+    // === LEADS NOVOS (baseado em dataEntrada) ===
+    const indexEntrada = getDayIndexForDate(lead.dataEntrada);
+    if (indexEntrada !== null && entradas[indexEntrada]) {
+      const entrada = entradas[indexEntrada];
+      entrada.leadsNovosTotal = increment(entrada.leadsNovosTotal);
+      if (origem.includes("whatsapp")) {
+        entrada.leadsNovosWhatsapp = increment(entrada.leadsNovosWhatsapp);
+      }
+      if (origem.includes("instagram")) {
+        entrada.leadsNovosInstagram = increment(entrada.leadsNovosInstagram);
       }
     }
 
-    // Follow-up (usa status contendo "follow")
-    if (status.includes("follow")) {
-      entrada.followUpTotal = increment(entrada.followUpTotal);
-    }
-
-    // Agendadas hoje (usa dataAgendamento)
-    const dataAgendamento = parseDateFlexible(lead.dataAgendamento);
-    if (dataAgendamento) {
-      const mesmoDia =
-        dataAgendamento.getFullYear() === ano &&
-        dataAgendamento.getMonth() === mesIndex &&
-        dataAgendamento.getDate() === dia;
-
-      if (mesmoDia) {
-        entrada.agendadasHojeTotal = increment(entrada.agendadasHojeTotal);
+    // === CONVERSADOS (baseado em dataUltimoContato) ===
+    const indexContato = getDayIndexForDate(lead.dataUltimoContato);
+    if (indexContato !== null && entradas[indexContato]) {
+      const entrada = entradas[indexContato];
+      entrada.conversadosTotal = increment(entrada.conversadosTotal);
+      if (origem.includes("whatsapp")) {
+        entrada.conversadosWhatsapp = increment(entrada.conversadosWhatsapp);
+      }
+      if (origem.includes("instagram")) {
+        entrada.conversadosInstagram = increment(entrada.conversadosInstagram);
       }
     }
 
-    // Avaliações hoje (usa dataAvaliacao)
-    const dataAvaliacao = parseDateFlexible(lead.dataAvaliacao);
-    if (dataAvaliacao) {
-      const mesmoDia =
-        dataAvaliacao.getFullYear() === ano &&
-        dataAvaliacao.getMonth() === mesIndex &&
-        dataAvaliacao.getDate() === dia;
-
-      if (mesmoDia) {
-        entrada.avaliacoesHoje = increment(entrada.avaliacoesHoje);
-      }
+    // === FOLLOW-UP (status contendo "follow") - conta no dia de entrada ===
+    if (status.includes("follow") && indexEntrada !== null && entradas[indexEntrada]) {
+      entradas[indexEntrada].followUpTotal = increment(entradas[indexEntrada].followUpTotal);
     }
 
-    // Compareceram hoje (usa campo compareceu + dataAvaliacao)
+    // === AGENDADAS (baseado em dataAgendamento) ===
+    const indexAgendamento = getDayIndexForDate(lead.dataAgendamento);
+    if (indexAgendamento !== null && entradas[indexAgendamento]) {
+      entradas[indexAgendamento].agendadasHojeTotal = increment(entradas[indexAgendamento].agendadasHojeTotal);
+    }
+
+    // === AVALIAÇÕES (baseado em dataAvaliacao) ===
+    const indexAvaliacao = getDayIndexForDate(lead.dataAvaliacao);
+    if (indexAvaliacao !== null && entradas[indexAvaliacao]) {
+      entradas[indexAvaliacao].avaliacoesHoje = increment(entradas[indexAvaliacao].avaliacoesHoje);
+    }
+
+    // === COMPARECERAM (baseado em compareceu + dataAvaliacao) ===
     const compareceu = (lead.compareceu || "").toLowerCase();
-    if (compareceu === "sim" && dataAvaliacao) {
-      const mesmoDia =
-        dataAvaliacao.getFullYear() === ano &&
-        dataAvaliacao.getMonth() === mesIndex &&
-        dataAvaliacao.getDate() === dia;
-
-      if (mesmoDia) {
-        entrada.compareceramHoje = increment(entrada.compareceramHoje);
-      }
+    if ((compareceu === "sim" || compareceu === "s") && indexAvaliacao !== null && entradas[indexAvaliacao]) {
+      entradas[indexAvaliacao].compareceramHoje = increment(entradas[indexAvaliacao].compareceramHoje);
     }
 
-    // Fechamentos e valor fechado (usa dataFechamento + status atual de fechamento)
-    const dataFechamento = parseDateFlexible(lead.dataFechamento);
-    const statusFechamento = (lead.status || "").toLowerCase();
+    // === FECHAMENTOS (baseado em dataFechamento OU status de fechamento) ===
+    const indexFechamento = getDayIndexForDate(lead.dataFechamento);
     const isFechamentoStatus =
-      statusFechamento === "fechou" ||
-      statusFechamento.includes("fechado") ||
-      statusFechamento.includes("fechou");
+      status === "fechou" ||
+      status.includes("fechado") ||
+      status.includes("fechou") ||
+      status.includes("vendido") ||
+      status.includes("convertido");
 
-    if (isFechamentoStatus && dataFechamento) {
-      const mesmoDia =
-        dataFechamento.getFullYear() === ano &&
-        dataFechamento.getMonth() === mesIndex &&
-        dataFechamento.getDate() === dia;
+    // Usa dataFechamento se disponível, senão usa dataEntrada para status de fechamento
+    const indexParaFechamento = indexFechamento !== null ? indexFechamento : 
+      (isFechamentoStatus && indexEntrada !== null ? indexEntrada : null);
 
-      if (mesmoDia) {
-        entrada.fechamentosHoje = increment(entrada.fechamentosHoje);
+    if (indexParaFechamento !== null && entradas[indexParaFechamento]) {
+      // Só conta como fechamento se tem dataFechamento OU status indica fechamento
+      if (indexFechamento !== null || isFechamentoStatus) {
+        entradas[indexParaFechamento].fechamentosHoje = increment(entradas[indexParaFechamento].fechamentosHoje);
 
         const valor = Number(
           (lead.valorFechado || "0")
@@ -189,15 +156,17 @@ export const criarEntradasDoMesComLeads = (
         );
 
         if (!Number.isNaN(valor) && valor > 0) {
-          entrada.valorFechadoHoje = sumCurrencyString(
-            entrada.valorFechadoHoje,
+          entradas[indexParaFechamento].valorFechadoHoje = sumCurrencyString(
+            entradas[indexParaFechamento].valorFechadoHoje,
             valor,
           );
         }
       }
     }
+  });
 
-    // Show rate (%) = compareceram / avaliacoes * 100
+  // === CALCULAR SHOW RATE para cada dia ===
+  entradas.forEach((entrada) => {
     const avaliacoes = Number(entrada.avaliacoesHoje || "0") || 0;
     const compareceram = Number(entrada.compareceramHoje || "0") || 0;
     if (avaliacoes > 0) {
