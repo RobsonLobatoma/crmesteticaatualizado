@@ -366,39 +366,8 @@ const PainelV2Page = () => {
             </DragOverlay>
           </DndContext>
 
-          {/* Barra inferior com scroll horizontal e dica */}
-          <div className="mt-4 pt-3 border-t border-border bg-surface-elevated/80 backdrop-blur-sm">
-            {/* Barra de navegação rápida das colunas */}
-            <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-2">
-              {colunas.map(coluna => {
-                const count = clientesFiltrados.filter(c => c.status === coluna.id).length;
-                return (
-                  <Badge 
-                    key={coluna.id}
-                    variant="outline" 
-                    className={cn(
-                      "cursor-pointer whitespace-nowrap text-xs px-3 py-1 transition-all hover:scale-105",
-                      coluna.cor.replace('bg-', 'border-'),
-                      "hover:bg-muted/50"
-                    )}
-                    onClick={() => {
-                      const scrollContainer = document.querySelector('[data-radix-scroll-area-viewport]');
-                      const columnIndex = colunas.findIndex(c => c.id === coluna.id);
-                      if (scrollContainer && columnIndex >= 0) {
-                        const columnWidth = 280 + 12;
-                        scrollContainer.scrollTo({
-                          left: columnIndex * columnWidth,
-                          behavior: 'smooth'
-                        });
-                      }
-                    }}
-                  >
-                    <div className={cn("w-2 h-2 rounded-full mr-2", coluna.cor)} />
-                    {coluna.titulo} ({count})
-                  </Badge>
-                );
-              })}
-            </div>
+          {/* Barra inferior apenas com dica */}
+          <div className="mt-4 pt-3 border-t border-border">
             <p className="text-center text-xs text-muted-foreground">
               Dica: arraste os cards entre as colunas para atualizar o status. Clique no card para ver detalhes.
             </p>
