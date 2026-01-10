@@ -94,9 +94,10 @@ export const criarEntradasDoMesComLeads = (
       }
     }
 
-    // === CONVERSADOS (baseado em dataUltimoContato) ===
+    // === CONVERSADOS (restrito a leads novos do dia que foram conversados no mesmo dia) ===
     const indexContato = getDayIndexForDate(lead.dataUltimoContato);
-    if (indexContato !== null && entradas[indexContato]) {
+    // Só conta como conversado se o lead ENTROU e FOI CONVERSADO no mesmo dia
+    if (indexContato !== null && indexEntrada !== null && indexContato === indexEntrada && entradas[indexContato]) {
       const entrada = entradas[indexContato];
       entrada.conversadosTotal = increment(entrada.conversadosTotal);
       if (origem.includes("whatsapp")) {
