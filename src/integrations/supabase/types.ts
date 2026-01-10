@@ -649,6 +649,72 @@ export type Database = {
         }
         Relationships: []
       }
+      playbook_messages: {
+        Row: {
+          acao: string | null
+          categoria: string | null
+          category: string
+          created_at: string
+          depoimento: string | null
+          display_order: number | null
+          estrategia: string | null
+          etapa: string | null
+          id: string
+          is_active: boolean | null
+          objecao: string | null
+          objecao_comum: string | null
+          objetivo: string | null
+          observacao: string | null
+          pergunta: string | null
+          script: string | null
+          script_exemplo: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acao?: string | null
+          categoria?: string | null
+          category: string
+          created_at?: string
+          depoimento?: string | null
+          display_order?: number | null
+          estrategia?: string | null
+          etapa?: string | null
+          id?: string
+          is_active?: boolean | null
+          objecao?: string | null
+          objecao_comum?: string | null
+          objetivo?: string | null
+          observacao?: string | null
+          pergunta?: string | null
+          script?: string | null
+          script_exemplo?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acao?: string | null
+          categoria?: string | null
+          category?: string
+          created_at?: string
+          depoimento?: string | null
+          display_order?: number | null
+          estrategia?: string | null
+          etapa?: string | null
+          id?: string
+          is_active?: boolean | null
+          objecao?: string | null
+          objecao_comum?: string | null
+          objetivo?: string | null
+          observacao?: string | null
+          pergunta?: string | null
+          script?: string | null
+          script_exemplo?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       professional_absences: {
         Row: {
           absence_type: string | null
