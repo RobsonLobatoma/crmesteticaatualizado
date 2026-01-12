@@ -249,6 +249,23 @@ const DashDiarioV2Page = () => {
   const [selectedDateLeads, setSelectedDateLeads] = useState<Lead[]>([]);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  // Filtro de data (dia específico)
+  const [diaFilter, setDiaFilter] = useState<string>("todos");
+
+  // Dias disponíveis no mês selecionado
+  const diasDoMes = entradas.map((e) => {
+    const parts = e.data.split("/");
+    return parts[0]; // Extrai só o dia (ex: "01", "02", etc.)
+  });
+
+  // Entradas filtradas por dia (se selecionado)
+  const entradasFiltradas = diaFilter === "todos" 
+    ? entradas 
+    : entradas.filter((e) => {
+        const parts = e.data.split("/");
+        return parts[0] === diaFilter;
+      });
+
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [responsavelFilter, setResponsavelFilter] = useState<string>("todos");
   const [origemFilter, setOrigemFilter] = useState<string>("todos");
@@ -307,11 +324,29 @@ const DashDiarioV2Page = () => {
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[11px]">
               <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground">Dia</span>
+                <select
+                  className="h-7 rounded-sm border border-border bg-background px-1.5 text-[11px]"
+                  value={diaFilter}
+                  onChange={(e) => setDiaFilter(e.target.value)}
+                >
+                  <option value="todos">Todos</option>
+                  {diasDoMes.map((dia) => (
+                    <option key={dia} value={dia}>
+                      {dia}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
                 <span className="text-muted-foreground">Mês</span>
                 <select
                   className="h-7 rounded-sm border border-border bg-background px-1.5 text-[11px]"
                   value={mes}
-                  onChange={(e) => handleChangeMes(e.target.value)}
+                  onChange={(e) => {
+                    handleChangeMes(e.target.value);
+                    setDiaFilter("todos"); // Reseta filtro de dia ao mudar mês
+                  }}
                 >
                   {nomeMeses.map((nome, index) => (
                     <option key={nome} value={index}>
@@ -326,7 +361,10 @@ const DashDiarioV2Page = () => {
                   type="number"
                   className="h-7 w-20 px-1.5 text-[11px] rounded-sm"
                   value={ano}
-                  onChange={(e) => handleChangeAno(e.target.value)}
+                  onChange={(e) => {
+                    handleChangeAno(e.target.value);
+                    setDiaFilter("todos"); // Reseta filtro de dia ao mudar ano
+                  }}
                 />
               </div>
               <Button
@@ -450,7 +488,10 @@ const DashDiarioV2Page = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {entradas.map((entrada, index) => (
+                  {entradasFiltradas.map((entrada) => {
+                    // Encontra o índice original para handleCellChange funcionar corretamente
+                    const originalIndex = entradas.findIndex((e) => e.data === entrada.data);
+                    return (
                     <TableRow key={entrada.data} className="h-6 [&>td]:py-0.5">
                       <TableCell className="whitespace-nowrap px-1 py-0.5 text-[11px]">
                         {entrada.data}
@@ -463,7 +504,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.leadsNovosTotal}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "leadsNovosTotal",
                               e.target.value,
                             )
@@ -478,7 +519,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.leadsNovosWhatsapp}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "leadsNovosWhatsapp",
                               e.target.value,
                             )
@@ -493,7 +534,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.leadsNovosInstagram}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "leadsNovosInstagram",
                               e.target.value,
                             )
@@ -508,7 +549,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.conversadosTotal}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "conversadosTotal",
                               e.target.value,
                             )
@@ -523,7 +564,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.conversadosWhatsapp}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "conversadosWhatsapp",
                               e.target.value,
                             )
@@ -538,7 +579,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.conversadosInstagram}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "conversadosInstagram",
                               e.target.value,
                             )
@@ -553,7 +594,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.followUpTotal}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "followUpTotal",
                               e.target.value,
                             )
@@ -568,7 +609,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.agendadasHojeTotal}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "agendadasHojeTotal",
                               e.target.value,
                             )
@@ -583,7 +624,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.avaliacoesHoje}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "avaliacoesHoje",
                               e.target.value,
                             )
@@ -598,7 +639,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.compareceramHoje}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "compareceramHoje",
                               e.target.value,
                             )
@@ -613,7 +654,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.showRatePercent}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "showRatePercent",
                               e.target.value,
                             )
@@ -632,7 +673,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.fechamentosHoje}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "fechamentosHoje",
                               e.target.value,
                             )
@@ -650,7 +691,7 @@ const DashDiarioV2Page = () => {
                           value={entrada.valorFechadoHoje}
                           onChange={(e) =>
                             handleCellChange(
-                              index,
+                              originalIndex,
                               "valorFechadoHoje",
                               e.target.value,
                             )
@@ -673,14 +714,15 @@ const DashDiarioV2Page = () => {
                             variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-[11px] text-destructive hover:text-destructive"
-                            onClick={() => handleRemoverLinha(index)}
+                            onClick={() => handleRemoverLinha(originalIndex)}
                           >
                             Remover
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
