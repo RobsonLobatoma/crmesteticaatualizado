@@ -29,6 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FileText } from "lucide-react";
+import {
+  ExportColumnManager,
+  ExportColumnConfig,
+  loadExportConfig,
+} from "./components/ExportColumnManager";
 
 const DashDiarioV2Page = () => {
   const { toast } = useToast();
@@ -42,6 +48,10 @@ const DashDiarioV2Page = () => {
     handleCellChange,
     handleRemoverLinha,
   } = useDashDiario(leads);
+
+  const [exportConfig, setExportConfig] = useState<ExportColumnConfig[]>(() =>
+    loadExportConfig()
+  );
 
   useEffect(() => {
     document.title = "Dash-Diário | Studio CRM";
@@ -81,6 +91,62 @@ const DashDiarioV2Page = () => {
     "Novembro",
     "Dezembro",
   ];
+
+  const handleExportTXT = () => {
+    const visibleColumns = exportConfig.filter((col) => col.visible);
+
+    if (visibleColumns.length === 0) {
+      toast({
+        title: "Nenhuma coluna selecionada",
+        description: "Selecione ao menos uma coluna para exportar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const entradasComDados = entradas.filter(
+      (e) =>
+        Number(e.leadsNovosTotal || "0") > 0 ||
+        Number(e.conversadosTotal || "0") > 0 ||
+        Number(e.fechamentosHoje || "0") > 0 ||
+        (e.valorFechadoHoje && e.valorFechadoHoje !== "0")
+    );
+
+    if (entradasComDados.length === 0) {
+      toast({
+        title: "Sem dados para exportar",
+        description: "Não há entradas com dados no período selecionado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const header = `DASH-DIÁRIO - ${nomeMeses[mes]} ${ano}`;
+    const lines = entradasComDados.map((entrada, idx) => {
+      const fields = visibleColumns.map((col) => {
+        const value =
+          entrada[col.id as keyof typeof entrada] || "-";
+        return `${col.label}: ${value}`;
+      });
+      return [`#${idx + 1}`, ...fields, "---"].join("\n");
+    });
+
+    const content = `${header}\nTotal: ${entradasComDados.length} dias com dados\n\n${lines.join("\n")}`;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `dash-diario_${nomeMeses[mes].toLowerCase()}_${ano}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Exportação concluída!",
+      description: `${entradasComDados.length} dias exportados com sucesso.`,
+    });
+  };
 
   const cellInputClass =
     "h-6 w-full max-w-[55px] px-0 text-center text-[11px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0";
@@ -263,6 +329,19 @@ const DashDiarioV2Page = () => {
                   onChange={(e) => handleChangeAno(e.target.value)}
                 />
               </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 text-[11px] gap-1"
+                onClick={handleExportTXT}
+              >
+                <FileText className="h-3 w-3" />
+                Exportar TXT
+              </Button>
+              <ExportColumnManager
+                columns={exportConfig}
+                onChange={setExportConfig}
+              />
               <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={handleSalvar}>
                 Salvar Dash-Diário
               </Button>
