@@ -547,6 +547,76 @@ const LeadsV2Page = () => {
   );
   const leadsHoje = leadsHojeLista.length;
 
+  // Métricas calculadas dinamicamente
+  const metrics = useMemo(() => {
+    const hoje = new Date();
+    const trintaDiasAtras = new Date();
+    trintaDiasAtras.setDate(hoje.getDate() - 30);
+
+    // Início e fim da semana atual (domingo a sábado)
+    const inicioSemana = new Date(hoje);
+    inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+    inicioSemana.setHours(0, 0, 0, 0);
+    const fimSemana = new Date(inicioSemana);
+    fimSemana.setDate(inicioSemana.getDate() + 6);
+    fimSemana.setHours(23, 59, 59, 999);
+
+    // Leads dos últimos 30 dias
+    const leadsUltimos30Dias = leads.filter((lead) => {
+      const date = parseDate(lead.dataEntrada);
+      return date && date >= trintaDiasAtras && date <= hoje;
+    });
+
+    // Fechamentos dos últimos 30 dias
+    const fechamentosUltimos30Dias = leads.filter((lead) => {
+      const isFechado = lead.status?.toLowerCase().includes('fechou') || lead.dataFechamento;
+      if (!isFechado) return false;
+      const date = parseDate(lead.dataFechamento || lead.dataEntrada);
+      return date && date >= trintaDiasAtras && date <= hoje;
+    });
+
+    // Taxa de conversão
+    const taxaConversao = leadsUltimos30Dias.length > 0
+      ? Math.round((fechamentosUltimos30Dias.length / leadsUltimos30Dias.length) * 100)
+      : 0;
+
+    // Agenda da semana - Avaliações
+    const avaliacoesSemana = leads.filter((lead) => {
+      const date = parseDate(lead.dataAvaliacao);
+      return date && date >= inicioSemana && date <= fimSemana;
+    }).length;
+
+    // Agenda da semana - Retornos (leads com follow-up ou data_ultimo_contato na semana)
+    const retornosSemana = leads.filter((lead) => {
+      const date = parseDate(lead.dataUltimoContato);
+      const isFollowUp = lead.status?.toLowerCase().includes('follow');
+      return isFollowUp && date && date >= inicioSemana && date <= fimSemana;
+    }).length;
+
+    // Agenda da semana - Novos fechamentos
+    const fechamentosSemana = leads.filter((lead) => {
+      const date = parseDate(lead.dataFechamento);
+      return date && date >= inicioSemana && date <= fimSemana;
+    }).length;
+
+    // Consultas confirmadas (leads com compareceu = "Sim" na semana)
+    const consultasConfirmadas = leads.filter((lead) => {
+      const date = parseDate(lead.dataAvaliacao);
+      const compareceu = lead.compareceu?.toLowerCase() === 'sim';
+      return compareceu && date && date >= inicioSemana && date <= fimSemana;
+    }).length;
+
+    return {
+      taxaConversao,
+      leadsUltimos30Dias: leadsUltimos30Dias.length,
+      fechamentosUltimos30Dias: fechamentosUltimos30Dias.length,
+      avaliacoesSemana,
+      retornosSemana,
+      fechamentosSemana,
+      consultasConfirmadas,
+    };
+  }, [leads]);
+
   // Filtro de pesquisa para leads de hoje
   const filteredHojeLeads = useMemo(() => {
     if (!hojeSearchFilter.trim()) return leadsHojeLista;
@@ -667,8 +737,12 @@ const LeadsV2Page = () => {
             </CardHeader>
             <CardContent className="flex items-end justify-between gap-4 pt-0 text-sm">
               <div>
-                <p className="text-3xl font-semibold">0%</p>
-                <p className="text-xs text-muted-foreground">Sem dados suficientes</p>
+                <p className="text-3xl font-semibold">{metrics.taxaConversao}%</p>
+                <p className="text-xs text-muted-foreground">
+                  {metrics.leadsUltimos30Dias > 0 
+                    ? `${metrics.fechamentosUltimos30Dias} de ${metrics.leadsUltimos30Dias} leads`
+                    : "Sem dados suficientes"}
+                </p>
               </div>
               <div className="h-14 w-24 rounded-md bg-gradient-to-tr from-primary/30 via-primary/10 to-transparent" />
             </CardContent>
@@ -681,13 +755,13 @@ const LeadsV2Page = () => {
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4 pt-0 text-sm">
               <div>
-                <p className="text-3xl font-semibold">0</p>
+                <p className="text-3xl font-semibold">{metrics.consultasConfirmadas}</p>
                 <p className="text-xs text-muted-foreground">consultas confirmadas</p>
               </div>
               <div className="flex flex-col items-end text-right text-xs text-muted-foreground">
-                <span>0 avaliações</span>
-                <span>0 retornos</span>
-                <span>0 novos fechamentos</span>
+                <span>{metrics.avaliacoesSemana} avaliações</span>
+                <span>{metrics.retornosSemana} retornos</span>
+                <span>{metrics.fechamentosSemana} novos fechamentos</span>
               </div>
             </CardContent>
           </Card>
