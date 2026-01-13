@@ -645,7 +645,7 @@ const LeadsV2Page = () => {
             <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-crm-hero" />
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                Leads cadastrados hoje
+                Leads cadastrado do dia
                 <Badge variant="outline" className="rounded-full text-[10px] uppercase tracking-wide">
                   Ao vivo
                 </Badge>
@@ -703,7 +703,7 @@ const LeadsV2Page = () => {
       }}>
         <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Leads cadastrados hoje</DialogTitle>
+            <DialogTitle>Leads cadastrado do dia</DialogTitle>
             <DialogDescription>
               Lista de todos os leads cadastrados na data de hoje ({leadsHoje} {leadsHoje === 1 ? 'lead' : 'leads'}).
             </DialogDescription>
@@ -1151,7 +1151,7 @@ const LeadsV2Page = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 id="leads-hoje" className="text-base font-semibold">
-              Leads cadastrados hoje
+              Leads cadastrado do dia
             </h2>
             <p className="text-xs text-muted-foreground">
               Visualize todos os leads cadastrados hoje e acompanhe o status de cada oportunidade.
