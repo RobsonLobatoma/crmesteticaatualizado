@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { ClientePotencial } from '@/types/crm';
-import { Phone, Bell, Calendar } from 'lucide-react';
+import { Phone, Bell, Calendar, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CartaoClienteProps {
@@ -94,13 +94,21 @@ export const CartaoCliente = ({ cliente }: CartaoClienteProps) => {
           </p>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-1.5 border-t border-border/30 mt-1">
-            <Badge variant="outline" className="text-xs">
-              {cliente.responsavel || 'Sem responsável'}
-            </Badge>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              <span>{formatDate(cliente.dataCriacao)}</span>
+          <div className="flex flex-col gap-1.5 pt-1.5 border-t border-border/30 mt-1">
+            <div className="flex items-center justify-between">
+              <Badge variant="outline" className="text-xs">
+                {cliente.responsavel || 'Sem responsável'}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+              <div className="flex items-center gap-1" title="Data de entrada">
+                <Calendar className="h-3 w-3" />
+                <span>Entrada: {formatDate(cliente.dataCriacao)}</span>
+              </div>
+              <div className="flex items-center gap-1" title="Última atualização">
+                <RefreshCw className="h-3 w-3" />
+                <span>Atualiz.: {formatDate(cliente.ultimaInteracao)}</span>
+              </div>
             </div>
           </div>
         </CardContent>
