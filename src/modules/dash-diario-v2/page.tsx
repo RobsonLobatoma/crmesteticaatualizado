@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -39,6 +39,26 @@ import {
 const DashDiarioV2Page = () => {
   const { toast } = useToast();
   const { leads } = useLeads();
+
+  // Filtro de responsável para o Dash
+  const [responsavelDashFilter, setResponsavelDashFilter] = useState<string>("todos");
+
+  // Lista de responsáveis únicos dos leads
+  const responsaveisUnicosDash = useMemo(() => {
+    const responsaveis = leads
+      .map((lead) => lead.responsavel)
+      .filter((r): r is string => Boolean(r) && r.trim() !== "");
+    return Array.from(new Set(responsaveis)).sort();
+  }, [leads]);
+
+  // Leads filtrados por responsável (antes do cálculo de métricas)
+  const leadsFiltradosPorResponsavel = useMemo(() => {
+    if (responsavelDashFilter === "todos") return leads;
+    return leads.filter(
+      (lead) => lead.responsavel?.toLowerCase() === responsavelDashFilter.toLowerCase()
+    );
+  }, [leads, responsavelDashFilter]);
+
   const {
     ano,
     mes,
@@ -47,7 +67,7 @@ const DashDiarioV2Page = () => {
     handleChangeAno,
     handleCellChange,
     handleRemoverLinha,
-  } = useDashDiario(leads);
+  } = useDashDiario(leadsFiltradosPorResponsavel);
 
   const [exportConfig, setExportConfig] = useState<ExportColumnConfig[]>(() =>
     loadExportConfig()
@@ -334,6 +354,21 @@ const DashDiarioV2Page = () => {
                   {diasDoMes.map((dia) => (
                     <option key={dia} value={dia}>
                       {dia}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground">Responsável</span>
+                <select
+                  className="h-7 rounded-sm border border-border bg-background px-1.5 text-[11px]"
+                  value={responsavelDashFilter}
+                  onChange={(e) => setResponsavelDashFilter(e.target.value)}
+                >
+                  <option value="todos">Todos</option>
+                  {responsaveisUnicosDash.map((resp) => (
+                    <option key={resp} value={resp}>
+                      {resp}
                     </option>
                   ))}
                 </select>
