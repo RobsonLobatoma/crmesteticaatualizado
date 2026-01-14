@@ -31,7 +31,7 @@ const CampaignFormSchema = z.object({
   title: z.string().min(1, { message: "Título é obrigatório" }).max(120),
   description: z
     .string()
-    .max(500, { message: "Descrição muito longa" })
+    .max(2000, { message: "Descrição muito longa (máximo 2000 caracteres)" })
     .optional()
     .or(z.literal("")),
   date: z.date().optional(),
@@ -293,7 +293,8 @@ const BancoCampanhasV2Page = () => {
                     <FormLabel>Descrição</FormLabel>
                     <FormControl>
                       <Textarea
-                        rows={3}
+                        rows={5}
+                        maxLength={2000}
                         placeholder="Descrição rápida da oferta, condições e público alvo."
                         {...field}
                       />
