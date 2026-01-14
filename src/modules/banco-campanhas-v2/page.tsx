@@ -205,13 +205,8 @@ const BancoCampanhasV2Page = () => {
                             <h3 className="text-[13px] font-semibold text-foreground">
                               {campaign.title}
                             </h3>
-                            {campaign.description && (
-                              <p className="text-[11px] leading-snug text-muted-foreground">
-                                {campaign.description}
-                              </p>
-                            )}
                             {campaign.date && (
-                              <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                                 <CalendarIcon className="h-3 w-3" />
                                 <span>{format(new Date(campaign.date), "dd/MM/yyyy")}</span>
                               </div>
