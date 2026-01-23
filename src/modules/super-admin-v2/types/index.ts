@@ -16,4 +16,5 @@ export interface MockUserRole {
   name: string;
   email: string;
   roles: AppRole[];
+  isBanned?: boolean;
 }

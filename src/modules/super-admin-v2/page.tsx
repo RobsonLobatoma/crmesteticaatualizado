@@ -56,7 +56,7 @@ type RoleFormValues = z.infer<typeof roleFormSchema>;
 
 const SuperAdminV2MainPage = () => {
   const { toast } = useToast();
-  const { users, settings, updateSettings, assignRole, revokeRole, deleteUser, isLoading, isSuperAdmin } = useSuperAdmin();
+  const { users, settings, updateSettings, assignRole, revokeRole, deleteUser, toggleUserStatus, isLoading, isSuperAdmin } = useSuperAdmin();
   const { config: formConfig } = useAppointmentFormConfig();
 
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
@@ -66,6 +66,7 @@ const SuperAdminV2MainPage = () => {
   const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [togglingStatusUserId, setTogglingStatusUserId] = useState<string | null>(null);
 
   const selectedUser = useMemo(
     () => users.find((u) => u.id === selectedUserId) ?? null,
@@ -135,6 +136,12 @@ const SuperAdminV2MainPage = () => {
     setDeletingUserId(null);
   };
 
+  const handleToggleStatus = async (userId: string, action: 'ban' | 'unban') => {
+    setTogglingStatusUserId(userId);
+    await toggleUserStatus(userId, action);
+    setTogglingStatusUserId(null);
+  };
+
   // Adapter for WorkspaceSettings component
   const workspaceSettingsAdapter = {
     dailyLeadsTarget: 0,
@@ -148,6 +155,7 @@ const SuperAdminV2MainPage = () => {
     name: user.display_name || user.email || "Usuário",
     email: user.email || "",
     roles: user.roles,
+    isBanned: user.isBanned,
   });
 
   if (isLoading) {
@@ -298,7 +306,9 @@ const SuperAdminV2MainPage = () => {
                         })
                       }
                       onDeleteUser={handleDeleteUser}
+                      onToggleStatus={handleToggleStatus}
                       isDeleting={deletingUserId === user.id}
+                      isTogglingStatus={togglingStatusUserId === user.id}
                     />
                   ))
                 )}

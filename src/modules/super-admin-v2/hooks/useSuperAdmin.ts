@@ -11,6 +11,7 @@ export interface UserWithRoles {
   display_name: string | null;
   avatar_url: string | null;
   roles: AppRole[];
+  isBanned?: boolean;
 }
 
 export interface SuperAdminSettings {
@@ -62,6 +63,33 @@ export function useSuperAdmin() {
     }
   }, []);
 
+  const fetchUsersStatus = useCallback(async (): Promise<Record<string, { isBanned: boolean }>> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return {};
+
+      const response = await fetch(
+        `https://ulzeeekfkgdhoojbiioo.supabase.co/functions/v1/get-users-status`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsemVlZWtma2dkaG9vamJpaW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzE3MTcsImV4cCI6MjA4MjA0NzcxN30.05ykiyGs_DVmyvJAQ5Ej_cSUFNzH1HdlSXMFHqgLfno",
+          },
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) return {};
+      
+      return result.usersStatus || {};
+    } catch (error) {
+      console.error("Error fetching users status:", error);
+      return {};
+    }
+  }, []);
+
   const fetchUsers = useCallback(async () => {
     try {
       // Fetch all profiles (super_admin has RLS access to all)
@@ -85,11 +113,16 @@ export function useSuperAdmin() {
         return;
       }
 
-      // Combine profiles with roles
+      // Fetch users ban status
+      const usersStatus = await fetchUsersStatus();
+
+      // Combine profiles with roles and ban status
       const usersWithRoles: UserWithRoles[] = (profiles || []).map((profile) => {
         const userRoles = (roles || [])
           .filter((r) => r.user_id === profile.id)
           .map((r) => r.role as AppRole);
+
+        const status = usersStatus[profile.id];
 
         return {
           id: profile.id,
@@ -97,6 +130,7 @@ export function useSuperAdmin() {
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           roles: userRoles.length > 0 ? userRoles : ["user" as AppRole],
+          isBanned: status?.isBanned || false,
         };
       });
 
@@ -104,7 +138,7 @@ export function useSuperAdmin() {
     } catch (error) {
       console.error("Error fetching users:", error);
     }
-  }, []);
+  }, [fetchUsersStatus]);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -289,6 +323,43 @@ export function useSuperAdmin() {
     }
   };
 
+  const toggleUserStatus = async (userId: string, action: 'ban' | 'unban'): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Sessão expirada. Faça login novamente.");
+        return false;
+      }
+
+      const response = await fetch(
+        `https://ulzeeekfkgdhoojbiioo.supabase.co/functions/v1/toggle-user-status`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsemVlZWtma2dkaG9vamJpaW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzE3MTcsImV4cCI6MjA4MjA0NzcxN30.05ykiyGs_DVmyvJAQ5Ej_cSUFNzH1HdlSXMFHqgLfno",
+          },
+          body: JSON.stringify({ userId, action }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Erro ao alterar status do usuário");
+      }
+
+      toast.success(action === 'ban' ? "Usuário pausado com sucesso" : "Acesso do usuário reativado");
+      await fetchUsers();
+      return true;
+    } catch (error: any) {
+      console.error("Error toggling user status:", error);
+      toast.error(error?.message || "Erro ao alterar status do usuário");
+      return false;
+    }
+  };
+
   return {
     users,
     settings,
@@ -300,6 +371,7 @@ export function useSuperAdmin() {
     assignRole,
     revokeRole,
     deleteUser,
+    toggleUserStatus,
     refetch: initialize,
   };
 }
