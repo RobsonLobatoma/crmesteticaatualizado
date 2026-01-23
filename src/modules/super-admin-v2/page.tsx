@@ -56,7 +56,7 @@ type RoleFormValues = z.infer<typeof roleFormSchema>;
 
 const SuperAdminV2MainPage = () => {
   const { toast } = useToast();
-  const { users, settings, updateSettings, assignRole, revokeRole, isLoading, isSuperAdmin } = useSuperAdmin();
+  const { users, settings, updateSettings, assignRole, revokeRole, deleteUser, isLoading, isSuperAdmin } = useSuperAdmin();
   const { config: formConfig } = useAppointmentFormConfig();
 
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
@@ -65,6 +65,7 @@ const SuperAdminV2MainPage = () => {
   const [isPolicyEditorOpen, setIsPolicyEditorOpen] = useState(false);
   const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const selectedUser = useMemo(
     () => users.find((u) => u.id === selectedUserId) ?? null,
@@ -126,6 +127,12 @@ const SuperAdminV2MainPage = () => {
     }
 
     setIsRolesDialogOpen(false);
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    setDeletingUserId(userId);
+    await deleteUser(userId);
+    setDeletingUserId(null);
   };
 
   // Adapter for WorkspaceSettings component
@@ -290,6 +297,8 @@ const SuperAdminV2MainPage = () => {
                           description: `O histórico de ${userName} será implementado em breve.`,
                         })
                       }
+                      onDeleteUser={handleDeleteUser}
+                      isDeleting={deletingUserId === user.id}
                     />
                   ))
                 )}
