@@ -252,6 +252,43 @@ export function useSuperAdmin() {
     }
   };
 
+  const deleteUser = async (userId: string): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Sessão expirada. Faça login novamente.");
+        return false;
+      }
+
+      const response = await fetch(
+        `https://ulzeeekfkgdhoojbiioo.supabase.co/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsemVlZWtma2dkaG9vamJpaW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzE3MTcsImV4cCI6MjA4MjA0NzcxN30.05ykiyGs_DVmyvJAQ5Ej_cSUFNzH1HdlSXMFHqgLfno",
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Erro ao remover usuário");
+      }
+
+      toast.success("Usuário removido com sucesso");
+      await fetchUsers();
+      return true;
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast.error(error?.message || "Erro ao remover usuário");
+      return false;
+    }
+  };
+
   return {
     users,
     settings,
@@ -262,6 +299,7 @@ export function useSuperAdmin() {
     updateSettings,
     assignRole,
     revokeRole,
+    deleteUser,
     refetch: initialize,
   };
 }
