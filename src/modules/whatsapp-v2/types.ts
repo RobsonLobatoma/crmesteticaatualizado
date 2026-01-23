@@ -7,6 +7,10 @@ export type WhatsappInstance = {
   phoneNumber?: string;
   status: WhatsappInstanceStatus;
   lastConnectionAt?: string;
+  // Evolution API specific fields
+  evolutionApiUrl?: string;
+  evolutionApiKey?: string;
+  evolutionInstanceName?: string;
 };
 
 export type WhatsappChatStatus =
@@ -55,3 +59,16 @@ export type WhatsappTemplate = {
   content: string;
   active: boolean;
 };
+
+// Evolution API configuration stored in database
+export interface EvolutionInstanceConfig {
+  id: string;
+  name: string;
+  evolutionApiUrl: string;
+  evolutionApiKey: string;
+  evolutionInstanceName: string;
+  status: WhatsappInstanceStatus;
+  phoneNumber?: string;
+  createdAt: string;
+  updatedAt: string;
+}
