@@ -1,12 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { WhatsappInstance } from "./types";
+import { EvolutionInstanceConfig } from "./types";
 
 type QRCodeModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  instance?: WhatsappInstance | null;
+  instance?: EvolutionInstanceConfig | null;
 };
 
 export const QRCodeModal = ({ open, onOpenChange, instance }: QRCodeModalProps) => {

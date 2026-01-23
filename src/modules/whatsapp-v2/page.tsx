@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -10,21 +9,37 @@ import { ChatList } from "./ChatList";
 import { MessageBubble } from "./MessageBubble";
 import { SendMessageBox } from "./SendMessageBox";
 import { QRCodeModal } from "./QRCodeModal";
-import { MOCK_WHATSAPP_CHATS, MOCK_WHATSAPP_INSTANCES, MOCK_WHATSAPP_MESSAGES, MOCK_WHATSAPP_TEMPLATES } from "./mock";
-import { WhatsappChat, WhatsappInstance, WhatsappMessage, WhatsappTemplate } from "./types";
+import { InstanceFormModal } from "./components/InstanceFormModal";
+import { InstanceCard } from "./components/InstanceCard";
+import { useEvolutionInstances } from "./hooks/useEvolutionInstances";
+import { MOCK_WHATSAPP_TEMPLATES } from "./mock";
+import { WhatsappChat, WhatsappMessage, WhatsappTemplate, EvolutionInstanceConfig } from "./types";
 import { useToast } from "@/hooks/use-toast";
+import { Plus, Loader2 } from "lucide-react";
 
 const WhatsappV2Page = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("inbox");
-  const [instances, setInstances] = useState<WhatsappInstance[]>([]);
   const [chats, setChats] = useState<WhatsappChat[]>([]);
   const [messages, setMessages] = useState<WhatsappMessage[]>([]);
   const [templates] = useState<WhatsappTemplate[]>([]);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | undefined>(undefined);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-  const [qrInstance, setQrInstance] = useState<WhatsappInstance | null>(null);
+  const [qrInstance, setQrInstance] = useState<EvolutionInstanceConfig | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  
+  // Evolution Instances Management
+  const {
+    instances: evolutionInstances,
+    isLoading: isLoadingInstances,
+    createInstance,
+    updateInstance,
+    deleteInstance,
+  } = useEvolutionInstances();
+  
+  const [instanceModalOpen, setInstanceModalOpen] = useState(false);
+  const [editingInstance, setEditingInstance] = useState<EvolutionInstanceConfig | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredChats = useMemo(
     () => chats.filter((chat) => !selectedInstanceId || chat.instanceId === selectedInstanceId),
@@ -66,25 +81,36 @@ const WhatsappV2Page = () => {
     );
   };
 
-  const handleOpenQr = (instance: WhatsappInstance) => {
+  const handleOpenQr = (instance: EvolutionInstanceConfig) => {
     setQrInstance(instance);
     setQrOpen(true);
   };
 
-  const handleCreateMockInstance = () => {
-    const newInstance: WhatsappInstance = {
-      id: `local-${Date.now()}`,
-      name: "Nova instância mock",
-      phoneNumber: "(00) 00000-0000",
-      provider: "mock",
-      status: "pending_qr",
-    } as WhatsappInstance;
+  const handleOpenInstanceModal = (instance?: EvolutionInstanceConfig) => {
+    setEditingInstance(instance || null);
+    setInstanceModalOpen(true);
+  };
 
-    setInstances((prev) => [...prev, newInstance]);
-    toast({
-      title: "Instância mock criada",
-      description: "Apenas simulação no frontend, sem conexão real com provider.",
-    });
+  const handleInstanceSubmit = async (formData: {
+    name: string;
+    evolutionApiUrl: string;
+    evolutionApiKey: string;
+    evolutionInstanceName: string;
+  }) => {
+    setIsSubmitting(true);
+    try {
+      if (editingInstance) {
+        return await updateInstance(editingInstance.id, formData);
+      } else {
+        return await createInstance(formData);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteInstance = async (id: string) => {
+    await deleteInstance(id);
   };
 
   return (
@@ -130,7 +156,8 @@ const WhatsappV2Page = () => {
                 value={selectedInstanceId}
                 onChange={(e) => setSelectedInstanceId(e.target.value || undefined)}
               >
-                {instances.map((inst) => (
+                <option value="">Todas as instâncias</option>
+                {evolutionInstances.map((inst) => (
                   <option key={inst.id} value={inst.id}>
                     {inst.name}
                   </option>
@@ -257,72 +284,48 @@ const WhatsappV2Page = () => {
             <div>
               <h2 className="text-lg font-semibold tracking-tight">Instâncias WhatsApp</h2>
               <p className="text-xs text-muted-foreground">
-                Simulação de múltiplas instâncias conectadas por clínica, como comercial e recepção.
+                Configure suas instâncias da Evolution API para conectar ao WhatsApp.
               </p>
             </div>
-            <Button size="sm" onClick={handleCreateMockInstance}>
-              Nova instância (mock)
+            <Button size="sm" onClick={() => handleOpenInstanceModal()}>
+              <Plus className="mr-1 h-4 w-4" />
+              Nova instância
             </Button>
           </div>
 
-          <Card className="border-border/80 bg-surface-elevated/80">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Telefone</TableHead>
-                    <TableHead>Provider</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-[140px] text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {instances.map((inst) => (
-                    <TableRow key={inst.id} className="text-sm">
-                      <TableCell className="font-medium">{inst.name}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{inst.phoneNumber || "-"}</TableCell>
-                      <TableCell className="text-xs uppercase text-muted-foreground">{inst.provider}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className="rounded-full text-[11px] uppercase tracking-wide"
-                        >
-                          {inst.status === "connected" && "Conectada"}
-                          {inst.status === "pending_qr" && "Aguardando QR"}
-                          {inst.status === "disconnected" && "Desconectada"}
-                          {inst.status === "error" && "Erro"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleOpenQr(inst)}
-                          >
-                            QR Code
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              toast({
-                                title: "Editar instância (mock)",
-                                description: "Aqui entraremos futuramente com o formulário real de edição.",
-                              })
-                            }
-                          >
-                            Editar
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          {isLoadingInstances ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : evolutionInstances.length === 0 ? (
+            <Card className="border-dashed border-border/80 bg-muted/20">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="rounded-full bg-muted p-3 mb-4">
+                  <Plus className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-sm font-medium mb-1">Nenhuma instância configurada</h3>
+                <p className="text-xs text-muted-foreground mb-4 max-w-sm">
+                  Configure sua primeira instância da Evolution API para começar a usar o WhatsApp integrado.
+                </p>
+                <Button size="sm" onClick={() => handleOpenInstanceModal()}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  Adicionar instância
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {evolutionInstances.map((instance) => (
+                <InstanceCard
+                  key={instance.id}
+                  instance={instance}
+                  onEdit={handleOpenInstanceModal}
+                  onDelete={handleDeleteInstance}
+                  onGenerateQr={handleOpenQr}
+                />
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="templates" className="flex flex-1 flex-col gap-4">
@@ -449,6 +452,14 @@ const WhatsappV2Page = () => {
       </Tabs>
 
       <QRCodeModal open={qrOpen} onOpenChange={setQrOpen} instance={qrInstance} />
+      
+      <InstanceFormModal
+        open={instanceModalOpen}
+        onOpenChange={setInstanceModalOpen}
+        instance={editingInstance}
+        onSubmit={handleInstanceSubmit}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 };
