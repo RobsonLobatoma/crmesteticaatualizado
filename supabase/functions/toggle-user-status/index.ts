@@ -72,16 +72,18 @@ serve(async (req) => {
 
     // Execute ban/unban
     if (action === 'ban') {
-      // Ban permanently (until manually unbanned)
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        ban_duration: 'none' // 'none' = permanent ban
+      // Ban for 100 years (876600 hours) = effectively permanent
+      const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        ban_duration: '876600h'
       })
+      console.log('Ban result:', { userId, data: data?.user?.banned_until, error })
       if (error) throw error
     } else {
-      // Unban user - set ban_duration to '0' to remove ban
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        ban_duration: '0h'
+      // Use 'none' to REMOVE the ban
+      const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        ban_duration: 'none'
       })
+      console.log('Unban result:', { userId, data: data?.user?.banned_until, error })
       if (error) throw error
     }
 
