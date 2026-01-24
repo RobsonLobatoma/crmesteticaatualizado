@@ -65,8 +65,17 @@ serve(async (req) => {
     const usersStatus: Record<string, { isBanned: boolean; bannedUntil: string | null }> = {}
     
     for (const user of usersData.users) {
+      // Check if banned_until exists and is a future date
+      let isBanned = false
+      if (user.banned_until) {
+        const bannedUntil = new Date(user.banned_until)
+        isBanned = bannedUntil.getTime() > Date.now()
+      }
+      
+      console.log(`User ${user.email}: banned_until=${user.banned_until}, isBanned=${isBanned}`)
+      
       usersStatus[user.id] = {
-        isBanned: !!user.banned_until && new Date(user.banned_until) > new Date(),
+        isBanned,
         bannedUntil: user.banned_until || null
       }
     }
