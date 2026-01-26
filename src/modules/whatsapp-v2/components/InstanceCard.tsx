@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { SensitiveData } from "@/components/ui/SensitiveData";
-import { EvolutionInstanceConfig } from "../types";
+import { EvolutionInstanceConfig, WhatsappInstanceStatus } from "../types";
+import { useInstanceStatus } from "../hooks/useInstanceStatus";
 import {
   Pencil,
   Trash2,
@@ -23,6 +24,8 @@ import {
   AlertCircle,
   Clock,
   ExternalLink,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 
 interface InstanceCardProps {
@@ -40,7 +43,23 @@ export function InstanceCard({
 }: InstanceCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const getStatusConfig = (status: EvolutionInstanceConfig["status"]) => {
+  const {
+    status: liveStatus,
+    phoneNumber: livePhone,
+    profileName,
+    isLoading: isCheckingStatus,
+    refetch: checkStatus,
+  } = useInstanceStatus({
+    instance,
+    enabled: true,
+    pollingInterval: 30000,
+  });
+
+  // Use live status if available, otherwise fall back to stored status
+  const currentStatus = liveStatus || instance.status;
+  const currentPhone = livePhone || instance.phoneNumber;
+
+  const getStatusConfig = (status: WhatsappInstanceStatus) => {
     switch (status) {
       case "connected":
         return {
@@ -75,7 +94,7 @@ export function InstanceCard({
     }
   };
 
-  const statusConfig = getStatusConfig(instance.status);
+  const statusConfig = getStatusConfig(currentStatus);
   const StatusIcon = statusConfig.icon;
 
   const maskApiKey = (key: string) => {
@@ -94,21 +113,31 @@ export function InstanceCard({
               </CardTitle>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="font-mono">{instance.evolutionInstanceName}</span>
-                {instance.phoneNumber && (
+                {currentPhone && (
                   <>
                     <span>•</span>
-                    <span>{instance.phoneNumber}</span>
+                    <span className="font-medium text-foreground">{currentPhone}</span>
                   </>
                 )}
               </div>
+              {profileName && currentStatus === "connected" && (
+                <span className="text-xs text-muted-foreground">
+                  Perfil: {profileName}
+                </span>
+              )}
             </div>
-            <Badge
-              variant="outline"
-              className={`flex items-center gap-1 rounded-full text-[11px] ${statusConfig.className}`}
-            >
-              <StatusIcon className="h-3 w-3" />
-              {statusConfig.label}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {isCheckingStatus && (
+                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+              )}
+              <Badge
+                variant="outline"
+                className={`flex items-center gap-1 rounded-full text-[11px] ${statusConfig.className}`}
+              >
+                <StatusIcon className="h-3 w-3" />
+                {statusConfig.label}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
 
@@ -140,15 +169,28 @@ export function InstanceCard({
 
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1"
-              onClick={() => onGenerateQr(instance)}
-            >
-              <QrCode className="mr-1 h-3.5 w-3.5" />
-              Conectar QR
-            </Button>
+            {currentStatus === "connected" ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1"
+                onClick={() => checkStatus()}
+                disabled={isCheckingStatus}
+              >
+                <RefreshCw className={`mr-1 h-3.5 w-3.5 ${isCheckingStatus ? "animate-spin" : ""}`} />
+                Verificar Status
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1"
+                onClick={() => onGenerateQr(instance)}
+              >
+                <QrCode className="mr-1 h-3.5 w-3.5" />
+                Conectar QR
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
