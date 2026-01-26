@@ -3,6 +3,18 @@ project_id = "ulzeeekfkgdhoojbiioo"
 [functions.evolution-qrcode]
 verify_jwt = false
 
+[functions.evolution-fetch-chats]
+verify_jwt = false
+
+[functions.evolution-fetch-messages]
+verify_jwt = false
+
+[functions.evolution-send-message]
+verify_jwt = false
+
+[functions.evolution-check-status]
+verify_jwt = false
+
 [functions.delete-user]
 verify_jwt = false
 

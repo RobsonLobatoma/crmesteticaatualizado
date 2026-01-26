@@ -1,0 +1,104 @@
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { EvolutionInstanceConfig, WhatsappChat } from "../types";
+
+interface UseWhatsappChatsOptions {
+  instance: EvolutionInstanceConfig | null;
+  enabled?: boolean;
+  pollingInterval?: number;
+}
+
+export function useWhatsappChats({
+  instance,
+  enabled = true,
+  pollingInterval = 30000,
+}: UseWhatsappChatsOptions) {
+  const { toast } = useToast();
+  const [chats, setChats] = useState<WhatsappChat[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchChats = useCallback(async () => {
+    if (!instance || !enabled) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Não autenticado");
+      }
+
+      const response = await supabase.functions.invoke("evolution-fetch-chats", {
+        body: {
+          evolutionApiUrl: instance.evolutionApiUrl,
+          evolutionApiKey: instance.evolutionApiKey,
+          instanceName: instance.evolutionInstanceName,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Erro ao buscar chats");
+      }
+
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+
+      const fetchedChats: WhatsappChat[] = (response.data?.chats || []).map(
+        (chat: {
+          id: string;
+          phoneNumber: string;
+          leadName?: string;
+          profilePictureUrl?: string;
+          unreadCount?: number;
+          lastMessagePreview?: string;
+          lastMessageAt?: string;
+        }) => ({
+          id: chat.id,
+          instanceId: instance.id,
+          phoneNumber: chat.phoneNumber,
+          leadName: chat.leadName,
+          status: "novo" as const,
+          lastMessagePreview: chat.lastMessagePreview || "",
+          lastMessageAt: chat.lastMessageAt || new Date().toISOString(),
+          unreadCount: chat.unreadCount || 0,
+        })
+      );
+
+      setChats(fetchedChats);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      setError(message);
+      console.error("Erro ao buscar chats:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [instance, enabled]);
+
+  // Initial fetch
+  useEffect(() => {
+    if (instance && enabled) {
+      fetchChats();
+    } else {
+      setChats([]);
+    }
+  }, [instance?.id, enabled, fetchChats]);
+
+  // Polling
+  useEffect(() => {
+    if (!instance || !enabled || pollingInterval <= 0) return;
+
+    const intervalId = setInterval(fetchChats, pollingInterval);
+    return () => clearInterval(intervalId);
+  }, [instance?.id, enabled, pollingInterval, fetchChats]);
+
+  return {
+    chats,
+    isLoading,
+    error,
+    refetch: fetchChats,
+  };
+}
