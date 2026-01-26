@@ -1,1 +1,13 @@
 project_id = "ulzeeekfkgdhoojbiioo"
+
+[functions.evolution-qrcode]
+verify_jwt = false
+
+[functions.delete-user]
+verify_jwt = false
+
+[functions.get-users-status]
+verify_jwt = false
+
+[functions.toggle-user-status]
+verify_jwt = false
