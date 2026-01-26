@@ -5,6 +5,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizeEvolutionApiUrl(input: string) {
+  const trimmed = input.trim();
+  // Fix common misconfiguration saved as "https:https://domain" (double scheme)
+  const fixed = trimmed.replace(/^(https?:)(https?:\/\/)/i, "$2");
+  // If user saved without protocol, assume https
+  if (!/^https?:\/\//i.test(fixed)) return `https://${fixed}`;
+  return fixed;
+}
+
+function isLikelyValidHostname(hostname: string) {
+  const h = hostname.toLowerCase();
+  if (!h) return false;
+  if (h === "https" || h === "http") return false;
+  if (h === "localhost") return true;
+  return h.includes(".");
+}
+
 interface FetchMessagesRequest {
   evolutionApiUrl: string;
   evolutionApiKey: string;
@@ -75,12 +92,24 @@ Deno.serve(async (req) => {
       );
     }
 
+    const normalizedEvolutionApiUrl = normalizeEvolutionApiUrl(evolutionApiUrl);
+
     let apiUrl: URL;
     try {
-      apiUrl = new URL(evolutionApiUrl);
+      apiUrl = new URL(normalizedEvolutionApiUrl);
     } catch {
       return new Response(
         JSON.stringify({ error: "URL da API inválida" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!isLikelyValidHostname(apiUrl.hostname)) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "URL da API inválida (hostname). Verifique se está no formato https://seu-dominio",
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
