@@ -26,8 +26,15 @@ interface EvolutionMessage {
     audioMessage?: { url?: string };
     documentMessage?: { fileName?: string; url?: string };
   };
-  messageTimestamp?: number;
+  messageTimestamp?: number | string;
   messageType?: string;
+}
+
+interface EvolutionMessagesResponse {
+  messages?: {
+    records?: EvolutionMessage[];
+  };
+  records?: EvolutionMessage[];
 }
 
 Deno.serve(async (req) => {
@@ -78,9 +85,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Format phone number for WhatsApp JID
-    const cleanPhone = phoneNumber.replace(/\D/g, "");
-    const remoteJid = `${cleanPhone}@s.whatsapp.net`;
+    // Format phone number for WhatsApp JID - handle both regular numbers and LID format
+    let remoteJid = phoneNumber;
+    if (!phoneNumber.includes("@")) {
+      const cleanPhone = phoneNumber.replace(/\D/g, "");
+      remoteJid = `${cleanPhone}@s.whatsapp.net`;
+    }
 
     const endpoint = `${apiUrl.origin}/chat/findMessages/${encodeURIComponent(instanceName)}`;
     console.log(`Fetching messages from: ${endpoint} for ${remoteJid}`);
@@ -116,11 +126,30 @@ Deno.serve(async (req) => {
         );
       }
 
-      const data: EvolutionMessage[] = await response.json();
-      console.log(`Found ${data.length} messages`);
+      const rawData = await response.json();
+      console.log("Raw response type:", typeof rawData, "isArray:", Array.isArray(rawData));
+      
+      // Evolution API v2 can return messages in different formats
+      let messageList: EvolutionMessage[] = [];
+      
+      if (Array.isArray(rawData)) {
+        // Direct array of messages
+        messageList = rawData;
+      } else if (rawData?.messages?.records && Array.isArray(rawData.messages.records)) {
+        // Nested in messages.records
+        messageList = rawData.messages.records;
+      } else if (rawData?.records && Array.isArray(rawData.records)) {
+        // Nested in records
+        messageList = rawData.records;
+      } else if (rawData?.messages && Array.isArray(rawData.messages)) {
+        // Nested in messages
+        messageList = rawData.messages;
+      }
+
+      console.log(`Found ${messageList.length} messages`);
 
       // Transform to our format
-      const messages = data.map((msg) => {
+      const messages = messageList.map((msg) => {
         let content = "";
         let type: "text" | "image" | "audio" | "document" = "text";
 
@@ -141,13 +170,21 @@ Deno.serve(async (req) => {
           type = "document";
         }
 
+        // Handle timestamp - can be number or string
+        let timestamp: number;
+        if (typeof msg.messageTimestamp === "string") {
+          timestamp = parseInt(msg.messageTimestamp, 10);
+        } else {
+          timestamp = msg.messageTimestamp || 0;
+        }
+
         return {
-          id: msg.key.id,
-          direction: msg.key.fromMe ? "outbound" : "inbound",
+          id: msg.key?.id || `msg-${Date.now()}-${Math.random()}`,
+          direction: msg.key?.fromMe ? "outbound" : "inbound",
           type,
           content,
-          sentAt: msg.messageTimestamp
-            ? new Date(Number(msg.messageTimestamp) * 1000).toISOString()
+          sentAt: timestamp
+            ? new Date(timestamp * 1000).toISOString()
             : new Date().toISOString(),
         };
       }).sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
