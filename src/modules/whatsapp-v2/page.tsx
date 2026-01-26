@@ -218,8 +218,8 @@ const WhatsappV2Page = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1.4fr)_minmax(0,1fr)]">
-              <div className="flex flex-col gap-2">
+            <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1.4fr)_minmax(0,1fr)] h-[calc(100vh-220px)] min-h-[500px]">
+              <div className="flex flex-col gap-2 h-full min-h-0">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-medium text-muted-foreground">Instância</label>
                   <Button
@@ -260,7 +260,7 @@ const WhatsappV2Page = () => {
                 )}
               </div>
 
-              <div className="flex min-h-[360px] flex-col rounded-xl border border-border/70 bg-background/80">
+              <div className="flex h-full min-h-[360px] flex-col rounded-xl border border-border/70 bg-background/80">
                 <div className="flex items-center justify-between border-b border-border/60 px-4 py-2">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">
@@ -312,7 +312,8 @@ const WhatsappV2Page = () => {
                 />
               </div>
 
-              <div className="flex flex-col gap-3">
+              <ScrollArea className="h-full">
+              <div className="flex flex-col gap-3 pr-2">
                 <Card className="border-border/80 bg-surface-elevated/80">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Resumo do lead</CardTitle>
@@ -373,7 +374,8 @@ const WhatsappV2Page = () => {
                     </Button>
                   </CardContent>
                 </Card>
-              </div>
+            </div>
+              </ScrollArea>
             </div>
           )}
         </TabsContent>
