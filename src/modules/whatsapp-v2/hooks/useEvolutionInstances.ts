@@ -21,6 +21,10 @@ function normalizeEvolutionApiUrl(input: string) {
   return withProtocol.replace(/\/+$/, "");
 }
 
+function normalizeNonEmptyString(input: string) {
+  return input.trim();
+}
+
 export function useEvolutionInstances() {
   const { toast } = useToast();
   const [instances, setInstances] = useState<EvolutionInstanceConfig[]>([]);
@@ -109,10 +113,10 @@ export function useEvolutionInstances() {
   const createInstance = async (formData: InstanceFormData): Promise<boolean> => {
     const newInstance: EvolutionInstanceConfig = {
       id: `evo-${Date.now()}`,
-      name: formData.name,
+      name: normalizeNonEmptyString(formData.name),
       evolutionApiUrl: normalizeEvolutionApiUrl(formData.evolutionApiUrl),
-      evolutionApiKey: formData.evolutionApiKey,
-      evolutionInstanceName: formData.evolutionInstanceName,
+      evolutionApiKey: normalizeNonEmptyString(formData.evolutionApiKey),
+      evolutionInstanceName: normalizeNonEmptyString(formData.evolutionInstanceName),
       status: "disconnected",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -137,9 +141,16 @@ export function useEvolutionInstances() {
         ? {
             ...inst,
             ...formData,
+            name: formData.name ? normalizeNonEmptyString(formData.name) : inst.name,
             evolutionApiUrl: formData.evolutionApiUrl
               ? normalizeEvolutionApiUrl(formData.evolutionApiUrl)
               : inst.evolutionApiUrl,
+            evolutionApiKey: formData.evolutionApiKey
+              ? normalizeNonEmptyString(formData.evolutionApiKey)
+              : inst.evolutionApiKey,
+            evolutionInstanceName: formData.evolutionInstanceName
+              ? normalizeNonEmptyString(formData.evolutionInstanceName)
+              : inst.evolutionInstanceName,
             updatedAt: new Date().toISOString(),
           }
         : inst

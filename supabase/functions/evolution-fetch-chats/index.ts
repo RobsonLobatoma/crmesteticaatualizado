@@ -82,6 +82,8 @@ Deno.serve(async (req) => {
     }
 
     const normalizedEvolutionApiUrl = normalizeEvolutionApiUrl(evolutionApiUrl);
+    const normalizedApiKey = evolutionApiKey.trim();
+    const normalizedInstanceName = instanceName.trim();
 
     let apiUrl: URL;
     try {
@@ -104,7 +106,7 @@ Deno.serve(async (req) => {
     }
 
     // Evolution API v2 endpoint for fetching chats
-    const endpoint = `${apiUrl.origin}/chat/findChats/${encodeURIComponent(instanceName)}`;
+    const endpoint = `${apiUrl.origin}/chat/findChats/${encodeURIComponent(normalizedInstanceName)}`;
     console.log(`Fetching chats from: ${endpoint}`);
 
     const controller = new AbortController();
@@ -114,7 +116,7 @@ Deno.serve(async (req) => {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "apikey": evolutionApiKey,
+          "apikey": normalizedApiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({}),
@@ -129,7 +131,10 @@ Deno.serve(async (req) => {
 
         if (response.status === 401 || response.status === 403) {
           return new Response(
-            JSON.stringify({ error: "Credenciais inválidas" }),
+            JSON.stringify({
+              error: "Credenciais inválidas",
+              details: errorText?.slice(0, 300),
+            }),
             { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
