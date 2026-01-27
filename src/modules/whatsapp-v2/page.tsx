@@ -207,122 +207,131 @@ const WhatsappV2Page = () => {
 
         {/* INBOX TAB */}
         <TabsContent value="inbox" className="flex flex-1 flex-col gap-4">
-          {evolutionInstances.length === 0 ? (
-            <Card className="border-dashed border-border/80 bg-muted/20">
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <h3 className="text-sm font-medium mb-1">Configure uma instância primeiro</h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Para usar o inbox, você precisa configurar uma instância da Evolution API.
-                </p>
-                <Button size="sm" onClick={() => setActiveTab("instances")}>
-                  Ir para Instâncias
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1.4fr)_minmax(0,1fr)] h-[calc(100vh-220px)] min-h-[500px]">
-              <div className="flex flex-col gap-2 h-full min-h-0">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-muted-foreground">Instância</label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => refetchChats()}
-                    disabled={isLoadingChats}
-                  >
-                    <RefreshCw className={`h-3 w-3 ${isLoadingChats ? "animate-spin" : ""}`} />
+          <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1.4fr)_minmax(0,1fr)] h-[calc(100vh-220px)] min-h-[500px]">
+            {/* Coluna 1: Lista de Chats */}
+            <div className="flex flex-col gap-2 h-full min-h-0">
+              {evolutionInstances.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/20 px-4 text-center">
+                  <AlertTriangle className="h-8 w-8 text-muted-foreground mb-3" />
+                  <h3 className="text-sm font-medium mb-1">Nenhuma instância</h3>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Configure uma instância da Evolution API para ver os chats.
+                  </p>
+                  <Button size="sm" variant="outline" onClick={() => setActiveTab("instances")}>
+                    Configurar instância
                   </Button>
                 </div>
-                <select
-                  className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
-                  value={selectedInstanceId || selectedInstance?.id || ""}
-                  onChange={(e) => {
-                    setSelectedInstanceId(e.target.value || undefined);
-                    setSelectedChatId(null);
-                  }}
-                >
-                  {evolutionInstances.map((inst) => (
-                    <option key={inst.id} value={inst.id}>
-                      {inst.name}
-                    </option>
-                  ))}
-                </select>
-
-                {chatsError ? (
-                  <Alert variant="destructive" className="mx-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle className="text-xs">Erro de conexão</AlertTitle>
-                    <AlertDescription className="text-xs">
-                      {chatsError}
-                    </AlertDescription>
-                  </Alert>
-                ) : isLoadingChats ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <ChatList
-                    chats={chats}
-                    selectedChatId={selectedChatId}
-                    onSelect={setSelectedChatId}
-                  />
-                )}
-              </div>
-
-              <div className="flex h-full min-h-[360px] flex-col rounded-xl border border-border/70 bg-background/80">
-                <div className="flex items-center justify-between border-b border-border/60 px-4 py-2">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">
-                      {selectedChat ? selectedChat.leadName || selectedChat.phoneNumber : "Selecione uma conversa"}
-                    </span>
-                    {selectedChat && (
-                      <span className="text-[11px] text-muted-foreground">{selectedChat.phoneNumber}</span>
-                    )}
-                  </div>
-                  {selectedChat && (
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-muted-foreground">Instância</label>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={() => refetchMessages()}
-                      disabled={isLoadingMessages}
+                      onClick={() => refetchChats()}
+                      disabled={isLoadingChats}
                     >
-                      <RefreshCw className={`h-3 w-3 ${isLoadingMessages ? "animate-spin" : ""}`} />
+                      <RefreshCw className={`h-3 w-3 ${isLoadingChats ? "animate-spin" : ""}`} />
                     </Button>
+                  </div>
+                  <select
+                    className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                    value={selectedInstanceId || selectedInstance?.id || ""}
+                    onChange={(e) => {
+                      setSelectedInstanceId(e.target.value || undefined);
+                      setSelectedChatId(null);
+                    }}
+                  >
+                    {evolutionInstances.map((inst) => (
+                      <option key={inst.id} value={inst.id}>
+                        {inst.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {chatsError ? (
+                    <Alert variant="destructive" className="mx-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle className="text-xs">Erro de conexão</AlertTitle>
+                      <AlertDescription className="text-xs">
+                        {chatsError}
+                      </AlertDescription>
+                    </Alert>
+                  ) : isLoadingChats ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <ChatList
+                      chats={chats}
+                      selectedChatId={selectedChatId}
+                      onSelect={setSelectedChatId}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Coluna 2: Área de Mensagens */}
+            <div className="flex h-full min-h-[360px] flex-col rounded-xl border border-border/70 bg-background/80">
+              <div className="flex items-center justify-between border-b border-border/60 px-4 py-2">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    {selectedChat ? selectedChat.leadName || selectedChat.phoneNumber : "Selecione uma conversa"}
+                  </span>
+                  {selectedChat && (
+                    <span className="text-[11px] text-muted-foreground">{selectedChat.phoneNumber}</span>
                   )}
                 </div>
-
-                <ScrollArea className="flex-1 px-3 py-3">
-                  <div className="flex flex-col gap-2">
-                    {!selectedChat ? (
-                      <p className="pt-10 text-center text-xs text-muted-foreground">
-                        Selecione uma conversa à esquerda para ver as mensagens.
-                      </p>
-                    ) : isLoadingMessages ? (
-                      <div className="flex items-center justify-center pt-10">
-                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : messages.length === 0 ? (
-                      <p className="pt-10 text-center text-xs text-muted-foreground">
-                        Nenhuma mensagem encontrada neste chat.
-                      </p>
-                    ) : (
-                      messages.map((message) => (
-                        <MessageBubble key={message.id} message={message} />
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-
-                <SendMessageBox
-                  onSend={handleSendMessage}
-                  disabled={!selectedChat || !selectedInstance}
-                  isSending={isSending}
-                />
+                {selectedChat && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => refetchMessages()}
+                    disabled={isLoadingMessages}
+                  >
+                    <RefreshCw className={`h-3 w-3 ${isLoadingMessages ? "animate-spin" : ""}`} />
+                  </Button>
+                )}
               </div>
 
-              <ScrollArea className="h-full">
+              <ScrollArea className="flex-1 px-3 py-3">
+                <div className="flex flex-col gap-2">
+                  {evolutionInstances.length === 0 ? (
+                    <p className="pt-10 text-center text-xs text-muted-foreground">
+                      Configure uma instância para começar a usar o inbox.
+                    </p>
+                  ) : !selectedChat ? (
+                    <p className="pt-10 text-center text-xs text-muted-foreground">
+                      Selecione uma conversa à esquerda para ver as mensagens.
+                    </p>
+                  ) : isLoadingMessages ? (
+                    <div className="flex items-center justify-center pt-10">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <p className="pt-10 text-center text-xs text-muted-foreground">
+                      Nenhuma mensagem encontrada neste chat.
+                    </p>
+                  ) : (
+                    messages.map((message) => (
+                      <MessageBubble key={message.id} message={message} />
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+
+              <SendMessageBox
+                onSend={handleSendMessage}
+                disabled={!selectedChat || !selectedInstance}
+                isSending={isSending}
+              />
+            </div>
+
+            {/* Coluna 3: Resumo do Lead */}
+            <ScrollArea className="h-full">
               <div className="flex flex-col gap-3 pr-2">
                 <Card className="border-border/80 bg-surface-elevated/80">
                   <CardHeader className="pb-2">
@@ -384,10 +393,9 @@ const WhatsappV2Page = () => {
                     </Button>
                   </CardContent>
                 </Card>
-            </div>
-              </ScrollArea>
-            </div>
-          )}
+              </div>
+            </ScrollArea>
+          </div>
         </TabsContent>
 
         {/* INSTANCES TAB */}
