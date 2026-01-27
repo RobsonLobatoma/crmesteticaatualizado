@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ChatList } from "./ChatList";
 import { MessageBubble } from "./MessageBubble";
 import { SendMessageBox } from "./SendMessageBox";
@@ -19,7 +20,7 @@ import { useSendMessage } from "./hooks/useSendMessage";
 import { useWhatsappTemplates } from "./hooks/useWhatsappTemplates";
 import { WhatsappTemplate, EvolutionInstanceConfig } from "./types";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
 
 const WhatsappV2Page = () => {
   const { toast } = useToast();
@@ -52,6 +53,7 @@ const WhatsappV2Page = () => {
   const {
     chats,
     isLoading: isLoadingChats,
+    error: chatsError,
     refetch: refetchChats,
   } = useWhatsappChats({
     instance: selectedInstance,
@@ -247,7 +249,15 @@ const WhatsappV2Page = () => {
                   ))}
                 </select>
 
-                {isLoadingChats ? (
+                {chatsError ? (
+                  <Alert variant="destructive" className="mx-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle className="text-xs">Erro de conexão</AlertTitle>
+                    <AlertDescription className="text-xs">
+                      {chatsError}
+                    </AlertDescription>
+                  </Alert>
+                ) : isLoadingChats ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>

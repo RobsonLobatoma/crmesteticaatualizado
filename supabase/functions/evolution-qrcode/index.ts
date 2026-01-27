@@ -5,6 +5,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizeEvolutionApiUrl(input: string) {
+  const trimmed = input.trim();
+  // Fix common misconfiguration saved as "https:https://domain" (double scheme)
+  const fixed = trimmed.replace(/^(https?:)(https?:\/\/)/i, "$2");
+  // If user saved without protocol, assume https
+  const withProtocol = !/^https?:\/\//i.test(fixed) ? `https://${fixed}` : fixed;
+  // Remove trailing slashes
+  return withProtocol.replace(/\/+$/, "");
+}
+
+function isLikelyValidHostname(hostname: string) {
+  const h = hostname.toLowerCase();
+  if (!h) return false;
+  if (h === "https" || h === "http") return false;
+  if (h === "localhost") return true;
+  return h.includes(".");
+}
+
 interface QrCodeRequest {
   evolutionApiUrl: string;
   evolutionApiKey: string;
@@ -63,10 +81,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Normalize inputs
+    const normalizedEvolutionApiUrl = normalizeEvolutionApiUrl(evolutionApiUrl);
+    const normalizedApiKey = evolutionApiKey.trim();
+    const normalizedInstanceName = instanceName.trim();
+
     // Validate URL format
     let apiUrl: URL;
     try {
-      apiUrl = new URL(evolutionApiUrl);
+      apiUrl = new URL(normalizedEvolutionApiUrl);
     } catch {
       return new Response(
         JSON.stringify({ error: "URL da API inválida" }),
@@ -74,8 +97,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (!isLikelyValidHostname(apiUrl.hostname)) {
+      return new Response(
+        JSON.stringify({
+          error: "URL da API inválida (hostname). Verifique se está no formato https://seu-dominio",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Build Evolution API endpoint
-    const connectEndpoint = `${apiUrl.origin}/instance/connect/${encodeURIComponent(instanceName)}`;
+    const connectEndpoint = `${apiUrl.origin}/instance/connect/${encodeURIComponent(normalizedInstanceName)}`;
     console.log(`Calling Evolution API: ${connectEndpoint}`);
 
     // Call Evolution API with timeout
@@ -86,7 +118,7 @@ Deno.serve(async (req) => {
       const evolutionResponse = await fetch(connectEndpoint, {
         method: "GET",
         headers: {
-          "apikey": evolutionApiKey,
+          "apikey": normalizedApiKey,
           "Content-Type": "application/json",
         },
         signal: controller.signal,
@@ -102,7 +134,10 @@ Deno.serve(async (req) => {
 
         if (evolutionResponse.status === 401 || evolutionResponse.status === 403) {
           return new Response(
-            JSON.stringify({ error: "Credenciais inválidas. Verifique a API Key." }),
+            JSON.stringify({ 
+              error: "Credenciais inválidas. Verifique a API Key.",
+              details: errorText?.slice(0, 300),
+            }),
             { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
@@ -159,6 +194,17 @@ Deno.serve(async (req) => {
         return new Response(
           JSON.stringify({ error: "Tempo esgotado. Tente novamente." }),
           { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const rawMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+      const isDnsError = /dns error|failed to lookup address|name or service not known/i.test(rawMessage);
+      if (isDnsError) {
+        return new Response(
+          JSON.stringify({
+            error: `Não foi possível resolver o domínio "${apiUrl.hostname}". Verifique se o subdomínio existe no DNS (A/CNAME) e se a Evolution API está acessível publicamente.`,
+          }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 

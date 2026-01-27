@@ -10,9 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Shield, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Shield, AlertTriangle, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { EvolutionInstanceConfig } from "../types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InstanceFormModalProps {
   open: boolean;
@@ -27,6 +28,11 @@ interface InstanceFormModalProps {
   isSubmitting?: boolean;
 }
 
+interface TestResult {
+  status: "idle" | "testing" | "success" | "error";
+  message?: string;
+}
+
 export function InstanceFormModal({
   open,
   onOpenChange,
@@ -39,6 +45,7 @@ export function InstanceFormModal({
   const [evolutionApiKey, setEvolutionApiKey] = useState("");
   const [evolutionInstanceName, setEvolutionInstanceName] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
+  const [testResult, setTestResult] = useState<TestResult>({ status: "idle" });
 
   const isEditing = !!instance;
 
@@ -55,7 +62,73 @@ export function InstanceFormModal({
       setEvolutionInstanceName("");
     }
     setShowApiKey(false);
+    setTestResult({ status: "idle" });
   }, [instance, open]);
+
+  const handleTestConnection = async () => {
+    if (!evolutionApiUrl.trim() || !evolutionApiKey.trim() || !evolutionInstanceName.trim()) {
+      setTestResult({
+        status: "error",
+        message: "Preencha todos os campos obrigatórios antes de testar.",
+      });
+      return;
+    }
+
+    setTestResult({ status: "testing" });
+
+    try {
+      const response = await supabase.functions.invoke("evolution-check-status", {
+        body: {
+          evolutionApiUrl: evolutionApiUrl.trim(),
+          evolutionApiKey: evolutionApiKey.trim(),
+          instanceName: evolutionInstanceName.trim(),
+        },
+      });
+
+      if (response.error) {
+        setTestResult({
+          status: "error",
+          message: response.error.message || "Erro ao testar conexão",
+        });
+        return;
+      }
+
+      const data = response.data;
+
+      if (data?.error) {
+        setTestResult({
+          status: "error",
+          message: data.error,
+        });
+        return;
+      }
+
+      if (data?.status === "error") {
+        setTestResult({
+          status: "error",
+          message: data.error || "Erro desconhecido",
+        });
+        return;
+      }
+
+      // Connected, disconnected, or pending_qr are all valid states
+      const statusMessages: Record<string, string> = {
+        connected: `Conectado! ${data.profileName ? `Perfil: ${data.profileName}` : ""} ${data.phoneNumber ? `(${data.phoneNumber})` : ""}`.trim(),
+        disconnected: "Conexão OK! Instância desconectada - use o QR Code para conectar.",
+        pending_qr: "Conexão OK! Aguardando leitura do QR Code.",
+      };
+
+      setTestResult({
+        status: "success",
+        message: statusMessages[data.status] || "Conexão estabelecida com sucesso!",
+      });
+    } catch (err) {
+      setTestResult({
+        status: "error",
+        message: err instanceof Error ? err.message : "Erro ao testar conexão",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +195,10 @@ export function InstanceFormModal({
               type="url"
               placeholder="https://sua-evolution-api.com"
               value={evolutionApiUrl}
-              onChange={(e) => setEvolutionApiUrl(e.target.value)}
+              onChange={(e) => {
+                setEvolutionApiUrl(e.target.value);
+                setTestResult({ status: "idle" });
+              }}
               autoComplete="off"
             />
             <p className="text-[11px] text-muted-foreground">
@@ -138,7 +214,10 @@ export function InstanceFormModal({
                 type={showApiKey ? "text" : "password"}
                 placeholder="Sua chave de API"
                 value={evolutionApiKey}
-                onChange={(e) => setEvolutionApiKey(e.target.value)}
+                onChange={(e) => {
+                  setEvolutionApiKey(e.target.value);
+                  setTestResult({ status: "idle" });
+                }}
                 autoComplete="new-password"
                 className="pr-10"
               />
@@ -167,12 +246,54 @@ export function InstanceFormModal({
               id="evolutionInstanceName"
               placeholder="Ex: instance_comercial"
               value={evolutionInstanceName}
-              onChange={(e) => setEvolutionInstanceName(e.target.value)}
+              onChange={(e) => {
+                setEvolutionInstanceName(e.target.value);
+                setTestResult({ status: "idle" });
+              }}
               autoComplete="off"
             />
             <p className="text-[11px] text-muted-foreground">
               Nome da instância configurada na Evolution API (case-sensitive).
             </p>
+          </div>
+
+          {/* Test Connection Button */}
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleTestConnection}
+              disabled={testResult.status === "testing" || !evolutionApiUrl.trim() || !evolutionApiKey.trim() || !evolutionInstanceName.trim()}
+              className="w-full"
+            >
+              {testResult.status === "testing" ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Testando conexão...
+                </>
+              ) : (
+                "Testar conexão"
+              )}
+            </Button>
+
+            {testResult.status === "success" && (
+              <Alert className="border-green-500/50 bg-green-500/10">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <AlertDescription className="text-xs text-green-600 dark:text-green-400">
+                  {testResult.message}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {testResult.status === "error" && (
+              <Alert variant="destructive">
+                <XCircle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  {testResult.message}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           <DialogFooter className="gap-2 pt-4">

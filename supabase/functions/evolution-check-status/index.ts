@@ -5,6 +5,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function normalizeEvolutionApiUrl(input: string) {
+  const trimmed = input.trim();
+  // Fix common misconfiguration saved as "https:https://domain" (double scheme)
+  const fixed = trimmed.replace(/^(https?:)(https?:\/\/)/i, "$2");
+  // If user saved without protocol, assume https
+  const withProtocol = !/^https?:\/\//i.test(fixed) ? `https://${fixed}` : fixed;
+  // Remove trailing slashes
+  return withProtocol.replace(/\/+$/, "");
+}
+
+function isLikelyValidHostname(hostname: string) {
+  const h = hostname.toLowerCase();
+  if (!h) return false;
+  if (h === "https" || h === "http") return false;
+  if (h === "localhost") return true;
+  return h.includes(".");
+}
+
 interface CheckStatusRequest {
   evolutionApiUrl: string;
   evolutionApiKey: string;
@@ -64,9 +82,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Normalize inputs
+    const normalizedEvolutionApiUrl = normalizeEvolutionApiUrl(evolutionApiUrl);
+    const normalizedApiKey = evolutionApiKey.trim();
+    const normalizedInstanceName = instanceName.trim();
+
     let apiUrl: URL;
     try {
-      apiUrl = new URL(evolutionApiUrl);
+      apiUrl = new URL(normalizedEvolutionApiUrl);
     } catch {
       return new Response(
         JSON.stringify({ error: "URL da API inválida" }),
@@ -74,8 +97,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (!isLikelyValidHostname(apiUrl.hostname)) {
+      return new Response(
+        JSON.stringify({
+          error: "URL da API inválida (hostname). Verifique se está no formato https://seu-dominio",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get instance connection status
-    const connectionEndpoint = `${apiUrl.origin}/instance/connectionState/${encodeURIComponent(instanceName)}`;
+    const connectionEndpoint = `${apiUrl.origin}/instance/connectionState/${encodeURIComponent(normalizedInstanceName)}`;
     console.log(`Checking connection state: ${connectionEndpoint}`);
 
     const controller = new AbortController();
@@ -85,7 +117,7 @@ Deno.serve(async (req) => {
       const response = await fetch(connectionEndpoint, {
         method: "GET",
         headers: {
-          "apikey": evolutionApiKey,
+          "apikey": normalizedApiKey,
           "Content-Type": "application/json",
         },
         signal: controller.signal,
@@ -144,11 +176,11 @@ Deno.serve(async (req) => {
 
       if (status === "connected") {
         try {
-          const fetchEndpoint = `${apiUrl.origin}/instance/fetchInstances?instanceName=${encodeURIComponent(instanceName)}`;
+          const fetchEndpoint = `${apiUrl.origin}/instance/fetchInstances?instanceName=${encodeURIComponent(normalizedInstanceName)}`;
           const instanceResponse = await fetch(fetchEndpoint, {
             method: "GET",
             headers: {
-              "apikey": evolutionApiKey,
+              "apikey": normalizedApiKey,
               "Content-Type": "application/json",
             },
           });
@@ -181,6 +213,18 @@ Deno.serve(async (req) => {
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
         return new Response(
           JSON.stringify({ status: "error", error: "Tempo esgotado" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const rawMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+      const isDnsError = /dns error|failed to lookup address|name or service not known/i.test(rawMessage);
+      if (isDnsError) {
+        return new Response(
+          JSON.stringify({
+            status: "error",
+            error: `Não foi possível resolver o domínio "${apiUrl.hostname}". Verifique se o subdomínio existe no DNS (A/CNAME) e se a Evolution API está acessível publicamente.`,
+          }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
