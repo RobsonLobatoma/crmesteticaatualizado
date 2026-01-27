@@ -233,6 +233,17 @@ Deno.serve(async (req) => {
         );
       }
 
+      const rawMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+      const isDnsError = /dns error|failed to lookup address|name or service not known/i.test(rawMessage);
+      if (isDnsError) {
+        return new Response(
+          JSON.stringify({
+            error: `Não foi possível resolver o domínio "${apiUrl.hostname}". Verifique se o subdomínio existe no DNS (A/CNAME) e se a Evolution API está acessível publicamente.`,
+          }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       console.error("Fetch error:", fetchError);
       return new Response(
         JSON.stringify({ error: "Erro ao conectar com a Evolution API" }),

@@ -11,6 +11,16 @@ interface InstanceFormData {
   evolutionInstanceName: string;
 }
 
+function normalizeEvolutionApiUrl(input: string) {
+  const trimmed = input.trim();
+  // Fix common misconfiguration saved as "https:https://domain" (double scheme)
+  const fixed = trimmed.replace(/^(https?:)(https?:\/\/)/i, "$2");
+  // If user saved without protocol, assume https
+  const withProtocol = !/^https?:\/\//i.test(fixed) ? `https://${fixed}` : fixed;
+  // Remove trailing slash
+  return withProtocol.replace(/\/+$/, "");
+}
+
 export function useEvolutionInstances() {
   const { toast } = useToast();
   const [instances, setInstances] = useState<EvolutionInstanceConfig[]>([]);
@@ -100,7 +110,7 @@ export function useEvolutionInstances() {
     const newInstance: EvolutionInstanceConfig = {
       id: `evo-${Date.now()}`,
       name: formData.name,
-      evolutionApiUrl: formData.evolutionApiUrl.replace(/\/$/, ""), // Remove trailing slash
+      evolutionApiUrl: normalizeEvolutionApiUrl(formData.evolutionApiUrl),
       evolutionApiKey: formData.evolutionApiKey,
       evolutionInstanceName: formData.evolutionInstanceName,
       status: "disconnected",
@@ -128,7 +138,7 @@ export function useEvolutionInstances() {
             ...inst,
             ...formData,
             evolutionApiUrl: formData.evolutionApiUrl
-              ? formData.evolutionApiUrl.replace(/\/$/, "")
+              ? normalizeEvolutionApiUrl(formData.evolutionApiUrl)
               : inst.evolutionApiUrl,
             updatedAt: new Date().toISOString(),
           }
