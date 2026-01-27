@@ -93,6 +93,8 @@ Deno.serve(async (req) => {
     }
 
     const normalizedEvolutionApiUrl = normalizeEvolutionApiUrl(evolutionApiUrl);
+    const normalizedApiKey = evolutionApiKey.trim();
+    const normalizedInstanceName = instanceName.trim();
 
     let apiUrl: URL;
     try {
@@ -121,7 +123,7 @@ Deno.serve(async (req) => {
       remoteJid = `${cleanPhone}@s.whatsapp.net`;
     }
 
-    const endpoint = `${apiUrl.origin}/chat/findMessages/${encodeURIComponent(instanceName)}`;
+    const endpoint = `${apiUrl.origin}/chat/findMessages/${encodeURIComponent(normalizedInstanceName)}`;
     console.log(`Fetching messages from: ${endpoint} for ${remoteJid}`);
 
     const controller = new AbortController();
@@ -131,7 +133,7 @@ Deno.serve(async (req) => {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "apikey": evolutionApiKey,
+          "apikey": normalizedApiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -148,6 +150,16 @@ Deno.serve(async (req) => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Evolution API error: ${errorText}`);
+
+        if (response.status === 401 || response.status === 403) {
+          return new Response(
+            JSON.stringify({
+              error: "Credenciais inválidas",
+              details: errorText?.slice(0, 300),
+            }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
 
         return new Response(
           JSON.stringify({ error: `Erro da API: ${response.status}` }),
