@@ -1,183 +1,119 @@
 
-# Plano de Correção da Integração WhatsApp com Evolution API v2
+# Plano: Inbox Sempre Visível
 
-## Resumo do Problema
+## Objetivo
+Modificar o comportamento da aba "Inbox" para que seja sempre exibida, independente de haver instâncias configuradas. Quando uma instância for configurada, os dados serão carregados automaticamente.
 
-A integração atual está apresentando erros 502 (DNS) e 401 (credenciais inválidas) ao tentar conectar com a Evolution API. Após análise da documentação oficial e do código atual, identifiquei os problemas e as correções necessárias.
+## Estado Atual
+
+Atualmente, na linha 210-221 do arquivo `page.tsx`:
+
+```tsx
+{evolutionInstances.length === 0 ? (
+  <Card className="border-dashed...">
+    <CardContent>
+      <h3>Configure uma instância primeiro</h3>
+      <Button onClick={() => setActiveTab("instances")}>
+        Ir para Instâncias
+      </Button>
+    </CardContent>
+  </Card>
+) : (
+  // Layout do Inbox completo
+)}
+```
+
+Isso oculta o layout do Inbox quando não há instâncias.
 
 ---
 
-## Problemas Identificados
+## Mudanças Propostas
 
-### 1. Erro 502 - DNS não resolvido
-O domínio `api.automacoesrowaize.com.br` configurado não existe no DNS público.
+### 1. Remover a condicional que oculta o Inbox
 
-### 2. Erro 401 - Credenciais inválidas
-Pode ser causado por:
-- API Key incorreta ou com espaços
-- Instância não existe no servidor Evolution
-- URL com formato incorreto (ex: `https:https://`)
+Em vez de mostrar um card de "configure primeiro", sempre mostrar o layout completo do Inbox com 3 colunas.
 
-### 3. Formato de requisição inconsistente
-A Evolution API v2 tem endpoints específicos que precisam ser chamados com o formato correto:
+### 2. Adaptar cada coluna para estado vazio
 
-| Endpoint | Método | Formato v2 |
-|----------|--------|------------|
-| `/chat/findChats/{instance}` | POST | `{}` ou filtros |
-| `/chat/findMessages/{instance}` | POST | `{ "where": { "key": { "remoteJid": "..." } } }` |
-| `/message/sendText/{instance}` | POST | `{ "number": "...", "text": "...", "delay": 123 }` |
-| `/instance/connectionState/{instance}` | GET | - |
-| `/instance/connect/{instance}` | GET | - |
+| Coluna | Com instância | Sem instância |
+|--------|---------------|---------------|
+| **Lista de chats** | Mostra dropdown + lista de chats | Mostra mensagem "Nenhuma instância configurada" + botão para ir para aba Instâncias |
+| **Área de mensagens** | Mostra mensagens do chat selecionado | Mostra placeholder "Configure uma instância para começar" |
+| **Resumo do lead** | Mostra dados do lead selecionado | Mostra placeholder padrão |
+
+### 3. Layout visual mantido
+
+O layout de 3 colunas permanece fixo:
+```
+[Chats] [Mensagens] [Resumo]
+```
+
+Apenas o conteúdo interno de cada coluna muda baseado no estado.
 
 ---
 
-## Correções a Implementar
+## Arquivo a Modificar
 
-### 1. Normalização de URL (já implementado parcialmente)
-- Corrigir `https:https://` para `https://`
-- Remover barras finais
-- Adicionar protocolo se não existir
-
-### 2. Melhorar Edge Functions
-
-#### `evolution-fetch-chats/index.ts`
-- Adicionar normalização de URL completa
-- Melhorar tratamento de erros com detalhes
-- Log detalhado para debug
-
-#### `evolution-fetch-messages/index.ts`
-- Corrigir formato do body conforme documentação v2:
-```javascript
-{
-  "where": {
-    "key": {
-      "remoteJid": "5511999999999@s.whatsapp.net"
-    }
-  },
-  "limit": 100
-}
-```
-
-#### `evolution-send-message/index.ts`
-- Adicionar normalização de URL
-- Formato correto para v2:
-```javascript
-{
-  "number": "5511999999999",
-  "text": "Sua mensagem aqui",
-  "delay": 1000,
-  "linkPreview": false
-}
-```
-
-#### `evolution-check-status/index.ts`
-- Adicionar normalização de URL
-- Melhorar detecção de erros de DNS
-
-#### `evolution-qrcode/index.ts`
-- Adicionar normalização de URL
-
-### 3. Adicionar Botão "Testar Conexão"
-Antes de salvar uma instância, validar se a URL e API Key estão funcionando.
-
-### 4. Melhorar Feedback de Erros
-Exibir mensagens de erro inline no Inbox ao invés de tela em branco.
+| Arquivo | Mudança |
+|---------|---------|
+| `src/modules/whatsapp-v2/page.tsx` | Remover condicional e adaptar estados vazios dentro do layout |
 
 ---
 
 ## Detalhes Técnicos
 
-### Estrutura das Edge Functions Corrigidas
+### Estrutura do JSX Modificado
 
-#### Normalização de URL (função compartilhada)
-```typescript
-function normalizeEvolutionApiUrl(input: string) {
-  const trimmed = input.trim();
-  // Fix double scheme: https:https://domain → https://domain
-  const fixed = trimmed.replace(/^(https?:)(https?:\/\/)/i, "$2");
-  // Add protocol if missing
-  const withProtocol = !/^https?:\/\//i.test(fixed) ? `https://${fixed}` : fixed;
-  // Remove trailing slashes
-  return withProtocol.replace(/\/+$/, "");
-}
+```tsx
+<TabsContent value="inbox" className="flex flex-1 flex-col gap-4">
+  <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1.4fr)_minmax(0,1fr)] h-[calc(100vh-220px)] min-h-[500px]">
+    
+    {/* Coluna 1: Lista de Chats */}
+    <div className="flex flex-col gap-2 h-full min-h-0">
+      {evolutionInstances.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-full text-center px-4">
+          <AlertTriangle className="h-8 w-8 text-muted-foreground mb-3" />
+          <h3 className="text-sm font-medium mb-1">Nenhuma instância</h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Configure uma instância da Evolution API para ver os chats.
+          </p>
+          <Button size="sm" variant="outline" onClick={() => setActiveTab("instances")}>
+            Configurar instância
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* Dropdown de seleção + lista de chats existente */}
+        </>
+      )}
+    </div>
+
+    {/* Coluna 2: Área de Mensagens - sempre visível */}
+    <div className="flex h-full min-h-[360px] flex-col rounded-xl border border-border/70 bg-background/80">
+      {/* Mesmo conteúdo atual, com estado vazio quando não há instância */}
+    </div>
+
+    {/* Coluna 3: Resumo do Lead - sempre visível */}
+    <ScrollArea className="h-full">
+      {/* Mesmo conteúdo atual */}
+    </ScrollArea>
+  </div>
+</TabsContent>
 ```
 
-#### Endpoint `/chat/findMessages` - Body correto
-```typescript
-body: JSON.stringify({
-  where: {
-    key: { remoteJid: `${cleanPhone}@s.whatsapp.net` }
-  },
-  limit: 100
-})
-```
+### Estados da Coluna de Mensagens
 
-#### Endpoint `/message/sendText` - Body correto
-```typescript
-body: JSON.stringify({
-  number: cleanPhone,  // Sem @s.whatsapp.net
-  text: message,
-  delay: 1000,
-  linkPreview: false
-})
-```
-
-### Componente de Teste de Conexão
-
-Novo componente no modal de instância que:
-1. Chama `/instance/connectionState/{instance}` para verificar conectividade
-2. Retorna status: OK, erro de credenciais, erro de DNS, timeout
-3. Só permite salvar se teste passar (opcional)
-
-### Tratamento de Erros no Inbox
-
-```typescript
-// Em vez de tela em branco, mostrar Alert
-{error && (
-  <Alert variant="destructive">
-    <AlertTitle>Erro de conexão</AlertTitle>
-    <AlertDescription>{error}</AlertDescription>
-  </Alert>
-)}
-```
-
----
-
-## Arquivos a Modificar
-
-| Arquivo | Ação |
-|---------|------|
-| `supabase/functions/evolution-fetch-chats/index.ts` | Atualizar normalização e erros |
-| `supabase/functions/evolution-fetch-messages/index.ts` | Atualizar normalização e erros |
-| `supabase/functions/evolution-send-message/index.ts` | Adicionar normalização |
-| `supabase/functions/evolution-check-status/index.ts` | Adicionar normalização e erros DNS |
-| `supabase/functions/evolution-qrcode/index.ts` | Adicionar normalização |
-| `src/modules/whatsapp-v2/components/InstanceFormModal.tsx` | Adicionar botão testar conexão |
-| `src/modules/whatsapp-v2/page.tsx` | Adicionar feedback de erros inline |
-| `src/modules/whatsapp-v2/hooks/useWhatsappChats.ts` | Expor erro para UI |
-
----
-
-## Próximos Passos para o Usuário
-
-Após implementar as correções:
-
-1. **Editar a instância "advogado"**:
-   - Substituir `https:https://api.automacoesrowaize.com.br` por uma URL válida:
-     - Se tiver DNS: `https://api.automacoesrowaize.com.br` (precisa criar registro A/CNAME)
-     - Se usar IP: `http://123.45.67.89:8080` (IP do servidor Evolution)
-
-2. **Verificar a API Key**: Copiar novamente do painel da Evolution API sem espaços
-
-3. **Verificar o nome da instância**: Deve ser exatamente igual ao cadastrado na Evolution
+1. **Sem instância**: "Configure uma instância para começar"
+2. **Com instância, sem chat selecionado**: "Selecione uma conversa à esquerda"
+3. **Com chat, carregando**: Spinner de loading
+4. **Com chat, sem mensagens**: "Nenhuma mensagem encontrada"
+5. **Com chat e mensagens**: Lista de MessageBubble
 
 ---
 
 ## Resultado Esperado
 
-Após as correções:
-- URLs malformadas serão corrigidas automaticamente
-- Erros de DNS mostrarão mensagem clara pedindo para verificar configuração
-- Erros 401 mostrarão detalhes do que está errado
-- Inbox mostrará mensagens de erro inline ao invés de tela em branco
-- Botão de teste permitirá validar antes de salvar
+- O Inbox sempre aparece com seu layout de 3 colunas
+- Quando não há instância, a coluna da esquerda mostra um estado vazio amigável
+- Quando uma instância é adicionada, os chats são carregados automaticamente
+- Não há mais mudança brusca de layout ao configurar a primeira instância
