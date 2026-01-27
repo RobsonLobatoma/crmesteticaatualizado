@@ -10,8 +10,9 @@ function normalizeEvolutionApiUrl(input: string) {
   // Fix common misconfiguration saved as "https:https://domain" (double scheme)
   const fixed = trimmed.replace(/^(https?:)(https?:\/\/)/i, "$2");
   // If user saved without protocol, assume https
-  if (!/^https?:\/\//i.test(fixed)) return `https://${fixed}`;
-  return fixed;
+  const withProtocol = !/^https?:\/\//i.test(fixed) ? `https://${fixed}` : fixed;
+  // Remove trailing slashes
+  return withProtocol.replace(/\/+$/, "");
 }
 
 function isLikelyValidHostname(hostname: string) {
