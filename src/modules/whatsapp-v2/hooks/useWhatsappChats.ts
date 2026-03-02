@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { EvolutionInstanceConfig, WhatsappChat } from "../types";
 
 interface UseWhatsappChatsOptions {
@@ -9,12 +10,58 @@ interface UseWhatsappChatsOptions {
   pollingInterval?: number;
 }
 
+async function syncNewContactsToKanban(chats: WhatsappChat[], userId: string) {
+  if (chats.length === 0) return;
+
+  const phoneNumbers = [...new Set(chats.map((c) => c.phoneNumber))];
+
+  // Check which phones already exist in crm_clients
+  const { data: existingClients } = await supabase
+    .from("crm_clients")
+    .select("telefone")
+    .in("telefone", phoneNumbers);
+
+  const existingPhones = new Set((existingClients || []).map((c) => c.telefone));
+  const newContacts = chats.filter((c) => !existingPhones.has(c.phoneNumber));
+
+  if (newContacts.length === 0) return;
+
+  // Get first active crm_status slug
+  const { data: statuses } = await supabase
+    .from("crm_statuses")
+    .select("slug")
+    .eq("is_active", true)
+    .order("display_order", { ascending: true })
+    .limit(1);
+
+  const defaultStatus = statuses?.[0]?.slug || "novo";
+
+  // Deduplicate by phone
+  const seen = new Set<string>();
+  const toInsert = newContacts
+    .filter((c) => {
+      if (seen.has(c.phoneNumber)) return false;
+      seen.add(c.phoneNumber);
+      return true;
+    })
+    .map((c) => ({
+      nome: c.leadName || c.phoneNumber,
+      telefone: c.phoneNumber,
+      status: defaultStatus,
+      origem: "WhatsApp",
+      user_id: userId,
+    }));
+
+  await supabase.from("crm_clients").insert(toInsert);
+}
+
 export function useWhatsappChats({
   instance,
   enabled = true,
   pollingInterval = 30000,
 }: UseWhatsappChatsOptions) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [chats, setChats] = useState<WhatsappChat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +116,15 @@ export function useWhatsappChats({
       );
 
       setChats(fetchedChats);
+
+      // Auto-sync new contacts to Kanban
+      try {
+        const userId = sessionData.session.user.id;
+        await syncNewContactsToKanban(fetchedChats, userId);
+        queryClient.invalidateQueries({ queryKey: ["crm-clients"] });
+      } catch (syncErr) {
+        console.error("Erro ao sincronizar contatos ao Kanban:", syncErr);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro desconhecido";
       setError(message);
@@ -76,7 +132,7 @@ export function useWhatsappChats({
     } finally {
       setIsLoading(false);
     }
-  }, [instance, enabled]);
+  }, [instance, enabled, queryClient]);
 
   // Initial fetch
   useEffect(() => {

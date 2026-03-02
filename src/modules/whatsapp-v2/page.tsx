@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,19 @@ import { useWhatsappChats } from "./hooks/useWhatsappChats";
 import { useWhatsappMessages } from "./hooks/useWhatsappMessages";
 import { useSendMessage } from "./hooks/useSendMessage";
 import { useWhatsappTemplates } from "./hooks/useWhatsappTemplates";
+import { useCRMClients } from "@/modules/kanbam-v2/hooks/useCRMClients";
+import { useCRMStatuses } from "@/modules/kanbam-v2/hooks/useCRMStatuses";
 import { WhatsappTemplate, EvolutionInstanceConfig } from "./types";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2 } from "lucide-react";
 
 const WhatsappV2Page = () => {
   const { toast } = useToast();
+  const { clients: crmClients } = useCRMClients();
+  const { statuses: crmStatuses } = useCRMStatuses();
   const [activeTab, setActiveTab] = useState<string>("inbox");
+  const [sendingToKanban, setSendingToKanban] = useState(false);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | undefined>(undefined);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [qrInstance, setQrInstance] = useState<EvolutionInstanceConfig | null>(null);
@@ -365,6 +371,46 @@ const WhatsappV2Page = () => {
                     <CardTitle className="text-sm">Ações rápidas</CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-wrap gap-2 text-xs">
+                    {selectedChat && (() => {
+                      const isInKanban = crmClients.some(
+                        (c) => c.telefone === selectedChat.phoneNumber
+                      );
+                      return isInKanban ? (
+                        <Badge variant="secondary" className="gap-1 text-xs py-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Já no Kanban
+                        </Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={sendingToKanban}
+                          onClick={async () => {
+                            setSendingToKanban(true);
+                            try {
+                              const { data: sessionData } = await supabase.auth.getSession();
+                              if (!sessionData.session) throw new Error("Não autenticado");
+                              const defaultStatus = crmStatuses.filter(s => s.is_active).sort((a, b) => a.display_order - b.display_order)[0]?.slug || "novo";
+                              await supabase.from("crm_clients").insert({
+                                nome: selectedChat.leadName || selectedChat.phoneNumber,
+                                telefone: selectedChat.phoneNumber,
+                                status: defaultStatus,
+                                origem: "WhatsApp",
+                                user_id: sessionData.session.user.id,
+                              });
+                              toast({ title: "Enviado ao Kanban", description: "Contato adicionado com sucesso." });
+                            } catch (err) {
+                              toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro desconhecido", variant: "destructive" });
+                            } finally {
+                              setSendingToKanban(false);
+                            }
+                          }}
+                        >
+                          {sendingToKanban ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Kanban className="h-3 w-3 mr-1" />}
+                          Enviar ao Kanban
+                        </Button>
+                      );
+                    })()}
                     <Button
                       size="sm"
                       variant="outline"
