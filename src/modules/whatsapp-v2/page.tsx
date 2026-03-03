@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2 } from "lucide-react";
 
 const WhatsappV2Page = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { clients: crmClients } = useCRMClients();
   const { statuses: crmStatuses } = useCRMStatuses();
@@ -398,6 +400,7 @@ const WhatsappV2Page = () => {
                                 origem: "WhatsApp",
                                 user_id: sessionData.session.user.id,
                               });
+                              queryClient.invalidateQueries({ queryKey: ["crm-clients"] });
                               toast({ title: "Enviado ao Kanban", description: "Contato adicionado com sucesso." });
                             } catch (err) {
                               toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro desconhecido", variant: "destructive" });
