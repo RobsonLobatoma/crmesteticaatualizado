@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ChatList } from "./ChatList";
 import { MessageBubble } from "./MessageBubble";
 import { SendMessageBox } from "./SendMessageBox";
@@ -21,10 +23,19 @@ import { useSendMessage } from "./hooks/useSendMessage";
 import { useWhatsappTemplates } from "./hooks/useWhatsappTemplates";
 import { useCRMClients } from "@/modules/kanbam-v2/hooks/useCRMClients";
 import { useCRMStatuses } from "@/modules/kanbam-v2/hooks/useCRMStatuses";
+import { useLeads } from "@/modules/leads-v2/hooks/useLeads";
+import { useLeadTags } from "@/modules/leads-v2/hooks/useLeadTags";
+import { fetchAddressByCep, formatCep, formatCpf } from "@/modules/leads-v2/utils/cepUtils";
+import { TagsSelector } from "@/modules/leads-v2/components/TagsSelector";
+import { useClients } from "@/modules/agenda-v2/hooks/useClients";
+import { useProfessionals } from "@/modules/agenda-v2/hooks/useProfessionals";
+import { useServices } from "@/modules/agenda-v2/hooks/useResources";
+import { useAppointments } from "@/modules/agenda-v2/hooks/useAppointments";
 import { WhatsappTemplate, EvolutionInstanceConfig } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2 } from "lucide-react";
+import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2, UserPlus, Calendar, ClipboardList } from "lucide-react";
+import { format, addMinutes } from "date-fns";
 
 const WhatsappV2Page = () => {
   const queryClient = useQueryClient();
@@ -37,6 +48,33 @@ const WhatsappV2Page = () => {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [qrInstance, setQrInstance] = useState<EvolutionInstanceConfig | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+
+  // Quick Lead Form state
+  const [showQuickLeadForm, setShowQuickLeadForm] = useState(false);
+  const { createLead } = useLeads();
+  const { tags: availableTags } = useLeadTags();
+  const [quickLeadSelectedTags, setQuickLeadSelectedTags] = useState<string[]>([]);
+  const [quickLeadCepLoading, setQuickLeadCepLoading] = useState(false);
+  const [quickLeadSaving, setQuickLeadSaving] = useState(false);
+  const [quickLead, setQuickLead] = useState({
+    dataEntrada: "", responsavel: "", nome: "", contato: "", origem: "WhatsApp",
+    procedimento: "", status: "Novo lead", dataUltimoContato: "", dataAgendamento: "",
+    dataAvaliacao: "", dataProcedimento: "", compareceu: "", dataFechamento: "",
+    valorFechado: "", observacao: "", dataNascimento: "", cpf: "", cep: "",
+    endereco: "", bairro: "", cidade: "", estado: "", numero: "", complemento: "",
+  });
+
+  // Schedule modal state
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const { professionals } = useProfessionals();
+  const { data: services } = useServices();
+  const { clients: agendaClients, createClient } = useClients();
+  const today = new Date();
+  const { createAppointment } = useAppointments(today, "day");
+  const [scheduleForm, setScheduleForm] = useState({
+    date: "", time: "", professionalId: "", serviceId: "", duration: "60", notes: "",
+  });
   
   // Evolution Instances Management
   const {
@@ -110,13 +148,20 @@ const WhatsappV2Page = () => {
   const [editingTemplate, setEditingTemplate] = useState<WhatsappTemplate | null>(null);
   const [isTemplateSubmitting, setIsTemplateSubmitting] = useState(false);
 
+  // Helper: find "Novo Lead" status slug
+  const getNovoLeadSlug = () => {
+    const activeStatuses = crmStatuses.filter(s => s.is_active).sort((a, b) => a.display_order - b.display_order);
+    const novoStatus = activeStatuses.find(s => 
+      s.name?.toLowerCase().includes('novo') || 
+      s.slug === 'novo_hoje' || 
+      s.slug === 'novo'
+    );
+    return novoStatus?.slug || activeStatuses[0]?.slug || "novo";
+  };
+
   const handleSendMessage = async (content: string) => {
     if (!selectedChat?.phoneNumber) return false;
-    
-    // Add optimistic message
     addOptimisticMessage(content);
-    
-    // Send via API
     return sendMessage(selectedChat.phoneNumber, content);
   };
 
@@ -174,6 +219,172 @@ const WhatsappV2Page = () => {
       }
     } finally {
       setIsTemplateSubmitting(false);
+    }
+  };
+
+  // Quick Lead Form handlers
+  const handleQuickLeadChange = (field: string, value: string) => {
+    setQuickLead(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleQuickLeadCepChange = async (value: string) => {
+    const formattedCep = formatCep(value);
+    handleQuickLeadChange("cep", formattedCep);
+    const cleanCep = value.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      setQuickLeadCepLoading(true);
+      try {
+        const address = await fetchAddressByCep(cleanCep);
+        if (address) {
+          setQuickLead(prev => ({
+            ...prev,
+            endereco: address.logradouro,
+            bairro: address.bairro,
+            cidade: address.localidade,
+            estado: address.uf,
+          }));
+        }
+      } finally {
+        setQuickLeadCepLoading(false);
+      }
+    }
+  };
+
+  const handleQuickLeadCpfChange = (value: string) => {
+    handleQuickLeadChange("cpf", formatCpf(value));
+  };
+
+  const openQuickLeadForm = () => {
+    setQuickLead({
+      dataEntrada: format(new Date(), "yyyy-MM-dd"),
+      responsavel: "", 
+      nome: selectedChat?.leadName || "",
+      contato: selectedChat?.phoneNumber || "",
+      origem: "WhatsApp",
+      procedimento: "", status: "Novo lead", dataUltimoContato: "", dataAgendamento: "",
+      dataAvaliacao: "", dataProcedimento: "", compareceu: "", dataFechamento: "",
+      valorFechado: "", observacao: "", dataNascimento: "", cpf: "", cep: "",
+      endereco: "", bairro: "", cidade: "", estado: "", numero: "", complemento: "",
+    });
+    setQuickLeadSelectedTags([]);
+    setShowQuickLeadForm(true);
+  };
+
+  const handleSaveQuickLead = async () => {
+    if (!quickLead.nome || !quickLead.contato) {
+      toast({ title: "Preencha os campos obrigatórios", description: "Nome e contato são obrigatórios.", variant: "destructive" });
+      return;
+    }
+    setQuickLeadSaving(true);
+    try {
+      const normalize = (val: string) => (val && val.trim() !== "" ? val : undefined);
+      await createLead({
+        nome: quickLead.nome,
+        contato: quickLead.contato,
+        responsavel: normalize(quickLead.responsavel) || "-",
+        origem: normalize(quickLead.origem) || "WhatsApp",
+        procedimento: normalize(quickLead.procedimento),
+        status: normalize(quickLead.status) || "Novo lead",
+        dataEntrada: normalize(quickLead.dataEntrada),
+        dataUltimoContato: normalize(quickLead.dataUltimoContato),
+        dataAgendamento: normalize(quickLead.dataAgendamento),
+        dataAvaliacao: normalize(quickLead.dataAvaliacao),
+        dataProcedimento: normalize(quickLead.dataProcedimento),
+        compareceu: normalize(quickLead.compareceu),
+        dataFechamento: normalize(quickLead.dataFechamento),
+        valorFechado: normalize(quickLead.valorFechado),
+        observacao: normalize(quickLead.observacao),
+        dataNascimento: normalize(quickLead.dataNascimento),
+        cpf: normalize(quickLead.cpf),
+        cep: normalize(quickLead.cep),
+        endereco: normalize(quickLead.endereco),
+        numero: normalize(quickLead.numero),
+        bairro: normalize(quickLead.bairro),
+        cidade: normalize(quickLead.cidade),
+        estado: normalize(quickLead.estado),
+        complemento: normalize(quickLead.complemento),
+        tags: quickLeadSelectedTags,
+      });
+      setShowQuickLeadForm(false);
+    } catch {
+      // toast handled by useLeads
+    } finally {
+      setQuickLeadSaving(false);
+    }
+  };
+
+  // Schedule handlers
+  const openScheduleModal = () => {
+    setScheduleForm({
+      date: format(new Date(), "yyyy-MM-dd"),
+      time: "09:00",
+      professionalId: "",
+      serviceId: "",
+      duration: "60",
+      notes: `Avaliação - ${selectedChat?.leadName || selectedChat?.phoneNumber || ""}`,
+    });
+    setShowScheduleModal(true);
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!scheduleForm.date || !scheduleForm.time) {
+      toast({ title: "Preencha data e horário", variant: "destructive" });
+      return;
+    }
+    setScheduleSaving(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("Não autenticado");
+      const userId = sessionData.session.user.id;
+
+      // Find or create client in agenda clients table
+      const phone = selectedChat?.phoneNumber || "";
+      const name = selectedChat?.leadName || phone;
+      let clientId: string | null = null;
+
+      const existingClient = agendaClients.find(c => c.phone === phone);
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else if (phone) {
+        // Create client
+        const { data: newClient, error: clientErr } = await supabase
+          .from("clients")
+          .insert({ name, phone, user_id: userId })
+          .select()
+          .single();
+        if (!clientErr && newClient) {
+          clientId = newClient.id;
+          queryClient.invalidateQueries({ queryKey: ["clients"] });
+        }
+      }
+
+      const startDatetime = new Date(`${scheduleForm.date}T${scheduleForm.time}:00`);
+      const durationMin = parseInt(scheduleForm.duration) || 60;
+      const endDatetime = addMinutes(startDatetime, durationMin);
+
+      createAppointment({
+        equipment_id: null,
+        recurrence_parent_id: null,
+        recurrence_type: "none",
+        room_id: null,
+        send_sms: false,
+        client_id: clientId,
+        professional_id: scheduleForm.professionalId || null,
+        service_id: scheduleForm.serviceId || null,
+        start_datetime: startDatetime.toISOString(),
+        end_datetime: endDatetime.toISOString(),
+        duration_minutes: durationMin,
+        notes: scheduleForm.notes || null,
+        status: "agendado",
+        user_id: userId,
+      });
+
+      setShowScheduleModal(false);
+      toast({ title: "Avaliação agendada!", description: `Agendamento criado para ${format(startDatetime, "dd/MM/yyyy HH:mm")}` });
+    } catch (err) {
+      toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro desconhecido", variant: "destructive" });
+    } finally {
+      setScheduleSaving(false);
     }
   };
 
@@ -356,10 +567,10 @@ const WhatsappV2Page = () => {
                           <span className="font-medium text-foreground">Telefone:</span> {selectedChat.phoneNumber}
                         </div>
                         <div>
-                          <span className="font-medium text-foreground">Origem:</span> {selectedChat.origin || "-"}
+                          <span className="font-medium text-foreground">Origem:</span> {(selectedChat as any).origin || "-"}
                         </div>
                         <div>
-                          <span className="font-medium text-foreground">Responsável:</span> {selectedChat.assignedTo || "-"}
+                          <span className="font-medium text-foreground">Responsável:</span> {(selectedChat as any).assignedTo || "-"}
                         </div>
                       </>
                     ) : (
@@ -392,7 +603,7 @@ const WhatsappV2Page = () => {
                             try {
                               const { data: sessionData } = await supabase.auth.getSession();
                               if (!sessionData.session) throw new Error("Não autenticado");
-                              const defaultStatus = crmStatuses.filter(s => s.is_active).sort((a, b) => a.display_order - b.display_order)[0]?.slug || "novo";
+                              const defaultStatus = getNovoLeadSlug();
                               await supabase.from("crm_clients").insert({
                                 nome: selectedChat.leadName || selectedChat.phoneNumber,
                                 telefone: selectedChat.phoneNumber,
@@ -418,27 +629,19 @@ const WhatsappV2Page = () => {
                       size="sm"
                       variant="outline"
                       disabled={!selectedChat}
-                      onClick={() =>
-                        toast({
-                          title: "Agendar avaliação",
-                          description: "No futuro este botão abrirá a agenda integrada.",
-                        })
-                      }
+                      onClick={openQuickLeadForm}
                     >
-                      Agendar avaliação
+                      <UserPlus className="h-3 w-3 mr-1" />
+                      Cadastro rápido
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       disabled={!selectedChat}
-                      onClick={() =>
-                        toast({
-                          title: "Abrir no Leads V2",
-                          description: "Aqui faremos o deep link para o módulo de Leads.",
-                        })
-                      }
+                      onClick={openScheduleModal}
                     >
-                      Abrir no Leads V2
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Agendar avaliação
                     </Button>
                   </CardContent>
                 </Card>
@@ -661,6 +864,218 @@ const WhatsappV2Page = () => {
         onSubmit={handleTemplateSubmit}
         isSubmitting={isTemplateSubmitting}
       />
+
+      {/* Quick Lead Registration Dialog */}
+      <Dialog open={showQuickLeadForm} onOpenChange={setShowQuickLeadForm}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              Cadastro rápido de Lead
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Entrada</label>
+              <Input type="date" value={quickLead.dataEntrada} onChange={(e) => handleQuickLeadChange("dataEntrada", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Responsável</label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.responsavel} onChange={(e) => handleQuickLeadChange("responsavel", e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="Nara Helizabeth">Nara Helizabeth</option>
+                <option value="Adrielly Durans">Adrielly Durans</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Nome do cliente *</label>
+              <Input placeholder="Nome do lead" value={quickLead.nome} onChange={(e) => handleQuickLeadChange("nome", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Contato *</label>
+              <Input placeholder="(11) 99999-9999" value={quickLead.contato} onChange={(e) => handleQuickLeadChange("contato", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Origem</label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.origem} onChange={(e) => handleQuickLeadChange("origem", e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Instagram">Instagram</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Anúncio">Anúncio</option>
+                <option value="Indicação">Indicação</option>
+                <option value="Promoção">Promoção</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Procedimento</label>
+              <Input placeholder="Botox, lipo..." value={quickLead.procedimento} onChange={(e) => handleQuickLeadChange("procedimento", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Status</label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.status} onChange={(e) => handleQuickLeadChange("status", e.target.value)}>
+                {crmStatuses.length > 0 ? (
+                  crmStatuses.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)
+                ) : (
+                  <>
+                    <option value="Novo lead">Novo lead</option>
+                    <option value="Em Atendimento">Em Atendimento</option>
+                    <option value="Fechou">Fechou</option>
+                  </>
+                )}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Último Contato</label>
+              <Input type="date" value={quickLead.dataUltimoContato} onChange={(e) => handleQuickLeadChange("dataUltimoContato", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Agendamento</label>
+              <Input type="date" value={quickLead.dataAgendamento} onChange={(e) => handleQuickLeadChange("dataAgendamento", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Avaliação</label>
+              <Input type="date" value={quickLead.dataAvaliacao} onChange={(e) => handleQuickLeadChange("dataAvaliacao", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Procedimento</label>
+              <Input type="date" value={quickLead.dataProcedimento} onChange={(e) => handleQuickLeadChange("dataProcedimento", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Compareceu?</label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.compareceu} onChange={(e) => handleQuickLeadChange("compareceu", e.target.value)}>
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Fechamento</label>
+              <Input type="date" value={quickLead.dataFechamento} onChange={(e) => handleQuickLeadChange("dataFechamento", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Valor Fechado (R$)</label>
+              <Input placeholder="R$ 1.500,00" value={quickLead.valorFechado} onChange={(e) => handleQuickLeadChange("valorFechado", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Nascimento</label>
+              <Input type="date" value={quickLead.dataNascimento} onChange={(e) => handleQuickLeadChange("dataNascimento", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">CPF</label>
+              <Input placeholder="000.000.000-00" maxLength={14} value={quickLead.cpf} onChange={(e) => handleQuickLeadCpfChange(e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">CEP</label>
+              <div className="relative">
+                <Input placeholder="00000-000" maxLength={9} value={quickLead.cep} onChange={(e) => handleQuickLeadCepChange(e.target.value)} />
+                {quickLeadCepLoading && <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />}
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Endereço</label>
+              <Input placeholder="Rua, Avenida..." value={quickLead.endereco} onChange={(e) => handleQuickLeadChange("endereco", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Número</label>
+              <Input placeholder="Nº" value={quickLead.numero} onChange={(e) => handleQuickLeadChange("numero", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Bairro</label>
+              <Input placeholder="Bairro" value={quickLead.bairro} onChange={(e) => handleQuickLeadChange("bairro", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Cidade</label>
+              <Input placeholder="Cidade" value={quickLead.cidade} onChange={(e) => handleQuickLeadChange("cidade", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Estado</label>
+              <Input placeholder="UF" maxLength={2} value={quickLead.estado} onChange={(e) => handleQuickLeadChange("estado", e.target.value.toUpperCase())} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Complemento</label>
+              <Input placeholder="Apto, Bloco..." value={quickLead.complemento} onChange={(e) => handleQuickLeadChange("complemento", e.target.value)} />
+            </div>
+            <div className="md:col-span-2">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Tags</label>
+              <TagsSelector availableTags={availableTags} selectedTagIds={quickLeadSelectedTags} onChange={setQuickLeadSelectedTags} placeholder="Selecionar tags..." />
+            </div>
+            <div className="md:col-span-3 lg:col-span-4">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Observação</label>
+              <Input placeholder="Detalhes importantes do lead..." value={quickLead.observacao} onChange={(e) => handleQuickLeadChange("observacao", e.target.value)} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" size="sm" onClick={() => setShowQuickLeadForm(false)}>Cancelar</Button>
+            <Button size="sm" onClick={handleSaveQuickLead} disabled={quickLeadSaving}>
+              {quickLeadSaving && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+              Salvar lead
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Evaluation Dialog */}
+      <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Agendar avaliação
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Cliente</label>
+              <Input value={selectedChat?.leadName || selectedChat?.phoneNumber || ""} disabled className="text-xs" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data *</label>
+                <Input type="date" value={scheduleForm.date} onChange={(e) => setScheduleForm(p => ({ ...p, date: e.target.value }))} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Horário *</label>
+                <Input type="time" value={scheduleForm.time} onChange={(e) => setScheduleForm(p => ({ ...p, time: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Profissional</label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={scheduleForm.professionalId} onChange={(e) => setScheduleForm(p => ({ ...p, professionalId: e.target.value }))}>
+                <option value="">Selecione...</option>
+                {professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Serviço</label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={scheduleForm.serviceId} onChange={(e) => setScheduleForm(p => ({ ...p, serviceId: e.target.value }))}>
+                <option value="">Selecione...</option>
+                {(services || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Duração</label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={scheduleForm.duration} onChange={(e) => setScheduleForm(p => ({ ...p, duration: e.target.value }))}>
+                <option value="30">30 minutos</option>
+                <option value="60">1 hora</option>
+                <option value="90">1h30</option>
+                <option value="120">2 horas</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Observações</label>
+              <Textarea className="text-xs" rows={2} value={scheduleForm.notes} onChange={(e) => setScheduleForm(p => ({ ...p, notes: e.target.value }))} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" size="sm" onClick={() => setShowScheduleModal(false)}>Cancelar</Button>
+            <Button size="sm" onClick={handleSaveSchedule} disabled={scheduleSaving}>
+              {scheduleSaving && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+              Agendar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
