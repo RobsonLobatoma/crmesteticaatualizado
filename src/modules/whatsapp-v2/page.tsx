@@ -363,6 +363,11 @@ const WhatsappV2Page = () => {
       const endDatetime = addMinutes(startDatetime, durationMin);
 
       createAppointment({
+        equipment_id: null,
+        recurrence_parent_id: null,
+        recurrence_type: "none",
+        room_id: null,
+        send_sms: false,
         client_id: clientId,
         professional_id: scheduleForm.professionalId || null,
         service_id: scheduleForm.serviceId || null,
