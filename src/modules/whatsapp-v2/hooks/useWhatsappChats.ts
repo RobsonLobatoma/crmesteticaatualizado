@@ -29,12 +29,16 @@ async function syncNewContactsToKanban(chats: WhatsappChat[], userId: string) {
   // Get first active crm_status slug
   const { data: statuses } = await supabase
     .from("crm_statuses")
-    .select("slug")
+    .select("slug, name")
     .eq("is_active", true)
-    .order("display_order", { ascending: true })
-    .limit(1);
+    .order("display_order", { ascending: true });
 
-  const defaultStatus = statuses?.[0]?.slug || "novo";
+  const novoLeadStatus = statuses?.find(s => 
+    s.name?.toLowerCase().includes('novo') || 
+    s.slug === 'novo_hoje' || 
+    s.slug === 'novo'
+  );
+  const defaultStatus = novoLeadStatus?.slug || statuses?.[0]?.slug || "novo";
 
   // Deduplicate by phone
   const seen = new Set<string>();
