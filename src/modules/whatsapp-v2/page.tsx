@@ -539,6 +539,7 @@ const WhatsappV2Page = () => {
                         key={message.id}
                         message={message}
                         contactName={selectedChat?.leadName || selectedChat?.phoneNumber}
+                        instance={selectedInstance}
                       />
                     ))
                   )}
