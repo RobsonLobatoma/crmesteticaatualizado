@@ -84,6 +84,28 @@ const ConfiguracoesCRMV2Page = () => {
     deleteStatus.mutate(id);
   };
 
+  // Drag-and-drop sensors and handler
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = statuses.findIndex(s => s.id === active.id);
+    const newIndex = statuses.findIndex(s => s.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(statuses, oldIndex, newIndex);
+    reordered.forEach((status, index) => {
+      if (status.display_order !== index) {
+        updateStatus.mutate({ id: status.id, display_order: index });
+      }
+    });
+  };
+
   // Responsible handlers
   const handleCreateResponsible = () => {
     setEditingResponsible(null);
