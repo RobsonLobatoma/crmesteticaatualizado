@@ -1,71 +1,50 @@
 
+# Plano: Corrigir envio ao Kanban + Arrastar colunas no Gerenciar Status
 
-# Plano: Auto-envio de novos contatos ao Kanban + Botão manual
+## 1. Corrigir "Já no Kanban" — Envio para "Novo Lead"
 
-## Objetivo
-1. Quando novos contatos (telefones inéditos) aparecerem na lista de chats do WhatsApp, criar automaticamente um card no Kanban com status "novo" (slug do primeiro status ativo ou fallback para "novo").
-2. Adicionar botão "Enviar ao Kanban" no card "Resumo do lead" para envio manual.
+**Problema identificado**: No banco, existem dois status com "novo" no nome:
+- `slug: "novo_hoje"` (name: "Novo ( Hoje )") — display_order: 0
+- `slug: "novo_lead"` (name: "Novo Lead") — display_order: 1
 
-## Lógica de "novo contato" vs "conversa nova"
-- A cada fetch de chats, comparar os telefones retornados com os telefones já existentes na tabela `crm_clients`.
-- Apenas telefones que **não existem** em `crm_clients` são considerados "novos contatos" e serão inseridos automaticamente.
-- Conversas de contatos já cadastrados no Kanban são ignoradas.
+A lógica atual (`name.includes('novo')`) encontra "Novo ( Hoje )" primeiro, não "Novo Lead". O contato é inserido com `status: "novo_hoje"` em vez de `"novo_lead"`.
 
-## Mudanças
+**Correção em 2 arquivos**:
 
-### 1. `src/modules/whatsapp-v2/hooks/useWhatsappChats.ts`
-- Após o fetch de chats, consultar `crm_clients` filtrando pelos telefones retornados.
-- Para cada telefone que **não** existe em `crm_clients`, inserir automaticamente um novo registro com:
-  - `nome`: leadName ou phoneNumber
-  - `telefone`: phoneNumber
-  - `status`: slug do primeiro `crm_statuses` ativo (ou "novo")
-  - `origem`: "WhatsApp"
-  - `user_id`: auth.uid()
-- Invalidar queryKey `['crm-clients']` após inserções.
-- Retornar flag ou callback para saber quais contatos já estão no Kanban.
+### `src/modules/whatsapp-v2/hooks/useWhatsappChats.ts`
+Alterar a busca do status na função `syncNewContactsToKanban` para priorizar o slug `novo_lead`:
+```typescript
+const novoLeadStatus = statuses?.find(s => s.slug === 'novo_lead') 
+  || statuses?.find(s => s.name?.toLowerCase().includes('novo lead'))
+  || statuses?.find(s => s.slug === 'novo_hoje' || s.slug === 'novo')
+  || statuses?.[0];
+```
 
-### 2. `src/modules/whatsapp-v2/page.tsx`
-- Importar `useCRMClients` e `useCRMStatuses`.
-- No card "Resumo do lead" (coluna 3), adicionar botão **"Enviar ao Kanban"**:
-  - Verifica se o telefone do chat selecionado já existe em `crm_clients`.
-  - Se já existe, mostra badge "Já no Kanban" (botão desabilitado).
-  - Se não existe, ao clicar insere o contato no Kanban com status "novo".
-- Toast de confirmação após envio.
+### `src/modules/whatsapp-v2/page.tsx`
+Mesma correção na função `getNovoLeadSlug`:
+```typescript
+const novoStatus = activeStatuses.find(s => s.slug === 'novo_lead')
+  || activeStatuses.find(s => s.name?.toLowerCase().includes('novo lead'))
+  || activeStatuses.find(s => s.slug === 'novo_hoje' || s.slug === 'novo')
+  || activeStatuses[0];
+```
 
-### 3. Nenhuma migração necessária
-- A tabela `crm_clients` já possui todos os campos necessários (nome, telefone, status, origem, user_id).
-- A tabela `crm_statuses` já existe para buscar o slug do primeiro status.
+## 2. Arrastar colunas no "Gerenciar Status"
 
-## Arquivos a modificar
+**Arquivo**: `src/modules/kanbam-v2/pages/ConfiguracoesCRM.tsx`
+
+Adicionar drag-and-drop na lista de status usando `@dnd-kit/core` e `@dnd-kit/sortable` (já instalados). Ao soltar, atualizar o `display_order` de cada status reordenado via `updateStatus.mutate`.
+
+**Implementação**:
+- Envolver a lista de status com `DndContext` + `SortableContext` (vertical list strategy)
+- Transformar cada item de status em componente sortable com `useSortable`
+- O ícone `GripVertical` já existe no template — ativá-lo como handle de arraste
+- No `onDragEnd`, reordenar com `arrayMove` e atualizar `display_order` de cada status via batch de mutations
+
+**Arquivos a modificar**:
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/modules/whatsapp-v2/hooks/useWhatsappChats.ts` | Adicionar auto-sync de novos contatos para `crm_clients` |
-| `src/modules/whatsapp-v2/page.tsx` | Adicionar botão "Enviar ao Kanban" no resumo do lead |
-
-## Fluxo
-
-```text
-Fetch chats (Evolution API)
-       ↓
-Extrair telefones únicos
-       ↓
-Consultar crm_clients por esses telefones
-       ↓
-Telefones ausentes = novos contatos
-       ↓
-INSERT automático no crm_clients (status: "novo", origem: "WhatsApp")
-       ↓
-Invalidar cache ['crm-clients']
-```
-
-Para o botão manual:
-```text
-Usuário seleciona chat → Clica "Enviar ao Kanban"
-       ↓
-Verifica se telefone já existe em crm_clients
-       ↓
-Se não existe → INSERT → Toast sucesso
-Se já existe → Toast "Já está no Kanban"
-```
-
+| `src/modules/whatsapp-v2/hooks/useWhatsappChats.ts` | Priorizar slug `novo_lead` |
+| `src/modules/whatsapp-v2/page.tsx` | Priorizar slug `novo_lead` no `getNovoLeadSlug` |
+| `src/modules/kanbam-v2/pages/ConfiguracoesCRM.tsx` | Adicionar drag-and-drop para reordenar status |
