@@ -6,15 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Pencil, Trash2 } from 'lucide-react';
 import { ConfiguracaoCRM } from '@/types/crm';
 import { useToast } from '@/hooks/use-toast';
 import { useCRMStatuses, CRMStatus } from '../hooks/useCRMStatuses';
 import { useCRMResponsibles, CRMResponsible } from '../hooks/useCRMResponsibles';
 import { StatusFormModal } from '../components/StatusFormModal';
 import { ResponsibleFormModal } from '../components/ResponsibleFormModal';
+import { SortableStatusItem } from '../components/SortableStatusItem';
 import { useAuth } from '@/integrations/supabase/AuthProvider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+
 
 const ConfiguracoesCRMV2Page = () => {
   const { toast } = useToast();
@@ -80,6 +84,28 @@ const ConfiguracoesCRMV2Page = () => {
     deleteStatus.mutate(id);
   };
 
+  // Drag-and-drop sensors and handler
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = statuses.findIndex(s => s.id === active.id);
+    const newIndex = statuses.findIndex(s => s.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(statuses, oldIndex, newIndex);
+    reordered.forEach((status, index) => {
+      if (status.display_order !== index) {
+        updateStatus.mutate({ id: status.id, display_order: index });
+      }
+    });
+  };
+
   // Responsible handlers
   const handleCreateResponsible = () => {
     setEditingResponsible(null);
@@ -141,49 +167,20 @@ const ConfiguracoesCRMV2Page = () => {
             ) : statuses.length === 0 ? (
               <p className="text-muted-foreground text-sm">Nenhum status cadastrado. Clique em "Novo Status" para criar.</p>
             ) : (
-              <div className="space-y-2">
-                {statuses.map((status) => (
-                  <div
-                    key={status.id}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <div className={`w-3 h-3 rounded-full ${status.color}`} />
-                      <div>
-                        <p className="font-medium">{status.name}</p>
-                        <p className="text-xs text-muted-foreground">Ordem: {status.display_order}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleEditStatus(status)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir status?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. O status "{status.name}" será removido permanentemente.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteStatus(status.id)}>
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={statuses.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {statuses.map((status) => (
+                      <SortableStatusItem
+                        key={status.id}
+                        status={status}
+                        onEdit={handleEditStatus}
+                        onDelete={handleDeleteStatus}
+                      />
+                    ))}
                   </div>
-                ))}
-              </div>
+                </SortableContext>
+              </DndContext>
             )}
           </CardContent>
         </Card>

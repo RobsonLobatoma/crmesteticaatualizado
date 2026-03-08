@@ -151,12 +151,11 @@ const WhatsappV2Page = () => {
   // Helper: find "Novo Lead" status slug
   const getNovoLeadSlug = () => {
     const activeStatuses = crmStatuses.filter(s => s.is_active).sort((a, b) => a.display_order - b.display_order);
-    const novoStatus = activeStatuses.find(s => 
-      s.name?.toLowerCase().includes('novo') || 
-      s.slug === 'novo_hoje' || 
-      s.slug === 'novo'
-    );
-    return novoStatus?.slug || activeStatuses[0]?.slug || "novo";
+    const novoStatus = activeStatuses.find(s => s.slug === 'novo_lead')
+      || activeStatuses.find(s => s.name?.toLowerCase().includes('novo lead'))
+      || activeStatuses.find(s => s.slug === 'novo_hoje' || s.slug === 'novo')
+      || activeStatuses[0];
+    return novoStatus?.slug || "novo_lead";
   };
 
   const handleSendMessage = async (content: string) => {
