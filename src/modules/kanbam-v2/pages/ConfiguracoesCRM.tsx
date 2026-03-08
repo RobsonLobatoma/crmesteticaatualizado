@@ -167,47 +167,20 @@ const ConfiguracoesCRMV2Page = () => {
             ) : statuses.length === 0 ? (
               <p className="text-muted-foreground text-sm">Nenhum status cadastrado. Clique em "Novo Status" para criar.</p>
             ) : (
-              <div className="space-y-2">
-                {statuses.map((status) => (
-                  <div
-                    key={status.id}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <div className={`w-3 h-3 rounded-full ${status.color}`} />
-                      <div>
-                        <p className="font-medium">{status.name}</p>
-                        <p className="text-xs text-muted-foreground">Ordem: {status.display_order}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleEditStatus(status)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir status?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. O status "{status.name}" será removido permanentemente.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteStatus(status.id)}>
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={statuses.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {statuses.map((status) => (
+                      <SortableStatusItem
+                        key={status.id}
+                        status={status}
+                        onEdit={handleEditStatus}
+                        onDelete={handleDeleteStatus}
+                      />
+                    ))}
                   </div>
+                </SortableContext>
+              </DndContext>
                 ))}
               </div>
             )}
