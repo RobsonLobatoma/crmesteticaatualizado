@@ -1,23 +1,101 @@
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { WhatsappMessage } from "./types";
-import { Image, FileText, Mic, Video, Download } from "lucide-react";
+import { WhatsappMessage, EvolutionInstanceConfig } from "./types";
+import { Image, FileText, Mic, Video, Download, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+// In-memory cache to avoid re-fetching
+const mediaCache = new Map<string, string>();
+
+function useMediaLoader(
+  message: WhatsappMessage,
+  instance: EvolutionInstanceConfig | null,
+) {
+  const [dataUri, setDataUri] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fetchedRef = useRef(false);
+
+  const hasMedia = message.type !== "text" && (message.mediaUrl || message.type === "audio" || message.type === "image" || message.type === "video");
+  const cacheKey = message.id;
+
+  useEffect(() => {
+    if (!hasMedia || !instance || fetchedRef.current) return;
+    
+    // Check cache first
+    const cached = mediaCache.get(cacheKey);
+    if (cached) {
+      setDataUri(cached);
+      return;
+    }
+
+    fetchedRef.current = true;
+    setIsLoading(true);
+
+    (async () => {
+      try {
+        // Build remoteJid from chatId
+        let remoteJid = message.chatId;
+        if (!remoteJid.includes("@")) {
+          remoteJid = `${remoteJid.replace(/\D/g, "")}@s.whatsapp.net`;
+        }
+
+        const response = await supabase.functions.invoke("evolution-fetch-media-base64", {
+          body: {
+            evolutionApiUrl: instance.evolutionApiUrl,
+            evolutionApiKey: instance.evolutionApiKey,
+            instanceName: instance.evolutionInstanceName,
+            messageId: message.id,
+            remoteJid,
+            mediaUrl: message.mediaUrl,
+          },
+        });
+
+        if (response.error) throw new Error(response.error.message);
+        if (response.data?.error) throw new Error(response.data.error);
+
+        const { base64, mimeType } = response.data;
+        if (base64) {
+          const uri = `data:${mimeType};base64,${base64}`;
+          mediaCache.set(cacheKey, uri);
+          setDataUri(uri);
+        } else {
+          setError("Sem dados");
+        }
+      } catch (err) {
+        console.error("Media load error:", err);
+        setError(err instanceof Error ? err.message : "Erro");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [hasMedia, instance, cacheKey, message.chatId, message.id, message.mediaUrl]);
+
+  return { dataUri, isLoading, error };
+}
 
 type MessageBubbleProps = {
   message: WhatsappMessage;
   contactName?: string;
+  instance?: EvolutionInstanceConfig | null;
 };
 
-export const MessageBubble = ({ message, contactName }: MessageBubbleProps) => {
+export const MessageBubble = ({ message, contactName, instance = null }: MessageBubbleProps) => {
   const isOutbound = message.direction === "outbound";
+  const { dataUri, isLoading: mediaLoading, error: mediaError } = useMediaLoader(message, instance);
 
   const renderContent = () => {
     switch (message.type) {
       case "image": {
-        const imgSrc = message.mediaUrl || (message.content.startsWith("http") ? message.content : undefined);
+        const imgSrc = dataUri || (message.content.startsWith("data:") ? message.content : undefined);
         return (
           <div className="flex flex-col gap-1">
-            {imgSrc ? (
+            {mediaLoading ? (
+              <div className="flex items-center justify-center w-[200px] h-[140px] rounded-lg bg-muted/40">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : imgSrc ? (
               <a href={imgSrc} target="_blank" rel="noopener noreferrer">
                 <img
                   src={imgSrc}
@@ -29,30 +107,29 @@ export const MessageBubble = ({ message, contactName }: MessageBubbleProps) => {
             ) : (
               <div className="flex items-center gap-2 text-[13px]">
                 <Image className="h-4 w-4 shrink-0" />
-                <span>{message.content || "📷 Imagem"}</span>
+                <span>{mediaError || message.content || "📷 Imagem"}</span>
               </div>
             )}
-            {message.content && message.content !== "[Imagem]" && !message.content.startsWith("http") && imgSrc && (
+            {message.content && message.content !== "[Imagem]" && !message.content.startsWith("http") && !message.content.startsWith("data:") && imgSrc && (
               <p className="whitespace-pre-wrap text-[13px] leading-snug mt-1">{message.content}</p>
             )}
           </div>
         );
       }
       case "video": {
-        const videoSrc = message.mediaUrl;
+        const videoSrc = dataUri;
         return (
           <div className="flex flex-col gap-1">
-            {videoSrc ? (
-              <video
-                src={videoSrc}
-                controls
-                className="max-w-[280px] rounded-lg"
-                preload="metadata"
-              />
+            {mediaLoading ? (
+              <div className="flex items-center justify-center w-[240px] h-[140px] rounded-lg bg-muted/40">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : videoSrc ? (
+              <video src={videoSrc} controls className="max-w-[280px] rounded-lg" preload="metadata" />
             ) : (
               <div className="flex items-center gap-2 text-[13px]">
                 <Video className="h-4 w-4 shrink-0" />
-                <span>{message.content || "🎬 Vídeo"}</span>
+                <span>{mediaError || message.content || "🎬 Vídeo"}</span>
               </div>
             )}
             {message.content && message.content !== "[Vídeo]" && !message.content.startsWith("http") && videoSrc && (
@@ -62,38 +139,42 @@ export const MessageBubble = ({ message, contactName }: MessageBubbleProps) => {
         );
       }
       case "document": {
-        const docUrl = message.mediaUrl;
         return (
           <div className="flex items-center gap-2 text-[13px]">
             <FileText className="h-4 w-4 shrink-0" />
-            {docUrl ? (
+            {mediaLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : dataUri ? (
               <a
-                href={docUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={dataUri}
+                download={message.content || "documento"}
                 className="flex items-center gap-1.5 underline underline-offset-2 hover:opacity-80"
               >
                 <span className="truncate max-w-[180px]">{message.content || "📄 Documento"}</span>
                 <Download className="h-3.5 w-3.5 shrink-0" />
               </a>
             ) : (
-              <span className="truncate">{message.content || "📄 Documento"}</span>
+              <span className="truncate">{mediaError || message.content || "📄 Documento"}</span>
             )}
           </div>
         );
       }
       case "audio": {
-        const audioSrc = message.mediaUrl;
         return (
           <div className="flex flex-col gap-1">
-            {audioSrc ? (
+            {mediaLoading ? (
+              <div className="flex items-center gap-2 text-[13px]">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Carregando áudio...</span>
+              </div>
+            ) : dataUri ? (
               <audio controls preload="metadata" className="max-w-[240px] h-10">
-                <source src={audioSrc} />
+                <source src={dataUri} />
               </audio>
             ) : (
               <div className="flex items-center gap-2 text-[13px]">
                 <Mic className="h-4 w-4 shrink-0" />
-                <span>{message.content || "🎤 Áudio"}</span>
+                <span>{mediaError || message.content || "🎤 Áudio"}</span>
               </div>
             )}
           </div>
@@ -108,7 +189,6 @@ export const MessageBubble = ({ message, contactName }: MessageBubbleProps) => {
 
   return (
     <div className={cn("flex w-full gap-2 text-sm", isOutbound ? "justify-end" : "justify-start")}>
-      {/* Avatar for inbound messages */}
       {!isOutbound && (
         <Avatar className="h-7 w-7 shrink-0 mt-1">
           <AvatarFallback className="text-[10px] font-semibold bg-muted text-muted-foreground">
@@ -138,7 +218,6 @@ export const MessageBubble = ({ message, contactName }: MessageBubbleProps) => {
         </span>
       </div>
 
-      {/* Avatar for outbound messages */}
       {isOutbound && (
         <Avatar className="h-7 w-7 shrink-0 mt-1">
           <AvatarFallback className="text-[10px] font-semibold bg-primary/20 text-primary">

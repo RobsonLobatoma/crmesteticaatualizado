@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.evolution-send-media]
 verify_jwt = false
+
+[functions.evolution-fetch-media-base64]
+verify_jwt = false
