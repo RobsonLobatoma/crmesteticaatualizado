@@ -193,7 +193,8 @@ Deno.serve(async (req) => {
       // Transform to our format
       const messages = messageList.map((msg) => {
         let content = "";
-        let type: "text" | "image" | "audio" | "document" = "text";
+        let type: "text" | "image" | "audio" | "document" | "video" = "text";
+        let mediaUrl: string | undefined = undefined;
 
         if (msg.message?.conversation) {
           content = msg.message.conversation;
@@ -204,12 +205,20 @@ Deno.serve(async (req) => {
         } else if (msg.message?.imageMessage) {
           content = msg.message.imageMessage.caption || "[Imagem]";
           type = "image";
+          mediaUrl = msg.message.imageMessage.url || undefined;
         } else if (msg.message?.audioMessage) {
           content = "[Áudio]";
           type = "audio";
+          mediaUrl = msg.message.audioMessage.url || undefined;
         } else if (msg.message?.documentMessage) {
           content = msg.message.documentMessage.fileName || "[Documento]";
           type = "document";
+          mediaUrl = msg.message.documentMessage.url || undefined;
+        } else if ((msg.message as Record<string, unknown>)?.videoMessage) {
+          const videoMsg = (msg.message as Record<string, { caption?: string; url?: string }>).videoMessage;
+          content = videoMsg?.caption || "[Vídeo]";
+          type = "video";
+          mediaUrl = videoMsg?.url || undefined;
         }
 
         // Handle timestamp - can be number or string
@@ -225,6 +234,7 @@ Deno.serve(async (req) => {
           direction: msg.key?.fromMe ? "outbound" : "inbound",
           type,
           content,
+          mediaUrl,
           sentAt: timestamp
             ? new Date(timestamp * 1000).toISOString()
             : new Date().toISOString(),

@@ -51,8 +51,9 @@ export function useWhatsappMessages({
         (msg: {
           id: string;
           direction: "inbound" | "outbound";
-          type: "text" | "image" | "audio" | "document";
+          type: "text" | "image" | "audio" | "document" | "video";
           content: string;
+          mediaUrl?: string;
           sentAt: string;
         }) => ({
           id: msg.id,
@@ -60,6 +61,7 @@ export function useWhatsappMessages({
           direction: msg.direction,
           type: msg.type,
           content: msg.content,
+          mediaUrl: msg.mediaUrl || undefined,
           sentAt: msg.sentAt,
         })
       );

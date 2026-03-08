@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { WhatsappMessage } from "./types";
-import { Image, FileText, Mic } from "lucide-react";
+import { Image, FileText, Mic, Video, Download } from "lucide-react";
 
 type MessageBubbleProps = {
   message: WhatsappMessage;
@@ -13,38 +13,92 @@ export const MessageBubble = ({ message, contactName }: MessageBubbleProps) => {
 
   const renderContent = () => {
     switch (message.type) {
-      case "image":
+      case "image": {
+        const imgSrc = message.mediaUrl || (message.content.startsWith("http") ? message.content : undefined);
         return (
           <div className="flex flex-col gap-1">
-            {message.content.startsWith("http") ? (
-              <img
-                src={message.content}
-                alt="Imagem"
-                className="max-w-[240px] rounded-lg object-cover"
-                loading="lazy"
-              />
+            {imgSrc ? (
+              <a href={imgSrc} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={imgSrc}
+                  alt="Imagem"
+                  className="max-w-[240px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  loading="lazy"
+                />
+              </a>
             ) : (
               <div className="flex items-center gap-2 text-[13px]">
                 <Image className="h-4 w-4 shrink-0" />
                 <span>{message.content || "📷 Imagem"}</span>
               </div>
             )}
+            {message.content && message.content !== "[Imagem]" && !message.content.startsWith("http") && imgSrc && (
+              <p className="whitespace-pre-wrap text-[13px] leading-snug mt-1">{message.content}</p>
+            )}
           </div>
         );
-      case "document":
+      }
+      case "video": {
+        const videoSrc = message.mediaUrl;
+        return (
+          <div className="flex flex-col gap-1">
+            {videoSrc ? (
+              <video
+                src={videoSrc}
+                controls
+                className="max-w-[280px] rounded-lg"
+                preload="metadata"
+              />
+            ) : (
+              <div className="flex items-center gap-2 text-[13px]">
+                <Video className="h-4 w-4 shrink-0" />
+                <span>{message.content || "🎬 Vídeo"}</span>
+              </div>
+            )}
+            {message.content && message.content !== "[Vídeo]" && !message.content.startsWith("http") && videoSrc && (
+              <p className="whitespace-pre-wrap text-[13px] leading-snug mt-1">{message.content}</p>
+            )}
+          </div>
+        );
+      }
+      case "document": {
+        const docUrl = message.mediaUrl;
         return (
           <div className="flex items-center gap-2 text-[13px]">
             <FileText className="h-4 w-4 shrink-0" />
-            <span className="truncate">{message.content || "📄 Documento"}</span>
+            {docUrl ? (
+              <a
+                href={docUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 underline underline-offset-2 hover:opacity-80"
+              >
+                <span className="truncate max-w-[180px]">{message.content || "📄 Documento"}</span>
+                <Download className="h-3.5 w-3.5 shrink-0" />
+              </a>
+            ) : (
+              <span className="truncate">{message.content || "📄 Documento"}</span>
+            )}
           </div>
         );
-      case "audio":
+      }
+      case "audio": {
+        const audioSrc = message.mediaUrl;
         return (
-          <div className="flex items-center gap-2 text-[13px]">
-            <Mic className="h-4 w-4 shrink-0" />
-            <span>{message.content || "🎤 Áudio"}</span>
+          <div className="flex flex-col gap-1">
+            {audioSrc ? (
+              <audio controls preload="metadata" className="max-w-[240px] h-10">
+                <source src={audioSrc} />
+              </audio>
+            ) : (
+              <div className="flex items-center gap-2 text-[13px]">
+                <Mic className="h-4 w-4 shrink-0" />
+                <span>{message.content || "🎤 Áudio"}</span>
+              </div>
+            )}
           </div>
         );
+      }
       default:
         return (
           <p className="whitespace-pre-wrap text-[13px] leading-snug">{message.content}</p>

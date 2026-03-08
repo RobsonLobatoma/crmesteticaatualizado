@@ -547,6 +547,10 @@ const WhatsappV2Page = () => {
 
               <SendMessageBox
                 onSend={handleSendMessage}
+                onSendMedia={async (file, type, caption) => {
+                  if (!selectedChat?.phoneNumber) return false;
+                  return sendMedia(selectedChat.phoneNumber, file, type, caption);
+                }}
                 disabled={!selectedChat || !selectedInstance}
                 isSending={isSending}
               />
