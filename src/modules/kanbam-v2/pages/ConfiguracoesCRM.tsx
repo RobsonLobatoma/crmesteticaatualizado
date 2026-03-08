@@ -6,15 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Pencil, Trash2 } from 'lucide-react';
 import { ConfiguracaoCRM } from '@/types/crm';
 import { useToast } from '@/hooks/use-toast';
 import { useCRMStatuses, CRMStatus } from '../hooks/useCRMStatuses';
 import { useCRMResponsibles, CRMResponsible } from '../hooks/useCRMResponsibles';
 import { StatusFormModal } from '../components/StatusFormModal';
 import { ResponsibleFormModal } from '../components/ResponsibleFormModal';
+import { SortableStatusItem } from '../components/SortableStatusItem';
 import { useAuth } from '@/integrations/supabase/AuthProvider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 const ConfiguracoesCRMV2Page = () => {
   const { toast } = useToast();
