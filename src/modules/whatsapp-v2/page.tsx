@@ -126,7 +126,7 @@ const WhatsappV2Page = () => {
   });
 
   // Send message
-  const { sendMessage, isSending } = useSendMessage({
+  const { sendMessage, sendMedia, isSending } = useSendMessage({
     instance: selectedInstance,
     onSuccess: () => {
       refetchMessages();
