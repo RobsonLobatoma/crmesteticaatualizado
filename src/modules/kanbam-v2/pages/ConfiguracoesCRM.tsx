@@ -181,8 +181,6 @@ const ConfiguracoesCRMV2Page = () => {
                   </div>
                 </SortableContext>
               </DndContext>
-                ))}
-              </div>
             )}
           </CardContent>
         </Card>
