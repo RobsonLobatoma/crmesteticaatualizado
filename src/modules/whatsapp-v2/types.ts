@@ -35,7 +35,7 @@ export type WhatsappChat = {
 
 export type WhatsappMessageDirection = "inbound" | "outbound";
 
-export type WhatsappMessageType = "text" | "image" | "audio" | "document";
+export type WhatsappMessageType = "text" | "image" | "audio" | "document" | "video";
 
 export type WhatsappMessage = {
   id: string;
@@ -43,6 +43,7 @@ export type WhatsappMessage = {
   direction: WhatsappMessageDirection;
   type: WhatsappMessageType;
   content: string;
+  mediaUrl?: string;
   sentAt: string;
 };
 

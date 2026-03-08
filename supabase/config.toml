@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.toggle-user-status]
 verify_jwt = false
+
+[functions.evolution-send-media]
+verify_jwt = false
