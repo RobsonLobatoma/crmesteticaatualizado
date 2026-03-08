@@ -535,7 +535,11 @@ const WhatsappV2Page = () => {
                     </p>
                   ) : (
                     messages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
+                      <MessageBubble
+                        key={message.id}
+                        message={message}
+                        contactName={selectedChat?.leadName || selectedChat?.phoneNumber}
+                      />
                     ))
                   )}
                 </div>
