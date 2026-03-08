@@ -33,12 +33,11 @@ async function syncNewContactsToKanban(chats: WhatsappChat[], userId: string) {
     .eq("is_active", true)
     .order("display_order", { ascending: true });
 
-  const novoLeadStatus = statuses?.find(s => 
-    s.name?.toLowerCase().includes('novo') || 
-    s.slug === 'novo_hoje' || 
-    s.slug === 'novo'
-  );
-  const defaultStatus = novoLeadStatus?.slug || statuses?.[0]?.slug || "novo";
+  const novoLeadStatus = statuses?.find(s => s.slug === 'novo_lead')
+    || statuses?.find(s => s.name?.toLowerCase().includes('novo lead'))
+    || statuses?.find(s => s.slug === 'novo_hoje' || s.slug === 'novo')
+    || statuses?.[0];
+  const defaultStatus = novoLeadStatus?.slug || "novo_lead";
 
   // Deduplicate by phone
   const seen = new Set<string>();
