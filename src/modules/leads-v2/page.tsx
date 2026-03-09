@@ -836,6 +836,7 @@ const LeadsV2Page = () => {
                             </TableCell>
                             <TableCell className="text-[11px] font-medium">{lead.nome}</TableCell>
                             <TableCell className="text-[11px]">{lead.contato}</TableCell>
+                            <TableCell className="text-[11px]">{lead.email || "-"}</TableCell>
                             <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
                             <TableCell className="text-[11px]">{lead.origem}</TableCell>
                             <TableCell className="text-[11px]">
