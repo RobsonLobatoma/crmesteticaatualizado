@@ -120,33 +120,6 @@ const ClientePotencialV2Page = () => {
     updateClient.mutate({ id: clienteData.id, observacoes: texto });
   };
 
-  const enviarMensagem = () => {
-    if (!novaMensagem.trim()) return;
-    
-    const msg: Mensagem = {
-      id: `m-${Date.now()}`,
-      clienteId: clienteData.id,
-      remetente: 'atendente',
-      nomeRemetente: 'Você',
-      texto: novaMensagem,
-      horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      data: new Date().toISOString(),
-      lida: true
-    };
-    
-    setMensagens(prev => [...prev, msg]);
-    setNovaMensagem('');
-    
-    const evento: EventoHistorico = {
-      id: `h-${Date.now()}`,
-      clienteId: clienteData.id,
-      tipo: 'mensagem_enviada',
-      descricao: 'Mensagem enviada ao cliente',
-      usuario: 'Você',
-      dataHora: new Date().toISOString()
-    };
-    setHistorico(prev => [evento, ...prev]);
-  };
 
   // Preparar dados para AbaDados
   const clienteParaAbaDados = {
