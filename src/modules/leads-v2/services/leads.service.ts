@@ -97,6 +97,7 @@ class LeadsService {
       responsavel: dto.responsavel || "-",
       nome: dto.nome,
       contato: dto.contato,
+      email: dto.email || null,
       origem: dto.origem || "Manual",
       procedimento: dto.procedimento || "-",
       status: dto.status || "Novo lead",
