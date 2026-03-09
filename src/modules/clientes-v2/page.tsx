@@ -22,8 +22,20 @@ import { ptBR } from "date-fns/locale";
 const ClientesV2Page = () => {
   const { clients, isLoading } = useClients();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const { toast } = useToast();
 
-  // Calcula idade a partir da data de nascimento
+  // Hooks for selected client's history and prontuário
+  const { history, isLoading: historyLoading } = useCRMHistory(undefined, selectedClient?.id);
+  const { records: prontuarioRecords, isLoading: prontuarioLoading, addRecord, deleteRecord } = useProntuario(selectedClient?.id);
+
+  // Prontuário form state
+  const [showProntuarioForm, setShowProntuarioForm] = useState(false);
+  const [prontuarioForm, setProntuarioForm] = useState({
+    tipo: 'evolucao',
+    titulo: '',
+    conteudo: '',
+    profissional: '',
+  });
   const calculateAge = (birthDate: string | null): number | null => {
     if (!birthDate) return null;
     const birth = new Date(birthDate);
