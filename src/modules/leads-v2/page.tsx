@@ -854,7 +854,6 @@ const LeadsV2Page = () => {
                             <TableCell className="text-[11px]">{lead.cidade || "-"}</TableCell>
                             <TableCell className="text-[11px]">{lead.estado || "-"}</TableCell>
                             <TableCell className="text-[11px]">{lead.complemento || "-"}</TableCell>
-                            </TableCell>
                           </TableRow>
                         );
                       })}
