@@ -36,9 +36,7 @@ const ClientePotencialV2Page = () => {
     responsavel: '',
     observacoes: '',
   });
-  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [historico, setHistorico] = useState<EventoHistorico[]>([]);
-  const [novaMensagem, setNovaMensagem] = useState('');
 
   useEffect(() => {
     if (clienteData) {
