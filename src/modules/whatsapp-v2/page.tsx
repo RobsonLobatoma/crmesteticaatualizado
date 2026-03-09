@@ -884,10 +884,6 @@ const WhatsappV2Page = () => {
           </DialogHeader>
           <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Entrada</label>
-              <Input type="date" value={quickLead.dataEntrada} onChange={(e) => handleQuickLeadChange("dataEntrada", e.target.value)} />
-            </div>
-            <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Responsável</label>
               <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.responsavel} onChange={(e) => handleQuickLeadChange("responsavel", e.target.value)}>
                 <option value="">Selecione...</option>
@@ -914,56 +910,6 @@ const WhatsappV2Page = () => {
                 <option value="Indicação">Indicação</option>
                 <option value="Promoção">Promoção</option>
               </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Procedimento</label>
-              <Input placeholder="Botox, lipo..." value={quickLead.procedimento} onChange={(e) => handleQuickLeadChange("procedimento", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Status</label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.status} onChange={(e) => handleQuickLeadChange("status", e.target.value)}>
-                {crmStatuses.length > 0 ? (
-                  crmStatuses.map((s) => <option key={s.id} value={s.name}>{s.name}</option>)
-                ) : (
-                  <>
-                    <option value="Novo lead">Novo lead</option>
-                    <option value="Em Atendimento">Em Atendimento</option>
-                    <option value="Fechou">Fechou</option>
-                  </>
-                )}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Último Contato</label>
-              <Input type="date" value={quickLead.dataUltimoContato} onChange={(e) => handleQuickLeadChange("dataUltimoContato", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Agendamento</label>
-              <Input type="date" value={quickLead.dataAgendamento} onChange={(e) => handleQuickLeadChange("dataAgendamento", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Avaliação</label>
-              <Input type="date" value={quickLead.dataAvaliacao} onChange={(e) => handleQuickLeadChange("dataAvaliacao", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Procedimento</label>
-              <Input type="date" value={quickLead.dataProcedimento} onChange={(e) => handleQuickLeadChange("dataProcedimento", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Compareceu?</label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.compareceu} onChange={(e) => handleQuickLeadChange("compareceu", e.target.value)}>
-                <option value="">Selecione...</option>
-                <option value="Sim">Sim</option>
-                <option value="Não">Não</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Fechamento</label>
-              <Input type="date" value={quickLead.dataFechamento} onChange={(e) => handleQuickLeadChange("dataFechamento", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Valor Fechado (R$)</label>
-              <Input placeholder="R$ 1.500,00" value={quickLead.valorFechado} onChange={(e) => handleQuickLeadChange("valorFechado", e.target.value)} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Nascimento</label>
@@ -1003,14 +949,6 @@ const WhatsappV2Page = () => {
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Complemento</label>
               <Input placeholder="Apto, Bloco..." value={quickLead.complemento} onChange={(e) => handleQuickLeadChange("complemento", e.target.value)} />
-            </div>
-            <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Tags</label>
-              <TagsSelector availableTags={availableTags} selectedTagIds={quickLeadSelectedTags} onChange={setQuickLeadSelectedTags} placeholder="Selecionar tags..." />
-            </div>
-            <div className="md:col-span-3 lg:col-span-4">
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Observação</label>
-              <Input placeholder="Detalhes importantes do lead..." value={quickLead.observacao} onChange={(e) => handleQuickLeadChange("observacao", e.target.value)} />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4">

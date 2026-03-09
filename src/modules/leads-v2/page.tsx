@@ -958,15 +958,7 @@ const LeadsV2Page = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-3 pt-0">
-            <div className="grid gap-3 md:grid-cols-4 lg:grid-cols-6">
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Entrada</label>
-                <Input
-                  type="date"
-                  value={newLead.dataEntrada}
-                  onChange={(e) => handleChange("dataEntrada", e.target.value)}
-                />
-              </div>
+          <div className="grid gap-3 md:grid-cols-4 lg:grid-cols-6">
               <div className="md:col-span-1">
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Responsável</label>
                 <select
@@ -1011,105 +1003,7 @@ const LeadsV2Page = () => {
                   <option value="Promoção">Promoção</option>
                 </select>
               </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Procedimento / Interesse</label>
-                <Input
-                  placeholder="Botox, lipo, avaliação..."
-                  value={newLead.procedimento}
-                  onChange={(e) => handleChange("procedimento", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Status</label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs text-foreground shadow-sm transition-colors hover:bg-muted/60"
-                  value={newLead.status}
-                  onChange={(e) => handleChange("status", e.target.value)}
-                >
-                  {crmStatuses.length > 0 ? (
-                    crmStatuses.map((status) => (
-                      <option key={status.id} value={status.name}>{status.name}</option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="Novo(hoje)">Novo(hoje)</option>
-                      <option value="Em Atendimento">Em Atendimento</option>
-                      <option value="Qualificado">Qualificado</option>
-                      <option value="Não Qualificado">Não Qualificado</option>
-                      <option value="Avaliação Confirmada">Avaliação Confirmada</option>
-                      <option value="Compareceu">Compareceu</option>
-                      <option value="Faltou">Faltou</option>
-                      <option value="Proposta Enviada">Proposta Enviada</option>
-                      <option value="Fechou">Fechou</option>
-                      <option value="Não Fechou">Não Fechou</option>
-                      <option value="Pós Venda">Pós Venda</option>
-                      <option value="Indicação">Indicação</option>
-                    </>
-                  )}
-                </select>
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Último Contato</label>
-                <Input
-                  type="date"
-                  value={newLead.dataUltimoContato}
-                  onChange={(e) => handleChange("dataUltimoContato", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Agendamento (quando marcou)</label>
-                <Input
-                  type="date"
-                  value={newLead.dataAgendamento}
-                  onChange={(e) => handleChange("dataAgendamento", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Avaliação (dia marcado)</label>
-                <Input
-                  type="date"
-                  value={newLead.dataAvaliacao}
-                  onChange={(e) => handleChange("dataAvaliacao", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Procedimento</label>
-                <Input
-                  type="date"
-                  value={newLead.dataProcedimento}
-                  onChange={(e) => handleChange("dataProcedimento", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Compareceu?</label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs text-foreground shadow-sm transition-colors hover:bg-muted/60"
-                  value={newLead.compareceu}
-                  onChange={(e) => handleChange("compareceu", e.target.value)}
-                >
-                  <option value="">Selecione...</option>
-                  <option value="Sim">Sim</option>
-                  <option value="Não">Não</option>
-                </select>
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Fechamento</label>
-                <Input
-                  type="date"
-                  value={newLead.dataFechamento}
-                  onChange={(e) => handleChange("dataFechamento", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-1">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Valor Fechado (R$)</label>
-                <Input
-                  type="text"
-                  placeholder="Ex: R$ 1.500,00"
-                  value={newLead.valorFechado}
-                  onChange={(e) => handleChange("valorFechado", e.target.value)}
-                />
-              </div>
-              
+
               {/* Novos campos de endereço */}
               <div className="md:col-span-1">
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Data de Nascimento</label>
@@ -1197,23 +1091,6 @@ const LeadsV2Page = () => {
                   placeholder="Apto, Bloco..."
                   value={newLead.complemento}
                   onChange={(e) => handleChange("complemento", e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-2 lg:col-span-2">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Tags</label>
-                <TagsSelector
-                  availableTags={availableTags}
-                  selectedTagIds={selectedTags}
-                  onChange={setSelectedTags}
-                  placeholder="Selecionar tags..."
-                />
-              </div>
-              <div className="md:col-span-3 lg:col-span-4">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Objeção / Observação</label>
-                <Input
-                  placeholder="Detalhes importantes do lead (interesse, objeção, procedimento...)"
-                  value={newLead.observacao}
-                  onChange={(e) => handleChange("observacao", e.target.value)}
                 />
               </div>
             </div>
