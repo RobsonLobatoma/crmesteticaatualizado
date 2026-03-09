@@ -34,7 +34,7 @@ import { useAppointments } from "@/modules/agenda-v2/hooks/useAppointments";
 import { WhatsappTemplate, EvolutionInstanceConfig } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2, UserPlus, Calendar, ClipboardList } from "lucide-react";
+import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2, UserPlus, Calendar, ClipboardList, X } from "lucide-react";
 import { format, addMinutes } from "date-fns";
 
 const WhatsappV2Page = () => {
