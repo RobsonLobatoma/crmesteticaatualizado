@@ -1218,6 +1218,20 @@ const LeadsV2Page = () => {
                               )}
                             </TableCell>
                           )}
+                          {isColumnVisible("email") && (
+                            <TableCell className="whitespace-nowrap text-xs" style={{ order: getColumnOrder("email") }}>
+                              {isEditing ? (
+                                <Input
+                                  type="email"
+                                  className="h-8 text-xs"
+                                  value={current.email || ""}
+                                  onChange={(e) => handleEditingChange("email", e.target.value)}
+                                />
+                              ) : (
+                                current.email || "-"
+                              )}
+                            </TableCell>
+                          )}
                           {isColumnVisible("origem") && (
                             <TableCell style={{ order: getColumnOrder("origem") }}>
                               {isEditing ? (
