@@ -50,11 +50,12 @@ const LeadsV2Page = () => {
   const { leads, createLead, updateLead, deleteLead } = useLeads();
   const { tags: availableTags, refresh: refreshTags } = useLeadTags();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [newLead, setNewLead] = useState<Omit<Lead, "id" | "status"> & { status?: string }>({
+  const [newLead, setNewLead] = useState<Omit<Lead, "id" | "status"> & { status?: string; email?: string }>({
     dataEntrada: "",
     responsavel: "",
     nome: "",
     contato: "",
+    email: "",
     origem: "",
     procedimento: "",
     dataUltimoContato: "",
