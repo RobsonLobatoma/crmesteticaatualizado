@@ -105,9 +105,17 @@ const ClientePotencialV2Page = () => {
   };
 
   const handleStatusChange = (novoStatus: string) => {
+    const oldStatus = clienteData.status;
     updateStatus.mutate({ id: clienteData.id, status: novoStatus }, {
       onSuccess: () => {
         toast({ title: "Status atualizado" });
+        addEvent.mutate({
+          crm_client_id: clienteData.id,
+          lead_id: clienteData.lead_id || null,
+          tipo: 'status_alterado',
+          descricao: `Status alterado de "${oldStatus}" para "${novoStatus}"`,
+          detalhes: { statusAnterior: oldStatus, statusNovo: novoStatus },
+        });
       }
     });
   };
