@@ -21,6 +21,7 @@ class LeadsService {
       responsavel: row.responsavel || "-",
       nome: row.nome,
       contato: row.contato,
+      email: row.email || undefined,
       origem: row.origem || "Manual",
       procedimento: row.procedimento || "-",
       status: row.status || "Novo lead",
