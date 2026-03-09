@@ -27,6 +27,8 @@ const ClientePotencialV2Page = () => {
 
   // Buscar cliente pelo ID
   const clienteData = clients.find(c => c.id === id);
+  
+  const { history, addEvent } = useCRMHistory(id, clienteData?.lead_id || undefined);
 
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,7 +38,6 @@ const ClientePotencialV2Page = () => {
     responsavel: '',
     observacoes: '',
   });
-  const [historico, setHistorico] = useState<EventoHistorico[]>([]);
 
   useEffect(() => {
     if (clienteData) {
