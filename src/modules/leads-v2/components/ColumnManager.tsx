@@ -85,7 +85,6 @@ const SortableItem = ({ column, onToggle }: SortableItemProps) => {
 
 export const DEFAULT_COLUMNS: ColumnConfig[] = [
   { id: "#", label: "#", visible: true },
-  // Campos do Cadastro Rápido (WhatsApp) primeiro
   { id: "nome", label: "Nome do Cliente", visible: true },
   { id: "contato", label: "Contato WhatsApp/@", visible: true },
   { id: "email", label: "Email", visible: true },
@@ -100,19 +99,6 @@ export const DEFAULT_COLUMNS: ColumnConfig[] = [
   { id: "cidade", label: "Cidade", visible: true },
   { id: "estado", label: "Estado", visible: true },
   { id: "complemento", label: "Complemento", visible: true },
-  // Campos adicionais do fluxo de leads
-  { id: "procedimento", label: "Procedimento / Interesse", visible: true },
-  { id: "status", label: "Status", visible: true },
-  { id: "dataEntrada", label: "Data Entrada", visible: true },
-  { id: "dataUltimoContato", label: "Data Último Contato", visible: true },
-  { id: "dataAgendamento", label: "Data Agendamento (quando marcou)", visible: true },
-  { id: "dataAvaliacao", label: "Data Avaliação (dia marcado)", visible: true },
-  { id: "dataProcedimento", label: "Data Procedimento", visible: true },
-  { id: "compareceu", label: "Compareceu?", visible: true },
-  { id: "dataFechamento", label: "Data Fechamento", visible: true },
-  { id: "valorFechado", label: "Valor Fechado (R$)", visible: true },
-  { id: "tags", label: "Tags", visible: true },
-  { id: "observacao", label: "Objeção / Observação", visible: true },
   { id: "acoes", label: "Ações", visible: true },
 ];
 
