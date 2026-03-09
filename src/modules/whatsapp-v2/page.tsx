@@ -743,15 +743,6 @@ const WhatsappV2Page = () => {
                           <UserPlus className="h-3 w-3 mr-1" />
                           Cadastro rápido
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={!selectedChat}
-                          onClick={openScheduleModal}
-                        >
-                          <Calendar className="h-3 w-3 mr-1" />
-                          Agendar avaliação
-                        </Button>
                       </CardContent>
                     </Card>
                   </>
