@@ -42,10 +42,12 @@ import { format, addMinutes } from "date-fns";
 const WhatsappV2Page = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { clients: crmClients } = useCRMClients();
+  const { clients: crmClients, updateClient: updateCRMClient } = useCRMClients();
   const { statuses: crmStatuses } = useCRMStatuses();
+  const { responsibles: crmResponsibles } = useCRMResponsibles();
   const [activeTab, setActiveTab] = useState<string>("inbox");
   const [sendingToKanban, setSendingToKanban] = useState(false);
+  const [assigningResponsible, setAssigningResponsible] = useState(false);
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | undefined>(undefined);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [qrInstance, setQrInstance] = useState<EvolutionInstanceConfig | null>(null);
