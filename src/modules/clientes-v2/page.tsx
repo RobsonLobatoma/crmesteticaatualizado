@@ -7,6 +7,18 @@ import { useClients, Client } from "./hooks/useClients";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SensitiveData } from "@/components/ui/SensitiveData";
 import { maskCPF, maskPhone, maskAddress, extractCity } from "@/lib/sensitiveDataUtils";
+import { useCRMHistory } from "@/modules/kanbam-v2/hooks/useCRMHistory";
+import { useProntuario } from "./hooks/useProntuario";
+import { AbaHistorico } from "@/components/crm/AbaHistorico";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, FileText, Stethoscope, ClipboardList } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 const ClientesV2Page = () => {
   const { clients, isLoading } = useClients();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
