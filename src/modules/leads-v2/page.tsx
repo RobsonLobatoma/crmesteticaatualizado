@@ -821,10 +821,15 @@ const LeadsV2Page = () => {
                         <TableHead className="text-[11px]">Email</TableHead>
                         <TableHead className="text-[11px]">Responsável</TableHead>
                         <TableHead className="text-[11px]">Origem</TableHead>
-                        <TableHead className="text-[11px]">Status</TableHead>
-                        <TableHead className="text-[11px]">Tags</TableHead>
-                        <TableHead className="text-[11px]">Data entrada</TableHead>
-                        <TableHead className="text-[11px]" title="Objeção / Observação">Obs.</TableHead>
+                        <TableHead className="text-[11px]">Data Nascimento</TableHead>
+                        <TableHead className="text-[11px]">CPF</TableHead>
+                        <TableHead className="text-[11px]">CEP</TableHead>
+                        <TableHead className="text-[11px]">Número</TableHead>
+                        <TableHead className="text-[11px]">Endereço</TableHead>
+                        <TableHead className="text-[11px]">Bairro</TableHead>
+                        <TableHead className="text-[11px]">Cidade</TableHead>
+                        <TableHead className="text-[11px]">Estado</TableHead>
+                        <TableHead className="text-[11px]">Complemento</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -840,35 +845,15 @@ const LeadsV2Page = () => {
                             <TableCell className="text-[11px]">{lead.email || "-"}</TableCell>
                             <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
                             <TableCell className="text-[11px]">{lead.origem}</TableCell>
-                            <TableCell className="text-[11px]">
-                              <Badge variant="outline" className="text-[10px]">
-                                {lead.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-[11px]">
-                              <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
-                            </TableCell>
-                            <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
-                            <TableCell className="text-[11px] max-w-[120px]">
-                              {lead.observacao ? (
-                                <Tooltip delayDuration={200}>
-                                  <TooltipTrigger asChild>
-                                    <span className="block truncate cursor-help">
-                                      {lead.observacao}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent 
-                                    side="top" 
-                                    align="center"
-                                    className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
-                                  >
-                                    <p className="text-xs">{lead.observacao}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </TableCell>
+                            <TableCell className="text-[11px]">{lead.dataNascimento || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.cpf || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.cep || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.numero || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.endereco || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.bairro || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.cidade || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.estado || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.complemento || "-"}</TableCell>
                           </TableRow>
                         );
                       })}
@@ -1123,32 +1108,20 @@ const LeadsV2Page = () => {
                   <TableHeader>
                     <TableRow>
                       {isColumnVisible("#") && <TableHead className="w-12 text-center" style={{ order: getColumnOrder("#") }}>#</TableHead>}
-                      {isColumnVisible("dataEntrada") && <TableHead style={{ order: getColumnOrder("dataEntrada") }}>Data Entrada</TableHead>}
-                      {isColumnVisible("responsavel") && <TableHead style={{ order: getColumnOrder("responsavel") }}>Responsável</TableHead>}
                       {isColumnVisible("nome") && <TableHead style={{ order: getColumnOrder("nome") }}>Nome do Cliente</TableHead>}
                       {isColumnVisible("contato") && <TableHead style={{ order: getColumnOrder("contato") }}>Contato WhatsApp/@</TableHead>}
                       {isColumnVisible("email") && <TableHead style={{ order: getColumnOrder("email") }}>Email</TableHead>}
+                      {isColumnVisible("responsavel") && <TableHead style={{ order: getColumnOrder("responsavel") }}>Responsável</TableHead>}
                       {isColumnVisible("origem") && <TableHead style={{ order: getColumnOrder("origem") }}>Origem</TableHead>}
-                      {isColumnVisible("procedimento") && <TableHead style={{ order: getColumnOrder("procedimento") }}>Procedimento / Interesse</TableHead>}
-                      {isColumnVisible("status") && <TableHead style={{ order: getColumnOrder("status") }}>Status</TableHead>}
-                      {isColumnVisible("dataUltimoContato") && <TableHead style={{ order: getColumnOrder("dataUltimoContato") }}>Data Último Contato</TableHead>}
-                      {isColumnVisible("dataAgendamento") && <TableHead style={{ order: getColumnOrder("dataAgendamento") }}>Data Agendamento (quando marcou)</TableHead>}
-                      {isColumnVisible("dataAvaliacao") && <TableHead style={{ order: getColumnOrder("dataAvaliacao") }}>Data Avaliação (dia marcado)</TableHead>}
-                      {isColumnVisible("dataProcedimento") && <TableHead style={{ order: getColumnOrder("dataProcedimento") }}>Data Procedimento</TableHead>}
-                      {isColumnVisible("compareceu") && <TableHead style={{ order: getColumnOrder("compareceu") }}>Compareceu?</TableHead>}
-                      {isColumnVisible("dataFechamento") && <TableHead style={{ order: getColumnOrder("dataFechamento") }}>Data Fechamento</TableHead>}
-                      {isColumnVisible("valorFechado") && <TableHead style={{ order: getColumnOrder("valorFechado") }}>Valor Fechado (R$)</TableHead>}
                       {isColumnVisible("dataNascimento") && <TableHead style={{ order: getColumnOrder("dataNascimento") }}>Data de Nascimento</TableHead>}
                       {isColumnVisible("cpf") && <TableHead style={{ order: getColumnOrder("cpf") }}>CPF</TableHead>}
                       {isColumnVisible("cep") && <TableHead style={{ order: getColumnOrder("cep") }}>CEP</TableHead>}
-                      {isColumnVisible("endereco") && <TableHead style={{ order: getColumnOrder("endereco") }}>Endereço</TableHead>}
                       {isColumnVisible("numero") && <TableHead style={{ order: getColumnOrder("numero") }}>Número</TableHead>}
+                      {isColumnVisible("endereco") && <TableHead style={{ order: getColumnOrder("endereco") }}>Endereço</TableHead>}
                       {isColumnVisible("bairro") && <TableHead style={{ order: getColumnOrder("bairro") }}>Bairro</TableHead>}
                       {isColumnVisible("cidade") && <TableHead style={{ order: getColumnOrder("cidade") }}>Cidade</TableHead>}
                       {isColumnVisible("estado") && <TableHead style={{ order: getColumnOrder("estado") }}>Estado</TableHead>}
                       {isColumnVisible("complemento") && <TableHead style={{ order: getColumnOrder("complemento") }}>Complemento</TableHead>}
-                      {isColumnVisible("tags") && <TableHead style={{ order: getColumnOrder("tags") }}>Tags</TableHead>}
-                      {isColumnVisible("observacao") && <TableHead style={{ order: getColumnOrder("observacao") }}>Objeção / Observação</TableHead>}
                       {isColumnVisible("acoes") && <TableHead className="w-[1%] whitespace-nowrap text-right" style={{ order: getColumnOrder("acoes") }}>Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
@@ -1163,20 +1136,6 @@ const LeadsV2Page = () => {
                           {isColumnVisible("#") && (
                             <TableCell className="text-center text-xs font-semibold text-primary" style={{ order: getColumnOrder("#") }}>
                               {globalIndex}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("dataEntrada") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("dataEntrada") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={current.dataEntrada}
-                                  onChange={(e) => handleEditingChange("dataEntrada", e.target.value)}
-                                />
-                              ) : (
-                                current.dataEntrada
-                              )}
                             </TableCell>
                           )}
                           {isColumnVisible("responsavel") && (
@@ -1246,147 +1205,6 @@ const LeadsV2Page = () => {
                                 />
                               ) : (
                                 current.origem
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("procedimento") && (
-                            <TableCell style={{ order: getColumnOrder("procedimento") }}>
-                              {isEditing ? (
-                                <Input
-                                  className="h-8 text-xs"
-                                  value={current.procedimento}
-                                  onChange={(e) => handleEditingChange("procedimento", e.target.value)}
-                                />
-                              ) : (
-                                current.procedimento
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("status") && (
-                            <TableCell style={{ order: getColumnOrder("status") }}>
-                              {isEditing ? (
-                                <select
-                                  className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-[11px] text-foreground shadow-sm"
-                                  value={current.status}
-                                  onChange={(e) => handleEditingChange("status", e.target.value)}
-                                >
-                                  <option value="">Selecione...</option>
-                                  {/* Adiciona o status atual se não estiver na lista de crmStatuses */}
-                                  {current.status && !crmStatuses.some(s => s.name === current.status) && (
-                                    <option value={current.status}>{current.status} (antigo)</option>
-                                  )}
-                                  {crmStatuses.map((status) => (
-                                    <option key={status.id} value={status.name}>{status.name}</option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <Badge
-                                  variant="outline"
-                                  className={`rounded-full text-[11px] font-medium ${getStatusBadgeClass(current.status)}`}
-                                >
-                                  {current.status}
-                                </Badge>
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("dataUltimoContato") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("dataUltimoContato") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={current.dataUltimoContato || ""}
-                                  onChange={(e) => handleEditingChange("dataUltimoContato", e.target.value)}
-                                />
-                              ) : (
-                                current.dataUltimoContato
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("dataAgendamento") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("dataAgendamento") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={current.dataAgendamento || ""}
-                                  onChange={(e) => handleEditingChange("dataAgendamento", e.target.value)}
-                                />
-                              ) : (
-                                current.dataAgendamento
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("dataAvaliacao") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("dataAvaliacao") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={current.dataAvaliacao || ""}
-                                  onChange={(e) => handleEditingChange("dataAvaliacao", e.target.value)}
-                                />
-                              ) : (
-                                current.dataAvaliacao
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("dataProcedimento") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("dataProcedimento") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={current.dataProcedimento || ""}
-                                  onChange={(e) => handleEditingChange("dataProcedimento", e.target.value)}
-                                />
-                              ) : (
-                                current.dataProcedimento
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("compareceu") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("compareceu") }}>
-                              {isEditing ? (
-                                <select
-                                  className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-[11px] text-foreground shadow-sm"
-                                  value={current.compareceu || ""}
-                                  onChange={(e) => handleEditingChange("compareceu", e.target.value)}
-                                >
-                                  <option value="">Selecione...</option>
-                                  <option value="Sim">Sim</option>
-                                  <option value="Não">Não</option>
-                                </select>
-                              ) : (
-                                current.compareceu
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("dataFechamento") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("dataFechamento") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={current.dataFechamento || ""}
-                                  onChange={(e) => handleEditingChange("dataFechamento", e.target.value)}
-                                />
-                              ) : (
-                                current.dataFechamento
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("valorFechado") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("valorFechado") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="text"
-                                  className="h-8 text-xs"
-                                  value={current.valorFechado || ""}
-                                  onChange={(e) => handleEditingChange("valorFechado", e.target.value)}
-                                />
-                              ) : (
-                                current.valorFechado
                               )}
                             </TableCell>
                           )}
@@ -1523,53 +1341,6 @@ const LeadsV2Page = () => {
                                 />
                               ) : (
                                 current.complemento
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("tags") && (
-                            <TableCell className="whitespace-nowrap text-xs" style={{ order: getColumnOrder("tags") }}>
-                              {isEditing ? (
-                                <TagsSelector
-                                  availableTags={availableTags}
-                                  selectedTagIds={editingTags}
-                                  onChange={setEditingTags}
-                                  className="w-[200px]"
-                                />
-                              ) : (
-                                <TagsBadges tags={availableTags} tagIds={current.tags || []} maxVisible={2} size="xs" />
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("observacao") && (
-                            <TableCell className="max-w-[220px] text-xs text-muted-foreground" style={{ order: getColumnOrder("observacao") }}>
-                              {isEditing ? (
-                                <Input
-                                  className="h-8 text-xs"
-                                  value={current.observacao || ""}
-                                  onChange={(e) => handleEditingChange("observacao", e.target.value)}
-                                />
-                              ) : current.observacao ? (
-                                <TooltipProvider>
-                                  <Tooltip delayDuration={200}>
-                                    <TooltipTrigger asChild>
-                                      <span 
-                                        className="block truncate cursor-help" 
-                                        title={current.observacao}
-                                      >
-                                        {current.observacao}
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent 
-                                      side="top" 
-                                      align="center"
-                                      className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
-                                    >
-                                      <p className="text-xs">{current.observacao}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
                               )}
                             </TableCell>
                           )}
