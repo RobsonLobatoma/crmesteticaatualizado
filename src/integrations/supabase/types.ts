@@ -476,6 +476,7 @@ export type Database = {
           data_nascimento: string | null
           data_procedimento: string | null
           data_ultimo_contato: string | null
+          email: string | null
           endereco: string | null
           estado: string | null
           id: string
@@ -508,6 +509,7 @@ export type Database = {
           data_nascimento?: string | null
           data_procedimento?: string | null
           data_ultimo_contato?: string | null
+          email?: string | null
           endereco?: string | null
           estado?: string | null
           id?: string
@@ -540,6 +542,7 @@ export type Database = {
           data_nascimento?: string | null
           data_procedimento?: string | null
           data_ultimo_contato?: string | null
+          email?: string | null
           endereco?: string | null
           estado?: string | null
           id?: string
