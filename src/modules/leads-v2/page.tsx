@@ -344,6 +344,7 @@ const LeadsV2Page = () => {
       await createLead({
         nome: newLead.nome,
         contato: newLead.contato,
+        email: normalize(newLead.email),
         responsavel: normalize(newLead.responsavel) || "-",
         origem: normalize(newLead.origem) || "Manual",
         procedimento: normalize(newLead.procedimento),
