@@ -259,6 +259,7 @@ const WhatsappV2Page = () => {
       responsavel: "", 
       nome: selectedChat?.leadName || "",
       contato: selectedChat?.phoneNumber || "",
+      email: "",
       origem: "WhatsApp",
       procedimento: "", status: "Novo lead", dataUltimoContato: "", dataAgendamento: "",
       dataAvaliacao: "", dataProcedimento: "", compareceu: "", dataFechamento: "",
