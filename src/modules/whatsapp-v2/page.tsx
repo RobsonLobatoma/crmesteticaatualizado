@@ -57,7 +57,7 @@ const WhatsappV2Page = () => {
   const [quickLeadCepLoading, setQuickLeadCepLoading] = useState(false);
   const [quickLeadSaving, setQuickLeadSaving] = useState(false);
   const [quickLead, setQuickLead] = useState({
-    dataEntrada: "", responsavel: "", nome: "", contato: "", origem: "WhatsApp",
+    dataEntrada: "", responsavel: "", nome: "", contato: "", email: "", origem: "WhatsApp",
     procedimento: "", status: "Novo lead", dataUltimoContato: "", dataAgendamento: "",
     dataAvaliacao: "", dataProcedimento: "", compareceu: "", dataFechamento: "",
     valorFechado: "", observacao: "", dataNascimento: "", cpf: "", cep: "",
