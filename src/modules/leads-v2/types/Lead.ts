@@ -12,6 +12,7 @@ export interface Lead {
   responsavel: string;
   nome: string;
   contato: string;
+  email?: string;
   origem: string;
   procedimento: string;
   status: string;
