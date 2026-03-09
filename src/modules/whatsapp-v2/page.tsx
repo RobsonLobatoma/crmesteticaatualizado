@@ -34,7 +34,7 @@ import { useAppointments } from "@/modules/agenda-v2/hooks/useAppointments";
 import { WhatsappTemplate, EvolutionInstanceConfig } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2, UserPlus, Calendar, ClipboardList } from "lucide-react";
+import { Plus, Loader2, RefreshCw, Trash2, AlertTriangle, Kanban, CheckCircle2, UserPlus, Calendar, ClipboardList, X } from "lucide-react";
 import { format, addMinutes } from "date-fns";
 
 const WhatsappV2Page = () => {
@@ -558,102 +558,204 @@ const WhatsappV2Page = () => {
               />
             </div>
 
-            {/* Coluna 3: Resumo do Lead */}
+            {/* Coluna 3: Resumo do Lead / Cadastro rápido inline */}
             <ScrollArea className="h-full">
               <div className="flex flex-col gap-3 pr-2">
-                <Card className="border-border/80 bg-surface-elevated/80">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Resumo do lead</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-xs text-muted-foreground">
-                    {selectedChat ? (
-                      <>
-                        <div>
-                          <span className="font-medium text-foreground">Nome:</span>{" "}
-                          {selectedChat.leadName || "Não identificado"}
+                {showQuickLeadForm ? (
+                  /* ─── Cadastro rápido inline ─── */
+                  <Card className="border-primary/30 bg-surface-elevated/80">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2 text-sm">
+                          <UserPlus className="h-4 w-4" />
+                          Cadastro rápido
+                        </CardTitle>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setShowQuickLeadForm(false)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="grid gap-2 grid-cols-2">
+                        <div className="col-span-2">
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Nome *</label>
+                          <Input className="h-8 text-xs" placeholder="Nome do lead" value={quickLead.nome} onChange={(e) => handleQuickLeadChange("nome", e.target.value)} />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Contato *</label>
+                          <Input className="h-8 text-xs" placeholder="(11) 99999-9999" value={quickLead.contato} onChange={(e) => handleQuickLeadChange("contato", e.target.value)} />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Email</label>
+                          <Input className="h-8 text-xs" type="email" placeholder="email@exemplo.com" value={quickLead.email} onChange={(e) => handleQuickLeadChange("email", e.target.value)} />
                         </div>
                         <div>
-                          <span className="font-medium text-foreground">Telefone:</span> {selectedChat.phoneNumber}
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Responsável</label>
+                          <select className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-[11px]" value={quickLead.responsavel} onChange={(e) => handleQuickLeadChange("responsavel", e.target.value)}>
+                            <option value="">Selecione...</option>
+                            <option value="Nara Helizabeth">Nara Helizabeth</option>
+                            <option value="Adrielly Durans">Adrielly Durans</option>
+                          </select>
                         </div>
                         <div>
-                          <span className="font-medium text-foreground">Origem:</span> {(selectedChat as any).origin || "-"}
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Origem</label>
+                          <select className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-[11px]" value={quickLead.origem} onChange={(e) => handleQuickLeadChange("origem", e.target.value)}>
+                            <option value="">Selecione...</option>
+                            <option value="WhatsApp">WhatsApp</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="Anúncio">Anúncio</option>
+                            <option value="Indicação">Indicação</option>
+                            <option value="Promoção">Promoção</option>
+                          </select>
                         </div>
                         <div>
-                          <span className="font-medium text-foreground">Responsável:</span> {(selectedChat as any).assignedTo || "-"}
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Data Nascimento</label>
+                          <Input className="h-8 text-xs" type="date" value={quickLead.dataNascimento} onChange={(e) => handleQuickLeadChange("dataNascimento", e.target.value)} />
                         </div>
-                      </>
-                    ) : (
-                      <p>Selecione um chat na coluna da esquerda para ver os dados do lead.</p>
-                    )}
-                  </CardContent>
-                </Card>
+                        <div>
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">CPF</label>
+                          <Input className="h-8 text-xs" placeholder="000.000.000-00" maxLength={14} value={quickLead.cpf} onChange={(e) => handleQuickLeadCpfChange(e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">CEP</label>
+                          <div className="relative">
+                            <Input className="h-8 text-xs" placeholder="00000-000" maxLength={9} value={quickLead.cep} onChange={(e) => handleQuickLeadCepChange(e.target.value)} />
+                            {quickLeadCepLoading && <Loader2 className="absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 animate-spin text-muted-foreground" />}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Número</label>
+                          <Input className="h-8 text-xs" placeholder="Nº" value={quickLead.numero} onChange={(e) => handleQuickLeadChange("numero", e.target.value)} />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Endereço</label>
+                          <Input className="h-8 text-xs" placeholder="Rua, Avenida..." value={quickLead.endereco} onChange={(e) => handleQuickLeadChange("endereco", e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Bairro</label>
+                          <Input className="h-8 text-xs" placeholder="Bairro" value={quickLead.bairro} onChange={(e) => handleQuickLeadChange("bairro", e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Cidade</label>
+                          <Input className="h-8 text-xs" placeholder="Cidade" value={quickLead.cidade} onChange={(e) => handleQuickLeadChange("cidade", e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Estado</label>
+                          <Input className="h-8 text-xs" placeholder="UF" maxLength={2} value={quickLead.estado} onChange={(e) => handleQuickLeadChange("estado", e.target.value.toUpperCase())} />
+                        </div>
+                        <div>
+                          <label className="mb-0.5 block text-[11px] font-medium text-muted-foreground">Complemento</label>
+                          <Input className="h-8 text-xs" placeholder="Apto, Bloco..." value={quickLead.complemento} onChange={(e) => handleQuickLeadChange("complemento", e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowQuickLeadForm(false)}>Cancelar</Button>
+                        <Button size="sm" className="h-7 text-xs" onClick={handleSaveQuickLead} disabled={quickLeadSaving}>
+                          {quickLeadSaving && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+                          Salvar lead
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  /* ─── Resumo do Lead (padrão) ─── */
+                  <>
+                    <Card className="border-border/80 bg-surface-elevated/80">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">Resumo do lead</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-xs text-muted-foreground">
+                        {selectedChat ? (
+                          <>
+                            <div>
+                              <span className="font-medium text-foreground">Nome:</span>{" "}
+                              {selectedChat.leadName || "Não identificado"}
+                            </div>
+                            <div>
+                              <span className="font-medium text-foreground">Telefone:</span> {selectedChat.phoneNumber}
+                            </div>
+                            <div>
+                              <span className="font-medium text-foreground">Origem:</span> {(selectedChat as any).origin || "-"}
+                            </div>
+                            <div>
+                              <span className="font-medium text-foreground">Responsável:</span> {(selectedChat as any).assignedTo || "-"}
+                            </div>
+                          </>
+                        ) : (
+                          <p>Selecione um chat na coluna da esquerda para ver os dados do lead.</p>
+                        )}
+                      </CardContent>
+                    </Card>
 
-                <Card className="border-border/80 bg-surface-elevated/80">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Ações rápidas</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-wrap gap-2 text-xs">
-                    {selectedChat && (() => {
-                      const isInKanban = crmClients.some(
-                        (c) => c.telefone === selectedChat.phoneNumber
-                      );
-                      return isInKanban ? (
-                        <Badge variant="secondary" className="gap-1 text-xs py-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Já no Kanban
-                        </Badge>
-                      ) : (
+                    <Card className="border-border/80 bg-surface-elevated/80">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">Ações rápidas</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex flex-wrap gap-2 text-xs">
+                        {selectedChat && (() => {
+                          const isInKanban = crmClients.some(
+                            (c) => c.telefone === selectedChat.phoneNumber
+                          );
+                          return isInKanban ? (
+                            <Badge variant="secondary" className="gap-1 text-xs py-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Já no Kanban
+                            </Badge>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={sendingToKanban}
+                              onClick={async () => {
+                                setSendingToKanban(true);
+                                try {
+                                  const { data: sessionData } = await supabase.auth.getSession();
+                                  if (!sessionData.session) throw new Error("Não autenticado");
+                                  const defaultStatus = getNovoLeadSlug();
+                                  await supabase.from("crm_clients").insert({
+                                    nome: selectedChat.leadName || selectedChat.phoneNumber,
+                                    telefone: selectedChat.phoneNumber,
+                                    status: defaultStatus,
+                                    origem: "WhatsApp",
+                                    user_id: sessionData.session.user.id,
+                                  });
+                                  queryClient.invalidateQueries({ queryKey: ["crm-clients"] });
+                                  toast({ title: "Enviado ao Kanban", description: "Contato adicionado com sucesso." });
+                                } catch (err) {
+                                  toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro desconhecido", variant: "destructive" });
+                                } finally {
+                                  setSendingToKanban(false);
+                                }
+                              }}
+                            >
+                              {sendingToKanban ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Kanban className="h-3 w-3 mr-1" />}
+                              Enviar ao Kanban
+                            </Button>
+                          );
+                        })()}
                         <Button
                           size="sm"
                           variant="outline"
-                          disabled={sendingToKanban}
-                          onClick={async () => {
-                            setSendingToKanban(true);
-                            try {
-                              const { data: sessionData } = await supabase.auth.getSession();
-                              if (!sessionData.session) throw new Error("Não autenticado");
-                              const defaultStatus = getNovoLeadSlug();
-                              await supabase.from("crm_clients").insert({
-                                nome: selectedChat.leadName || selectedChat.phoneNumber,
-                                telefone: selectedChat.phoneNumber,
-                                status: defaultStatus,
-                                origem: "WhatsApp",
-                                user_id: sessionData.session.user.id,
-                              });
-                              queryClient.invalidateQueries({ queryKey: ["crm-clients"] });
-                              toast({ title: "Enviado ao Kanban", description: "Contato adicionado com sucesso." });
-                            } catch (err) {
-                              toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro desconhecido", variant: "destructive" });
-                            } finally {
-                              setSendingToKanban(false);
-                            }
-                          }}
+                          disabled={!selectedChat}
+                          onClick={openQuickLeadForm}
                         >
-                          {sendingToKanban ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Kanban className="h-3 w-3 mr-1" />}
-                          Enviar ao Kanban
+                          <UserPlus className="h-3 w-3 mr-1" />
+                          Cadastro rápido
                         </Button>
-                      );
-                    })()}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={!selectedChat}
-                      onClick={openQuickLeadForm}
-                    >
-                      <UserPlus className="h-3 w-3 mr-1" />
-                      Cadastro rápido
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={!selectedChat}
-                      onClick={openScheduleModal}
-                    >
-                      <Calendar className="h-3 w-3 mr-1" />
-                      Agendar avaliação
-                    </Button>
-                  </CardContent>
-                </Card>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={!selectedChat}
+                          onClick={openScheduleModal}
+                        >
+                          <Calendar className="h-3 w-3 mr-1" />
+                          Agendar avaliação
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
             </ScrollArea>
           </div>
@@ -874,97 +976,7 @@ const WhatsappV2Page = () => {
         isSubmitting={isTemplateSubmitting}
       />
 
-      {/* Quick Lead Registration Dialog */}
-      <Dialog open={showQuickLeadForm} onOpenChange={setShowQuickLeadForm}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Cadastro rápido de Lead
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Responsável</label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.responsavel} onChange={(e) => handleQuickLeadChange("responsavel", e.target.value)}>
-                <option value="">Selecione...</option>
-                <option value="Nara Helizabeth">Nara Helizabeth</option>
-                <option value="Adrielly Durans">Adrielly Durans</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Nome do cliente *</label>
-              <Input placeholder="Nome do lead" value={quickLead.nome} onChange={(e) => handleQuickLeadChange("nome", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Contato *</label>
-              <Input placeholder="(11) 99999-9999" value={quickLead.contato} onChange={(e) => handleQuickLeadChange("contato", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
-              <Input type="email" placeholder="email@exemplo.com" value={quickLead.email} onChange={(e) => handleQuickLeadChange("email", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Origem</label>
-              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.origem} onChange={(e) => handleQuickLeadChange("origem", e.target.value)}>
-                <option value="">Selecione...</option>
-                <option value="WhatsApp">WhatsApp</option>
-                <option value="Instagram">Instagram</option>
-                <option value="TikTok">TikTok</option>
-                <option value="Anúncio">Anúncio</option>
-                <option value="Indicação">Indicação</option>
-                <option value="Promoção">Promoção</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Data Nascimento</label>
-              <Input type="date" value={quickLead.dataNascimento} onChange={(e) => handleQuickLeadChange("dataNascimento", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">CPF</label>
-              <Input placeholder="000.000.000-00" maxLength={14} value={quickLead.cpf} onChange={(e) => handleQuickLeadCpfChange(e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">CEP</label>
-              <div className="relative">
-                <Input placeholder="00000-000" maxLength={9} value={quickLead.cep} onChange={(e) => handleQuickLeadCepChange(e.target.value)} />
-                {quickLeadCepLoading && <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />}
-              </div>
-            </div>
-            <div className="md:col-span-2">
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Endereço</label>
-              <Input placeholder="Rua, Avenida..." value={quickLead.endereco} onChange={(e) => handleQuickLeadChange("endereco", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Número</label>
-              <Input placeholder="Nº" value={quickLead.numero} onChange={(e) => handleQuickLeadChange("numero", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Bairro</label>
-              <Input placeholder="Bairro" value={quickLead.bairro} onChange={(e) => handleQuickLeadChange("bairro", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Cidade</label>
-              <Input placeholder="Cidade" value={quickLead.cidade} onChange={(e) => handleQuickLeadChange("cidade", e.target.value)} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Estado</label>
-              <Input placeholder="UF" maxLength={2} value={quickLead.estado} onChange={(e) => handleQuickLeadChange("estado", e.target.value.toUpperCase())} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Complemento</label>
-              <Input placeholder="Apto, Bloco..." value={quickLead.complemento} onChange={(e) => handleQuickLeadChange("complemento", e.target.value)} />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" size="sm" onClick={() => setShowQuickLeadForm(false)}>Cancelar</Button>
-            <Button size="sm" onClick={handleSaveQuickLead} disabled={quickLeadSaving}>
-              {quickLeadSaving && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-              Salvar lead
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Schedule Evaluation Dialog */}
       <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
