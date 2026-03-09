@@ -350,6 +350,57 @@ export type Database = {
           },
         ]
       }
+      crm_history: {
+        Row: {
+          created_at: string
+          crm_client_id: string | null
+          descricao: string
+          detalhes: Json | null
+          id: string
+          lead_id: string | null
+          tipo: string
+          user_id: string
+          usuario: string
+        }
+        Insert: {
+          created_at?: string
+          crm_client_id?: string | null
+          descricao: string
+          detalhes?: Json | null
+          id?: string
+          lead_id?: string | null
+          tipo: string
+          user_id: string
+          usuario?: string
+        }
+        Update: {
+          created_at?: string
+          crm_client_id?: string | null
+          descricao?: string
+          detalhes?: Json | null
+          id?: string
+          lead_id?: string | null
+          tipo?: string
+          user_id?: string
+          usuario?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_history_crm_client_id_fkey"
+            columns: ["crm_client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_responsibles: {
         Row: {
           created_at: string
@@ -821,6 +872,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      prontuario: {
+        Row: {
+          conteudo: string | null
+          created_at: string
+          id: string
+          lead_id: string | null
+          profissional: string | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conteudo?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          profissional?: string | null
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conteudo?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          profissional?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prontuario_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rooms: {
         Row: {

@@ -1,17 +1,42 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableCard } from "@/components/dashboard/TableCard";
 import { useClients, Client } from "./hooks/useClients";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SensitiveData } from "@/components/ui/SensitiveData";
 import { maskCPF, maskPhone, maskAddress, extractCity } from "@/lib/sensitiveDataUtils";
+import { useCRMHistory } from "@/modules/kanbam-v2/hooks/useCRMHistory";
+import { useProntuario } from "./hooks/useProntuario";
+import { AbaHistorico } from "@/components/crm/AbaHistorico";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, FileText, Stethoscope, ClipboardList } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 const ClientesV2Page = () => {
   const { clients, isLoading } = useClients();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const { toast } = useToast();
 
-  // Calcula idade a partir da data de nascimento
+  // Hooks for selected client's history and prontuário
+  const { history, isLoading: historyLoading } = useCRMHistory(undefined, selectedClient?.id);
+  const { records: prontuarioRecords, isLoading: prontuarioLoading, addRecord, deleteRecord } = useProntuario(selectedClient?.id);
+
+  // Prontuário form state
+  const [showProntuarioForm, setShowProntuarioForm] = useState(false);
+  const [prontuarioForm, setProntuarioForm] = useState({
+    tipo: 'evolucao',
+    titulo: '',
+    conteudo: '',
+    profissional: '',
+  });
+
   const calculateAge = (birthDate: string | null): number | null => {
     if (!birthDate) return null;
     const birth = new Date(birthDate);
@@ -143,8 +168,14 @@ const ClientesV2Page = () => {
                 <Tabs defaultValue="summary" className="mt-2">
                   <TabsList className="w-full justify-start overflow-x-auto">
                     <TabsTrigger value="summary">Resumo</TabsTrigger>
-                    <TabsTrigger value="history">Histórico de atendimentos</TabsTrigger>
-                    <TabsTrigger value="chart">Prontuário (esqueleto)</TabsTrigger>
+                    <TabsTrigger value="history">
+                      <ClipboardList className="mr-1 h-3.5 w-3.5" />
+                      Histórico
+                    </TabsTrigger>
+                    <TabsTrigger value="chart">
+                      <Stethoscope className="mr-1 h-3.5 w-3.5" />
+                      Prontuário
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="summary" className="mt-3 text-sm text-muted-foreground">
@@ -260,45 +291,174 @@ const ClientesV2Page = () => {
                   </TabsContent>
 
                   <TabsContent value="history" className="mt-3">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Profissional</TableHead>
-                          <TableHead>Procedimento</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
-                            Histórico de atendimentos será integrado em breve.
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                    {historyLoading ? (
+                      <div className="space-y-2 p-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    ) : history.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        <ClipboardList className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                        <p>Nenhum evento no histórico deste paciente.</p>
+                        <p className="text-xs mt-1">Eventos são registrados automaticamente pelo Quadro de Atendimento.</p>
+                      </div>
+                    ) : (
+                      <AbaHistorico historico={history.map(h => ({
+                        id: h.id,
+                        clienteId: h.crm_client_id || '',
+                        tipo: h.tipo as any,
+                        descricao: h.descricao,
+                        usuario: h.usuario,
+                        dataHora: h.created_at,
+                        detalhes: h.detalhes as any,
+                      }))} />
+                    )}
                   </TabsContent>
 
-                  <TabsContent value="chart" className="mt-3 space-y-3 text-sm text-muted-foreground">
-                    <p>
-                      Esta é apenas a estrutura do prontuário. No futuro, aqui entra a evolução clínica, fotos,
-                      anexos e documentos assinados digitalmente.
-                    </p>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div className="rounded-lg border border-border/60 bg-surface-elevated/80 p-3 text-xs">
-                        <p className="mb-1 font-medium text-foreground">Queixas e objetivos</p>
-                        <p className="text-muted-foreground">
-                          Área reservada para registrar as principais queixas do paciente e objetivos estéticos ou
-                          funcionais.
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-border/60 bg-surface-elevated/80 p-3 text-xs">
-                        <p className="mb-1 font-medium text-foreground">Evolução</p>
-                        <p className="text-muted-foreground">
-                          Linha do tempo com a evolução dos tratamentos, comparativos de fotos e anexos clínicos.
-                        </p>
-                      </div>
+                  <TabsContent value="chart" className="mt-3 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium">Prontuário Eletrônico</h3>
+                      <Button size="sm" onClick={() => setShowProntuarioForm(!showProntuarioForm)}>
+                        <Plus className="mr-1 h-4 w-4" />
+                        Novo Registro
+                      </Button>
                     </div>
+
+                    {showProntuarioForm && (
+                      <Card>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Tipo</Label>
+                              <Select value={prontuarioForm.tipo} onValueChange={(v) => setProntuarioForm(prev => ({ ...prev, tipo: v }))}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="evolucao">Evolução</SelectItem>
+                                  <SelectItem value="queixa">Queixa / Objetivo</SelectItem>
+                                  <SelectItem value="procedimento">Procedimento Realizado</SelectItem>
+                                  <SelectItem value="observacao">Observação Clínica</SelectItem>
+                                  <SelectItem value="retorno">Retorno</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Profissional</Label>
+                              <Input
+                                placeholder="Nome do profissional"
+                                value={prontuarioForm.profissional}
+                                onChange={(e) => setProntuarioForm(prev => ({ ...prev, profissional: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Título</Label>
+                            <Input
+                              placeholder="Ex: Avaliação inicial, Aplicação de toxina..."
+                              value={prontuarioForm.titulo}
+                              onChange={(e) => setProntuarioForm(prev => ({ ...prev, titulo: e.target.value }))}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Conteúdo / Descrição</Label>
+                            <Textarea
+                              placeholder="Descreva o atendimento, observações clínicas, evolução..."
+                              value={prontuarioForm.conteudo}
+                              onChange={(e) => setProntuarioForm(prev => ({ ...prev, conteudo: e.target.value }))}
+                              rows={4}
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="outline" size="sm" onClick={() => setShowProntuarioForm(false)}>Cancelar</Button>
+                            <Button size="sm" disabled={!prontuarioForm.titulo || addRecord.isPending} onClick={() => {
+                              addRecord.mutate({
+                                lead_id: selectedClient.id,
+                                tipo: prontuarioForm.tipo,
+                                titulo: prontuarioForm.titulo,
+                                conteudo: prontuarioForm.conteudo || undefined,
+                                profissional: prontuarioForm.profissional || undefined,
+                              }, {
+                                onSuccess: () => {
+                                  toast({ title: "Registro adicionado ao prontuário" });
+                                  setProntuarioForm({ tipo: 'evolucao', titulo: '', conteudo: '', profissional: '' });
+                                  setShowProntuarioForm(false);
+                                }
+                              });
+                            }}>
+                              Salvar
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {prontuarioLoading ? (
+                      <div className="space-y-2">
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                      </div>
+                    ) : prontuarioRecords.length === 0 && !showProntuarioForm ? (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        <FileText className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                        <p>Nenhum registro no prontuário.</p>
+                        <p className="text-xs mt-1">Clique em "Novo Registro" para adicionar evolução clínica, queixas ou procedimentos.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {prontuarioRecords.map((record) => {
+                          const tipoLabels: Record<string, string> = {
+                            evolucao: 'Evolução',
+                            queixa: 'Queixa / Objetivo',
+                            procedimento: 'Procedimento',
+                            observacao: 'Observação',
+                            retorno: 'Retorno',
+                          };
+                          const tipoColors: Record<string, string> = {
+                            evolucao: 'bg-blue-500/10 text-blue-600',
+                            queixa: 'bg-orange-500/10 text-orange-600',
+                            procedimento: 'bg-emerald-500/10 text-emerald-600',
+                            observacao: 'bg-gray-500/10 text-gray-600',
+                            retorno: 'bg-purple-500/10 text-purple-600',
+                          };
+                          return (
+                            <Card key={record.id}>
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${tipoColors[record.tipo] || 'bg-muted text-muted-foreground'}`}>
+                                        {tipoLabels[record.tipo] || record.tipo}
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {format(new Date(record.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                      </span>
+                                    </div>
+                                    <p className="font-medium text-sm">{record.titulo}</p>
+                                    {record.conteudo && (
+                                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{record.conteudo}</p>
+                                    )}
+                                    {record.profissional && (
+                                      <p className="text-xs text-muted-foreground mt-1">Profissional: {record.profissional}</p>
+                                    )}
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                    onClick={() => {
+                                      deleteRecord.mutate(record.id, {
+                                        onSuccess: () => toast({ title: "Registro removido" }),
+                                      });
+                                    }}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    )}
                   </TabsContent>
                 </Tabs>
               </>

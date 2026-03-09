@@ -10,13 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Mensagem, EventoHistorico } from '@/types/crm';
 import { AbaChatConversa } from '@/components/crm/AbaChatConversa';
 import { AbaHistorico } from '@/components/crm/AbaHistorico';
 import { AbaDados } from '@/components/crm/AbaDados';
 import { useToast } from '@/hooks/use-toast';
 import { useCRMClients } from '../hooks/useCRMClients';
 import { useCRMStatuses } from '../hooks/useCRMStatuses';
+import { useCRMHistory } from '../hooks/useCRMHistory';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const ClientePotencialV2Page = () => {
@@ -27,6 +27,8 @@ const ClientePotencialV2Page = () => {
 
   // Buscar cliente pelo ID
   const clienteData = clients.find(c => c.id === id);
+  
+  const { history, addEvent } = useCRMHistory(id, clienteData?.lead_id || undefined);
 
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,7 +38,6 @@ const ClientePotencialV2Page = () => {
     responsavel: '',
     observacoes: '',
   });
-  const [historico, setHistorico] = useState<EventoHistorico[]>([]);
 
   useEffect(() => {
     if (clienteData) {
@@ -104,9 +105,17 @@ const ClientePotencialV2Page = () => {
   };
 
   const handleStatusChange = (novoStatus: string) => {
+    const oldStatus = clienteData.status;
     updateStatus.mutate({ id: clienteData.id, status: novoStatus }, {
       onSuccess: () => {
         toast({ title: "Status atualizado" });
+        addEvent.mutate({
+          crm_client_id: clienteData.id,
+          lead_id: clienteData.lead_id || null,
+          tipo: 'status_alterado',
+          descricao: `Status alterado de "${oldStatus}" para "${novoStatus}"`,
+          detalhes: { statusAnterior: oldStatus, statusNovo: novoStatus },
+        });
       }
     });
   };
@@ -310,7 +319,15 @@ const ClientePotencialV2Page = () => {
         </TabsContent>
         
         <TabsContent value="historico">
-          <AbaHistorico historico={historico} />
+          <AbaHistorico historico={history.map(h => ({
+            id: h.id,
+            clienteId: h.crm_client_id || '',
+            tipo: h.tipo as any,
+            descricao: h.descricao,
+            usuario: h.usuario,
+            dataHora: h.created_at,
+            detalhes: h.detalhes as any,
+          }))} />
         </TabsContent>
         
         <TabsContent value="dados">
