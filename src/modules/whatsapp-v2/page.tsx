@@ -669,7 +669,7 @@ const WhatsappV2Page = () => {
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm">Resumo do lead</CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2 text-xs text-muted-foreground">
+                      <CardContent className="space-y-3 text-xs text-muted-foreground">
                         {selectedChat ? (
                           <>
                             <div>
@@ -682,9 +682,71 @@ const WhatsappV2Page = () => {
                             <div>
                               <span className="font-medium text-foreground">Origem:</span> {(selectedChat as any).origin || "-"}
                             </div>
-                            <div>
-                              <span className="font-medium text-foreground">Responsável:</span> {(selectedChat as any).assignedTo || "-"}
-                            </div>
+                            
+                            {/* Atribuir Responsável */}
+                            {(() => {
+                              const crmClient = crmClients.find(c => c.telefone === selectedChat.phoneNumber);
+                              const activeResponsibles = crmResponsibles.filter(r => r.is_active);
+                              
+                              return (
+                                <div className="space-y-1.5">
+                                  <span className="font-medium text-foreground">Responsável:</span>
+                                  {crmClient ? (
+                                    <div className="flex items-center gap-2">
+                                      <Select
+                                        value={crmClient.responsavel || ""}
+                                        onValueChange={async (value) => {
+                                          setAssigningResponsible(true);
+                                          try {
+                                            await updateCRMClient.mutateAsync({
+                                              id: crmClient.id,
+                                              responsavel: value,
+                                            });
+                                            toast({
+                                              title: "Responsável atribuído",
+                                              description: `${selectedChat.leadName || selectedChat.phoneNumber} foi atribuído a ${value}.`,
+                                            });
+                                          } catch (err) {
+                                            toast({
+                                              title: "Erro ao atribuir",
+                                              description: err instanceof Error ? err.message : "Erro desconhecido",
+                                              variant: "destructive",
+                                            });
+                                          } finally {
+                                            setAssigningResponsible(false);
+                                          }
+                                        }}
+                                        disabled={assigningResponsible}
+                                      >
+                                        <SelectTrigger className="h-8 text-xs">
+                                          <SelectValue placeholder="Selecionar responsável" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {activeResponsibles.map((resp) => (
+                                            <SelectItem key={resp.id} value={resp.name}>
+                                              {resp.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      {assigningResponsible && (
+                                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                                      )}
+                                      {crmClient.responsavel && !assigningResponsible && (
+                                        <Badge variant="outline" className="gap-1 text-[10px]">
+                                          <UserCheck className="h-3 w-3" />
+                                          Atribuído
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-muted-foreground/70 italic">
+                                      Envie ao Kanban primeiro para atribuir responsável
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </>
                         ) : (
                           <p>Selecione um chat na coluna da esquerda para ver os dados do lead.</p>
