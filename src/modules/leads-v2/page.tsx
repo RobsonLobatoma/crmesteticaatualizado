@@ -989,6 +989,15 @@ const LeadsV2Page = () => {
                 />
               </div>
               <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
+                <Input
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={newLead.email || ""}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Origem</label>
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs text-foreground shadow-sm transition-colors hover:bg-muted/60"

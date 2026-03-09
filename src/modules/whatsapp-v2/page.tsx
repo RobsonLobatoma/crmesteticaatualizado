@@ -900,6 +900,10 @@ const WhatsappV2Page = () => {
               <Input placeholder="(11) 99999-9999" value={quickLead.contato} onChange={(e) => handleQuickLeadChange("contato", e.target.value)} />
             </div>
             <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
+              <Input type="email" placeholder="email@exemplo.com" value={quickLead.email} onChange={(e) => handleQuickLeadChange("email", e.target.value)} />
+            </div>
+            <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Origem</label>
               <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-xs" value={quickLead.origem} onChange={(e) => handleQuickLeadChange("origem", e.target.value)}>
                 <option value="">Selecione...</option>
