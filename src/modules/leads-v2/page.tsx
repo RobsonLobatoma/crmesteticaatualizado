@@ -1072,6 +1072,7 @@ const LeadsV2Page = () => {
                     `#${idx + 1}`,
                     `Nome: ${lead.nome}`,
                     `Contato: ${lead.contato}`,
+                    `Email: ${lead.email || '-'}`,
                     `Responsável: ${lead.responsavel || '-'}`,
                     `Origem: ${lead.origem || '-'}`,
                     `Procedimento: ${lead.procedimento || '-'}`,
