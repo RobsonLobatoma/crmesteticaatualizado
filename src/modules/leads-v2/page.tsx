@@ -50,11 +50,12 @@ const LeadsV2Page = () => {
   const { leads, createLead, updateLead, deleteLead } = useLeads();
   const { tags: availableTags, refresh: refreshTags } = useLeadTags();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [newLead, setNewLead] = useState<Omit<Lead, "id" | "status"> & { status?: string }>({
+  const [newLead, setNewLead] = useState<Omit<Lead, "id" | "status"> & { status?: string; email?: string }>({
     dataEntrada: "",
     responsavel: "",
     nome: "",
     contato: "",
+    email: "",
     origem: "",
     procedimento: "",
     dataUltimoContato: "",
@@ -985,6 +986,15 @@ const LeadsV2Page = () => {
                   placeholder="(11) 99999-9999 ou @usuario"
                   value={newLead.contato}
                   onChange={(e) => handleChange("contato", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-1">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
+                <Input
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={newLead.email || ""}
+                  onChange={(e) => handleChange("email", e.target.value)}
                 />
               </div>
               <div className="md:col-span-1">

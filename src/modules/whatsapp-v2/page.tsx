@@ -57,7 +57,7 @@ const WhatsappV2Page = () => {
   const [quickLeadCepLoading, setQuickLeadCepLoading] = useState(false);
   const [quickLeadSaving, setQuickLeadSaving] = useState(false);
   const [quickLead, setQuickLead] = useState({
-    dataEntrada: "", responsavel: "", nome: "", contato: "", origem: "WhatsApp",
+    dataEntrada: "", responsavel: "", nome: "", contato: "", email: "", origem: "WhatsApp",
     procedimento: "", status: "Novo lead", dataUltimoContato: "", dataAgendamento: "",
     dataAvaliacao: "", dataProcedimento: "", compareceu: "", dataFechamento: "",
     valorFechado: "", observacao: "", dataNascimento: "", cpf: "", cep: "",
@@ -259,6 +259,7 @@ const WhatsappV2Page = () => {
       responsavel: "", 
       nome: selectedChat?.leadName || "",
       contato: selectedChat?.phoneNumber || "",
+      email: "",
       origem: "WhatsApp",
       procedimento: "", status: "Novo lead", dataUltimoContato: "", dataAgendamento: "",
       dataAvaliacao: "", dataProcedimento: "", compareceu: "", dataFechamento: "",
@@ -898,6 +899,10 @@ const WhatsappV2Page = () => {
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Contato *</label>
               <Input placeholder="(11) 99999-9999" value={quickLead.contato} onChange={(e) => handleQuickLeadChange("contato", e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Email</label>
+              <Input type="email" placeholder="email@exemplo.com" value={quickLead.email} onChange={(e) => handleQuickLeadChange("email", e.target.value)} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Origem</label>
