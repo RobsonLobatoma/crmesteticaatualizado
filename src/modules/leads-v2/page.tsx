@@ -1153,20 +1153,6 @@ const LeadsV2Page = () => {
                               {globalIndex}
                             </TableCell>
                           )}
-                          {isColumnVisible("dataEntrada") && (
-                            <TableCell className="whitespace-nowrap text-xs text-muted-foreground" style={{ order: getColumnOrder("dataEntrada") }}>
-                              {isEditing ? (
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={current.dataEntrada}
-                                  onChange={(e) => handleEditingChange("dataEntrada", e.target.value)}
-                                />
-                              ) : (
-                                current.dataEntrada
-                              )}
-                            </TableCell>
-                          )}
                           {isColumnVisible("responsavel") && (
                             <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground" style={{ order: getColumnOrder("responsavel") }}>
                               {isEditing ? (
