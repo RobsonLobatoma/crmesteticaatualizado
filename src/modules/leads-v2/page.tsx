@@ -1123,32 +1123,20 @@ const LeadsV2Page = () => {
                   <TableHeader>
                     <TableRow>
                       {isColumnVisible("#") && <TableHead className="w-12 text-center" style={{ order: getColumnOrder("#") }}>#</TableHead>}
-                      {isColumnVisible("dataEntrada") && <TableHead style={{ order: getColumnOrder("dataEntrada") }}>Data Entrada</TableHead>}
-                      {isColumnVisible("responsavel") && <TableHead style={{ order: getColumnOrder("responsavel") }}>Responsável</TableHead>}
                       {isColumnVisible("nome") && <TableHead style={{ order: getColumnOrder("nome") }}>Nome do Cliente</TableHead>}
                       {isColumnVisible("contato") && <TableHead style={{ order: getColumnOrder("contato") }}>Contato WhatsApp/@</TableHead>}
                       {isColumnVisible("email") && <TableHead style={{ order: getColumnOrder("email") }}>Email</TableHead>}
+                      {isColumnVisible("responsavel") && <TableHead style={{ order: getColumnOrder("responsavel") }}>Responsável</TableHead>}
                       {isColumnVisible("origem") && <TableHead style={{ order: getColumnOrder("origem") }}>Origem</TableHead>}
-                      {isColumnVisible("procedimento") && <TableHead style={{ order: getColumnOrder("procedimento") }}>Procedimento / Interesse</TableHead>}
-                      {isColumnVisible("status") && <TableHead style={{ order: getColumnOrder("status") }}>Status</TableHead>}
-                      {isColumnVisible("dataUltimoContato") && <TableHead style={{ order: getColumnOrder("dataUltimoContato") }}>Data Último Contato</TableHead>}
-                      {isColumnVisible("dataAgendamento") && <TableHead style={{ order: getColumnOrder("dataAgendamento") }}>Data Agendamento (quando marcou)</TableHead>}
-                      {isColumnVisible("dataAvaliacao") && <TableHead style={{ order: getColumnOrder("dataAvaliacao") }}>Data Avaliação (dia marcado)</TableHead>}
-                      {isColumnVisible("dataProcedimento") && <TableHead style={{ order: getColumnOrder("dataProcedimento") }}>Data Procedimento</TableHead>}
-                      {isColumnVisible("compareceu") && <TableHead style={{ order: getColumnOrder("compareceu") }}>Compareceu?</TableHead>}
-                      {isColumnVisible("dataFechamento") && <TableHead style={{ order: getColumnOrder("dataFechamento") }}>Data Fechamento</TableHead>}
-                      {isColumnVisible("valorFechado") && <TableHead style={{ order: getColumnOrder("valorFechado") }}>Valor Fechado (R$)</TableHead>}
                       {isColumnVisible("dataNascimento") && <TableHead style={{ order: getColumnOrder("dataNascimento") }}>Data de Nascimento</TableHead>}
                       {isColumnVisible("cpf") && <TableHead style={{ order: getColumnOrder("cpf") }}>CPF</TableHead>}
                       {isColumnVisible("cep") && <TableHead style={{ order: getColumnOrder("cep") }}>CEP</TableHead>}
-                      {isColumnVisible("endereco") && <TableHead style={{ order: getColumnOrder("endereco") }}>Endereço</TableHead>}
                       {isColumnVisible("numero") && <TableHead style={{ order: getColumnOrder("numero") }}>Número</TableHead>}
+                      {isColumnVisible("endereco") && <TableHead style={{ order: getColumnOrder("endereco") }}>Endereço</TableHead>}
                       {isColumnVisible("bairro") && <TableHead style={{ order: getColumnOrder("bairro") }}>Bairro</TableHead>}
                       {isColumnVisible("cidade") && <TableHead style={{ order: getColumnOrder("cidade") }}>Cidade</TableHead>}
                       {isColumnVisible("estado") && <TableHead style={{ order: getColumnOrder("estado") }}>Estado</TableHead>}
                       {isColumnVisible("complemento") && <TableHead style={{ order: getColumnOrder("complemento") }}>Complemento</TableHead>}
-                      {isColumnVisible("tags") && <TableHead style={{ order: getColumnOrder("tags") }}>Tags</TableHead>}
-                      {isColumnVisible("observacao") && <TableHead style={{ order: getColumnOrder("observacao") }}>Objeção / Observação</TableHead>}
                       {isColumnVisible("acoes") && <TableHead className="w-[1%] whitespace-nowrap text-right" style={{ order: getColumnOrder("acoes") }}>Ações</TableHead>}
                     </TableRow>
                   </TableHeader>
