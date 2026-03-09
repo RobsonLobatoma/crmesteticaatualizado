@@ -344,6 +344,7 @@ const LeadsV2Page = () => {
       await createLead({
         nome: newLead.nome,
         contato: newLead.contato,
+        email: normalize(newLead.email),
         responsavel: normalize(newLead.responsavel) || "-",
         origem: normalize(newLead.origem) || "Manual",
         procedimento: normalize(newLead.procedimento),
@@ -817,6 +818,7 @@ const LeadsV2Page = () => {
                         <TableHead className="text-[11px] w-12 text-center">#</TableHead>
                         <TableHead className="text-[11px]">Nome</TableHead>
                         <TableHead className="text-[11px]">Contato</TableHead>
+                        <TableHead className="text-[11px]">Email</TableHead>
                         <TableHead className="text-[11px]">Responsável</TableHead>
                         <TableHead className="text-[11px]">Origem</TableHead>
                         <TableHead className="text-[11px]">Status</TableHead>
@@ -835,6 +837,7 @@ const LeadsV2Page = () => {
                             </TableCell>
                             <TableCell className="text-[11px] font-medium">{lead.nome}</TableCell>
                             <TableCell className="text-[11px]">{lead.contato}</TableCell>
+                            <TableCell className="text-[11px]">{lead.email || "-"}</TableCell>
                             <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
                             <TableCell className="text-[11px]">{lead.origem}</TableCell>
                             <TableCell className="text-[11px]">
@@ -1072,6 +1075,7 @@ const LeadsV2Page = () => {
                     `#${idx + 1}`,
                     `Nome: ${lead.nome}`,
                     `Contato: ${lead.contato}`,
+                    `Email: ${lead.email || '-'}`,
                     `Responsável: ${lead.responsavel || '-'}`,
                     `Origem: ${lead.origem || '-'}`,
                     `Procedimento: ${lead.procedimento || '-'}`,
@@ -1123,6 +1127,7 @@ const LeadsV2Page = () => {
                       {isColumnVisible("responsavel") && <TableHead style={{ order: getColumnOrder("responsavel") }}>Responsável</TableHead>}
                       {isColumnVisible("nome") && <TableHead style={{ order: getColumnOrder("nome") }}>Nome do Cliente</TableHead>}
                       {isColumnVisible("contato") && <TableHead style={{ order: getColumnOrder("contato") }}>Contato WhatsApp/@</TableHead>}
+                      {isColumnVisible("email") && <TableHead style={{ order: getColumnOrder("email") }}>Email</TableHead>}
                       {isColumnVisible("origem") && <TableHead style={{ order: getColumnOrder("origem") }}>Origem</TableHead>}
                       {isColumnVisible("procedimento") && <TableHead style={{ order: getColumnOrder("procedimento") }}>Procedimento / Interesse</TableHead>}
                       {isColumnVisible("status") && <TableHead style={{ order: getColumnOrder("status") }}>Status</TableHead>}
@@ -1214,6 +1219,20 @@ const LeadsV2Page = () => {
                                 />
                               ) : (
                                 current.contato
+                              )}
+                            </TableCell>
+                          )}
+                          {isColumnVisible("email") && (
+                            <TableCell className="whitespace-nowrap text-xs" style={{ order: getColumnOrder("email") }}>
+                              {isEditing ? (
+                                <Input
+                                  type="email"
+                                  className="h-8 text-xs"
+                                  value={current.email || ""}
+                                  onChange={(e) => handleEditingChange("email", e.target.value)}
+                                />
+                              ) : (
+                                current.email || "-"
                               )}
                             </TableCell>
                           )}
