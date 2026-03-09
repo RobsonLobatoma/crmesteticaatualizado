@@ -333,10 +333,8 @@ const ClientePotencialV2Page = () => {
         
         <TabsContent value="conversa">
           <AbaChatConversa
-            mensagens={mensagens}
-            novaMensagem={novaMensagem}
-            setNovaMensagem={setNovaMensagem}
-            onEnviar={enviarMensagem}
+            telefone={clienteData.telefone}
+            nomeCliente={clienteData.nome}
           />
         </TabsContent>
         
