@@ -1359,53 +1359,6 @@ const LeadsV2Page = () => {
                               )}
                             </TableCell>
                           )}
-                          {isColumnVisible("tags") && (
-                            <TableCell className="whitespace-nowrap text-xs" style={{ order: getColumnOrder("tags") }}>
-                              {isEditing ? (
-                                <TagsSelector
-                                  availableTags={availableTags}
-                                  selectedTagIds={editingTags}
-                                  onChange={setEditingTags}
-                                  className="w-[200px]"
-                                />
-                              ) : (
-                                <TagsBadges tags={availableTags} tagIds={current.tags || []} maxVisible={2} size="xs" />
-                              )}
-                            </TableCell>
-                          )}
-                          {isColumnVisible("observacao") && (
-                            <TableCell className="max-w-[220px] text-xs text-muted-foreground" style={{ order: getColumnOrder("observacao") }}>
-                              {isEditing ? (
-                                <Input
-                                  className="h-8 text-xs"
-                                  value={current.observacao || ""}
-                                  onChange={(e) => handleEditingChange("observacao", e.target.value)}
-                                />
-                              ) : current.observacao ? (
-                                <TooltipProvider>
-                                  <Tooltip delayDuration={200}>
-                                    <TooltipTrigger asChild>
-                                      <span 
-                                        className="block truncate cursor-help" 
-                                        title={current.observacao}
-                                      >
-                                        {current.observacao}
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent 
-                                      side="top" 
-                                      align="center"
-                                      className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
-                                    >
-                                      <p className="text-xs">{current.observacao}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </TableCell>
-                          )}
                           {isColumnVisible("acoes") && (
                             <TableCell className="whitespace-nowrap text-right" style={{ order: getColumnOrder("acoes") }}>
                               {isEditing ? (
