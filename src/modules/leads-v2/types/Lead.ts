@@ -43,6 +43,7 @@ export interface Lead {
 export interface CreateLeadDTO {
   nome: string;
   contato: string;
+  email?: string;
   responsavel?: string;
   origem?: string;
   procedimento?: string;

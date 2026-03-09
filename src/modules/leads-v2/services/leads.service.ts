@@ -147,6 +147,7 @@ class LeadsService {
       ...("responsavel" in rest && { responsavel: rest.responsavel }),
       ...("nome" in rest && { nome: rest.nome }),
       ...("contato" in rest && { contato: rest.contato }),
+      ...("email" in rest && { email: rest.email }),
       ...("origem" in rest && { origem: rest.origem }),
       ...("procedimento" in rest && { procedimento: rest.procedimento }),
       ...("status" in rest && { status: rest.status }),
