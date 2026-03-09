@@ -319,7 +319,15 @@ const ClientePotencialV2Page = () => {
         </TabsContent>
         
         <TabsContent value="historico">
-          <AbaHistorico historico={historico} />
+          <AbaHistorico historico={history.map(h => ({
+            id: h.id,
+            clienteId: h.crm_client_id || '',
+            tipo: h.tipo as any,
+            descricao: h.descricao,
+            usuario: h.usuario,
+            dataHora: h.created_at,
+            detalhes: h.detalhes as any,
+          }))} />
         </TabsContent>
         
         <TabsContent value="dados">
