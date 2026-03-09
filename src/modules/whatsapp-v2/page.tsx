@@ -23,6 +23,7 @@ import { useSendMessage } from "./hooks/useSendMessage";
 import { useWhatsappTemplates } from "./hooks/useWhatsappTemplates";
 import { useCRMClients } from "@/modules/kanbam-v2/hooks/useCRMClients";
 import { useCRMStatuses } from "@/modules/kanbam-v2/hooks/useCRMStatuses";
+import { useCRMResponsibles } from "@/modules/kanbam-v2/hooks/useCRMResponsibles";
 import { useLeads } from "@/modules/leads-v2/hooks/useLeads";
 import { useLeadTags } from "@/modules/leads-v2/hooks/useLeadTags";
 import { fetchAddressByCep, formatCep, formatCpf } from "@/modules/leads-v2/utils/cepUtils";
