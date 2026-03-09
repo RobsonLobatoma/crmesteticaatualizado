@@ -88,10 +88,16 @@ export const CartaoCliente = ({ cliente }: CartaoClienteProps) => {
             </div>
           </div>
 
-          {/* Última mensagem */}
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {cliente.ultimaMensagem}
-          </p>
+          {/* Observações */}
+          {cliente.observacoes ? (
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              {cliente.observacoes}
+            </p>
+          ) : cliente.ultimaMensagem ? (
+            <p className="text-xs text-muted-foreground line-clamp-2">
+              {cliente.ultimaMensagem}
+            </p>
+          ) : null}
 
           {/* Footer */}
           <div className="flex flex-col gap-1.5 pt-1.5 border-t border-border/30 mt-1">
