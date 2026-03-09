@@ -817,6 +817,7 @@ const LeadsV2Page = () => {
                         <TableHead className="text-[11px] w-12 text-center">#</TableHead>
                         <TableHead className="text-[11px]">Nome</TableHead>
                         <TableHead className="text-[11px]">Contato</TableHead>
+                        <TableHead className="text-[11px]">Email</TableHead>
                         <TableHead className="text-[11px]">Responsável</TableHead>
                         <TableHead className="text-[11px]">Origem</TableHead>
                         <TableHead className="text-[11px]">Status</TableHead>
