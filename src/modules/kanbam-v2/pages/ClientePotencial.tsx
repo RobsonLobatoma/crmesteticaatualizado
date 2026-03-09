@@ -10,13 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Mensagem, EventoHistorico } from '@/types/crm';
 import { AbaChatConversa } from '@/components/crm/AbaChatConversa';
 import { AbaHistorico } from '@/components/crm/AbaHistorico';
 import { AbaDados } from '@/components/crm/AbaDados';
 import { useToast } from '@/hooks/use-toast';
 import { useCRMClients } from '../hooks/useCRMClients';
 import { useCRMStatuses } from '../hooks/useCRMStatuses';
+import { useCRMHistory } from '../hooks/useCRMHistory';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const ClientePotencialV2Page = () => {
