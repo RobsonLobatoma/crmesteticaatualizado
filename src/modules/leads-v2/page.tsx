@@ -1123,6 +1123,7 @@ const LeadsV2Page = () => {
                       {isColumnVisible("responsavel") && <TableHead style={{ order: getColumnOrder("responsavel") }}>Responsável</TableHead>}
                       {isColumnVisible("nome") && <TableHead style={{ order: getColumnOrder("nome") }}>Nome do Cliente</TableHead>}
                       {isColumnVisible("contato") && <TableHead style={{ order: getColumnOrder("contato") }}>Contato WhatsApp/@</TableHead>}
+                      {isColumnVisible("email") && <TableHead style={{ order: getColumnOrder("email") }}>Email</TableHead>}
                       {isColumnVisible("origem") && <TableHead style={{ order: getColumnOrder("origem") }}>Origem</TableHead>}
                       {isColumnVisible("procedimento") && <TableHead style={{ order: getColumnOrder("procedimento") }}>Procedimento / Interesse</TableHead>}
                       {isColumnVisible("status") && <TableHead style={{ order: getColumnOrder("status") }}>Status</TableHead>}
