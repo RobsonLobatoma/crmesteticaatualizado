@@ -821,10 +821,15 @@ const LeadsV2Page = () => {
                         <TableHead className="text-[11px]">Email</TableHead>
                         <TableHead className="text-[11px]">Responsável</TableHead>
                         <TableHead className="text-[11px]">Origem</TableHead>
-                        <TableHead className="text-[11px]">Status</TableHead>
-                        <TableHead className="text-[11px]">Tags</TableHead>
-                        <TableHead className="text-[11px]">Data entrada</TableHead>
-                        <TableHead className="text-[11px]" title="Objeção / Observação">Obs.</TableHead>
+                        <TableHead className="text-[11px]">Data Nascimento</TableHead>
+                        <TableHead className="text-[11px]">CPF</TableHead>
+                        <TableHead className="text-[11px]">CEP</TableHead>
+                        <TableHead className="text-[11px]">Número</TableHead>
+                        <TableHead className="text-[11px]">Endereço</TableHead>
+                        <TableHead className="text-[11px]">Bairro</TableHead>
+                        <TableHead className="text-[11px]">Cidade</TableHead>
+                        <TableHead className="text-[11px]">Estado</TableHead>
+                        <TableHead className="text-[11px]">Complemento</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -840,34 +845,15 @@ const LeadsV2Page = () => {
                             <TableCell className="text-[11px]">{lead.email || "-"}</TableCell>
                             <TableCell className="text-[11px]">{lead.responsavel}</TableCell>
                             <TableCell className="text-[11px]">{lead.origem}</TableCell>
-                            <TableCell className="text-[11px]">
-                              <Badge variant="outline" className="text-[10px]">
-                                {lead.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-[11px]">
-                              <TagsBadges tags={availableTags} tagIds={lead.tags || []} maxVisible={2} size="xs" />
-                            </TableCell>
-                            <TableCell className="text-[11px]">{lead.dataEntrada}</TableCell>
-                            <TableCell className="text-[11px] max-w-[120px]">
-                              {lead.observacao ? (
-                                <Tooltip delayDuration={200}>
-                                  <TooltipTrigger asChild>
-                                    <span className="block truncate cursor-help">
-                                      {lead.observacao}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent 
-                                    side="top" 
-                                    align="center"
-                                    className="z-[9999] max-w-[320px] max-h-[200px] overflow-auto whitespace-pre-wrap break-words"
-                                  >
-                                    <p className="text-xs">{lead.observacao}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
+                            <TableCell className="text-[11px]">{lead.dataNascimento || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.cpf || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.cep || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.numero || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.endereco || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.bairro || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.cidade || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.estado || "-"}</TableCell>
+                            <TableCell className="text-[11px]">{lead.complemento || "-"}</TableCell>
                             </TableCell>
                           </TableRow>
                         );
