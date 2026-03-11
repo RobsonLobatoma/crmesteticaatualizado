@@ -225,7 +225,7 @@ const PainelV2Page = () => {
   }
 
   return (
-    <div className="flex-1 px-4 pt-6 lg:px-8 flex flex-col">
+    <div className="flex-1 px-4 pt-3 lg:px-8 flex flex-col">
       {/* Header compacto com título + métricas inline */}
       <div className="flex items-center justify-between mb-3">
         <div>
