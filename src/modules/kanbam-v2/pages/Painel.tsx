@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ClientePotencial, FiltrosKanban as FiltrosKanbanType } from '@/types/crm';
 import { ColunaKanban } from '@/components/crm/ColunaKanban';
@@ -226,109 +225,82 @@ const PainelV2Page = () => {
   }
 
   return (
-    <div className="flex-1 px-4 pt-6 lg:px-8 flex flex-col">
-      {/* Painéis de métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Clientes ativos */}
-        <Card className="border border-border/80">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Clientes ativos</CardTitle>
-              <Badge variant="secondary" className="text-[10px]">AO VIVO</Badge>
-            </div>
-            <p className="text-xs text-muted-foreground">Total de clientes no quadro</p>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">{clientesFiltrados.length}</span>
-          </CardContent>
-        </Card>
-
-        {/* Taxa de conversão */}
-        <Card className="border border-border/80">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Taxa de conversão</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <p className="text-xs text-muted-foreground">Estimativa com base nos últimos 30 dias.</p>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold">{conversionStats.rate}%</span>
-              {!conversionStats.hasData && (
-                <span className="text-xs text-muted-foreground">Sem dados suficientes</span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Agenda da semana */}
-        <Card className="border border-border/80">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Agenda da semana</CardTitle>
-              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <p className="text-xs text-muted-foreground">Resumo rápido dos agendamentos originados dos leads.</p>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-4">
-              <span className="text-3xl font-bold">{weekStats.confirmed}</span>
-              <span className="text-sm text-muted-foreground">consultas confirmadas</span>
-            </div>
-            <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-              <span className="text-primary">{weekStats.evaluations} avaliações</span>
-              <span>{weekStats.returns} retornos</span>
-              <span>{weekStats.closings} novos fechamentos</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mb-6 flex items-center justify-between">
+    <div className="flex-1 px-4 pt-3 lg:px-8 flex flex-col">
+      {/* Header compacto com título + métricas inline */}
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <h1 className="text-3xl font-bold">Quadro de Atendimento</h1>
-          <p className="text-muted-foreground">Gerencie seus leads através do funil de vendas</p>
+          <h1 className="text-2xl font-bold leading-tight">Quadro de Atendimento</h1>
+          <p className="text-xs text-muted-foreground">Gerencie seus leads através do funil de vendas</p>
         </div>
         
         {/* Filtro de data */}
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 gap-2">
-                <CalendarIcon className="h-4 w-4" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "dd/MM/yy", { locale: ptBR })} - {format(dateRange.to, "dd/MM/yy", { locale: ptBR })}
-                    </>
-                  ) : (
-                    format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
-                  )
-                ) : (
-                  "Filtrar por data"
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
-                locale={ptBR}
-                numberOfMonths={2}
-              />
-              <div className="p-3 border-t flex justify-end gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDateRange({ from: undefined, to: undefined })}
-                >
-                  Limpar
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+              <CalendarIcon className="h-3.5 w-3.5" />
+              {dateRange.from ? (
+                dateRange.to ? (
+                  <>{format(dateRange.from, "dd/MM/yy", { locale: ptBR })} - {format(dateRange.to, "dd/MM/yy", { locale: ptBR })}</>
+                ) : format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+              ) : "Filtrar por data"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+              locale={ptBR}
+              numberOfMonths={2}
+            />
+            <div className="p-3 border-t flex justify-end">
+              <Button variant="ghost" size="sm" onClick={() => setDateRange({ from: undefined, to: undefined })}>Limpar</Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Métricas compactas em linha */}
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-card px-4 py-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Clientes ativos</span>
+              <Badge variant="secondary" className="text-[9px] px-1.5 py-0">AO VIVO</Badge>
+            </div>
+            <span className="text-2xl font-bold leading-tight">{clientesFiltrados.length}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-card px-4 py-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Conversão (30d)</span>
+              <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold leading-tight">{conversionStats.rate}%</span>
+              {!conversionStats.hasData && <span className="text-[10px] text-muted-foreground">Sem dados</span>}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-card px-4 py-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Agenda da semana</span>
+              <CalendarCheck className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold leading-tight">{weekStats.confirmed}</span>
+              <span className="text-[10px] text-muted-foreground">confirmadas</span>
+            </div>
+            <div className="flex gap-2 text-[10px] text-muted-foreground">
+              <span className="text-primary">{weekStats.evaluations} aval.</span>
+              <span>{weekStats.returns} ret.</span>
+              <span>{weekStats.closings} fech.</span>
+            </div>
+          </div>
         </div>
       </div>
 
