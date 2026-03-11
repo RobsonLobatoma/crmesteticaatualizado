@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ClientePotencial, FiltrosKanban as FiltrosKanbanType } from '@/types/crm';
 import { ColunaKanban } from '@/components/crm/ColunaKanban';
