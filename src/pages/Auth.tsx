@@ -105,12 +105,25 @@ const AuthPage = () => {
     setLoadingAction(false);
 
     if (error) {
+      const message = error.message || "";
+      let description =
+        message ||
+        "Verifique os dados informados ou se o e-mail já está cadastrado e tente novamente.";
+
+      if (/failed to fetch|network/i.test(message)) {
+        description =
+          "Não foi possível conectar ao servidor de autenticação. Verifique sua conexão e tente novamente em alguns instantes.";
+      } else if (/already registered|already exists|user already/i.test(message)) {
+        description = "Este e-mail já está cadastrado. Tente entrar ou recuperar a senha.";
+      } else if (/signups? (are )?disabled/i.test(message)) {
+        description =
+          "O cadastro por e-mail está desativado no momento. Contate o administrador.";
+      }
+
       toast({
         variant: "destructive",
         title: "Não foi possível criar a conta",
-        description:
-          error.message ||
-          "Verifique os dados informados ou se o e-mail já está cadastrado e tente novamente.",
+        description,
       });
       return;
     }
@@ -153,12 +166,16 @@ const AuthPage = () => {
     setLoadingAction(false);
 
     if (error) {
+      const message = error.message || "";
+      const description = /provider is not enabled|unsupported provider/i.test(message)
+        ? "O login com Google ainda não foi habilitado. Use o cadastro por e-mail e senha ou contate o administrador."
+        : message ||
+          "Verifique a configuração de login com Google no Supabase e tente novamente.";
+
       toast({
         variant: "destructive",
         title: "Não foi possível conectar com o Google",
-        description:
-          error.message ||
-          "Verifique a configuração de login com Google no Supabase e tente novamente.",
+        description,
       });
     }
   };
