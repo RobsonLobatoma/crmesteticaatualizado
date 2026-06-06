@@ -1,71 +1,17 @@
+Plano para corrigir o cadastro com e-mail e senha:
 
+1. Ajustar a conexão Supabase no frontend
+   - Trocar o cliente Supabase para usar `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` do ambiente conectado, em vez de valores fixos no código.
+   - Adicionar uma validação clara caso as variáveis estejam ausentes, evitando erro genérico `Failed to fetch`.
 
-# Plano: Auto-envio de novos contatos ao Kanban + Botão manual
+2. Corrigir o fluxo de criação de conta
+   - Revisar `AuthProvider` e garantir que `signUp` use o redirect correto para o app atual.
+   - Melhorar o tratamento de erro para exibir mensagens úteis quando o Supabase bloquear cadastro, e-mail/senha estiver desativado ou houver problema de conexão.
 
-## Objetivo
-1. Quando novos contatos (telefones inéditos) aparecerem na lista de chats do WhatsApp, criar automaticamente um card no Kanban com status "novo" (slug do primeiro status ativo ou fallback para "novo").
-2. Adicionar botão "Enviar ao Kanban" no card "Resumo do lead" para envio manual.
+3. Separar o problema do Google
+   - O erro do print `Unsupported provider: provider is not enabled` vem do botão “Continuar com Google”, não do cadastro por e-mail.
+   - Vou ocultar/desativar esse botão ou alterar a mensagem enquanto o Google não estiver habilitado no Supabase, para não confundir o usuário.
 
-## Lógica de "novo contato" vs "conversa nova"
-- A cada fetch de chats, comparar os telefones retornados com os telefones já existentes na tabela `crm_clients`.
-- Apenas telefones que **não existem** em `crm_clients` são considerados "novos contatos" e serão inseridos automaticamente.
-- Conversas de contatos já cadastrados no Kanban são ignoradas.
-
-## Mudanças
-
-### 1. `src/modules/whatsapp-v2/hooks/useWhatsappChats.ts`
-- Após o fetch de chats, consultar `crm_clients` filtrando pelos telefones retornados.
-- Para cada telefone que **não** existe em `crm_clients`, inserir automaticamente um novo registro com:
-  - `nome`: leadName ou phoneNumber
-  - `telefone`: phoneNumber
-  - `status`: slug do primeiro `crm_statuses` ativo (ou "novo")
-  - `origem`: "WhatsApp"
-  - `user_id`: auth.uid()
-- Invalidar queryKey `['crm-clients']` após inserções.
-- Retornar flag ou callback para saber quais contatos já estão no Kanban.
-
-### 2. `src/modules/whatsapp-v2/page.tsx`
-- Importar `useCRMClients` e `useCRMStatuses`.
-- No card "Resumo do lead" (coluna 3), adicionar botão **"Enviar ao Kanban"**:
-  - Verifica se o telefone do chat selecionado já existe em `crm_clients`.
-  - Se já existe, mostra badge "Já no Kanban" (botão desabilitado).
-  - Se não existe, ao clicar insere o contato no Kanban com status "novo".
-- Toast de confirmação após envio.
-
-### 3. Nenhuma migração necessária
-- A tabela `crm_clients` já possui todos os campos necessários (nome, telefone, status, origem, user_id).
-- A tabela `crm_statuses` já existe para buscar o slug do primeiro status.
-
-## Arquivos a modificar
-
-| Arquivo | Mudança |
-|---------|---------|
-| `src/modules/whatsapp-v2/hooks/useWhatsappChats.ts` | Adicionar auto-sync de novos contatos para `crm_clients` |
-| `src/modules/whatsapp-v2/page.tsx` | Adicionar botão "Enviar ao Kanban" no resumo do lead |
-
-## Fluxo
-
-```text
-Fetch chats (Evolution API)
-       ↓
-Extrair telefones únicos
-       ↓
-Consultar crm_clients por esses telefones
-       ↓
-Telefones ausentes = novos contatos
-       ↓
-INSERT automático no crm_clients (status: "novo", origem: "WhatsApp")
-       ↓
-Invalidar cache ['crm-clients']
-```
-
-Para o botão manual:
-```text
-Usuário seleciona chat → Clica "Enviar ao Kanban"
-       ↓
-Verifica se telefone já existe em crm_clients
-       ↓
-Se não existe → INSERT → Toast sucesso
-Se já existe → Toast "Já está no Kanban"
-```
-
+4. Validar o resultado
+   - Conferir se o app passa a chamar o Supabase correto no cadastro.
+   - Verificar que o erro visual deixa de ser apenas `Failed to fetch` e que o fluxo de cadastro por e-mail/senha fica funcional ou mostra a configuração pendente correta.
