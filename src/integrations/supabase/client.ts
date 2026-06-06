@@ -2,8 +2,18 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://rodzbkkcjdubduugovpk.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZHpia2tjamR1YmR1dWdvdnBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1MTE4NTEsImV4cCI6MjA4MjA4Nzg1MX0.73_c9ChKPTj_j9y3rLar5hVnDZr1Ssnq91M86aJo-_c";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "https://rodzbkkcjdubduugovpk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZHpia2tjamR1YmR1dWdvdnBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1MTE4NTEsImV4cCI6MjA4MjA4Nzg1MX0.73_c9ChKPTj_j9y3rLar5hVnDZr1Ssnq91M86aJo-_c";
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  // Loga uma mensagem clara em vez de deixar a aplicação falhar com "Failed to fetch"
+  // eslint-disable-next-line no-console
+  console.error(
+    "[Supabase] VITE_SUPABASE_URL ou VITE_SUPABASE_PUBLISHABLE_KEY não estão configurados.",
+  );
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
