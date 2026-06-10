@@ -273,31 +273,9 @@ export function useSuperAdmin() {
 
   const deleteUser = async (userId: string): Promise<boolean> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Sessão expirada. Faça login novamente.");
-        return false;
-      }
-
-      const response = await fetch(
-        `https://ulzeeekfkgdhoojbiioo.supabase.co/functions/v1/delete-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsemVlZWtma2dkaG9vamJpaW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzE3MTcsImV4cCI6MjA4MjA0NzcxN30.05ykiyGs_DVmyvJAQ5Ej_cSUFNzH1HdlSXMFHqgLfno",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Erro ao remover usuário");
-      }
-
+      const { data, error } = await supabase.functions.invoke("delete-user", { body: { userId } });
+      if (error) throw new Error(error.message || "Erro ao remover usuário");
+      if ((data as any)?.error) throw new Error((data as any).error);
       toast.success("Usuário removido com sucesso");
       await fetchUsers();
       return true;
@@ -310,31 +288,9 @@ export function useSuperAdmin() {
 
   const toggleUserStatus = async (userId: string, action: 'ban' | 'unban'): Promise<boolean> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Sessão expirada. Faça login novamente.");
-        return false;
-      }
-
-      const response = await fetch(
-        `https://ulzeeekfkgdhoojbiioo.supabase.co/functions/v1/toggle-user-status`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsemVlZWtma2dkaG9vamJpaW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzE3MTcsImV4cCI6MjA4MjA0NzcxN30.05ykiyGs_DVmyvJAQ5Ej_cSUFNzH1HdlSXMFHqgLfno",
-          },
-          body: JSON.stringify({ userId, action }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Erro ao alterar status do usuário");
-      }
-
+      const { data, error } = await supabase.functions.invoke("toggle-user-status", { body: { userId, action } });
+      if (error) throw new Error(error.message || "Erro ao alterar status do usuário");
+      if ((data as any)?.error) throw new Error((data as any).error);
       toast.success(action === 'ban' ? "Usuário pausado com sucesso" : "Acesso do usuário reativado");
       await fetchUsers();
       return true;
@@ -343,6 +299,7 @@ export function useSuperAdmin() {
       toast.error(error?.message || "Erro ao alterar status do usuário");
       return false;
     }
+
   };
 
   return {
