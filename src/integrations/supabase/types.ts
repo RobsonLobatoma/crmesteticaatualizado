@@ -14,16 +14,985 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      appointment_sales: {
+        Row: {
+          amount: number
+          appointment_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_sales_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          duration_minutes: number
+          equipment_id: string | null
+          id: string
+          notes: string | null
+          professional_id: string | null
+          recurrence_type: string | null
+          room_id: string | null
+          send_sms: boolean | null
+          service_id: string | null
+          service_ids: string[] | null
+          start_datetime: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          duration_minutes?: number
+          equipment_id?: string | null
+          id?: string
+          notes?: string | null
+          professional_id?: string | null
+          recurrence_type?: string | null
+          room_id?: string | null
+          send_sms?: boolean | null
+          service_id?: string | null
+          service_ids?: string[] | null
+          start_datetime: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          duration_minutes?: number
+          equipment_id?: string | null
+          id?: string
+          notes?: string | null
+          professional_id?: string | null
+          recurrence_type?: string | null
+          room_id?: string | null
+          send_sms?: boolean | null
+          service_id?: string | null
+          service_ids?: string[] | null
+          start_datetime?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crm_clients: {
+        Row: {
+          created_at: string
+          data_criacao: string
+          email: string | null
+          horario_ultima_mensagem: string | null
+          id: string
+          lead_id: string | null
+          mensagens_nao_lidas: number
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          responsavel: string | null
+          status: string
+          tags: string[] | null
+          telefone: string
+          total_mensagens: number
+          ultima_interacao: string
+          ultima_mensagem: string | null
+          updated_at: string
+          urgente: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_criacao?: string
+          email?: string | null
+          horario_ultima_mensagem?: string | null
+          id?: string
+          lead_id?: string | null
+          mensagens_nao_lidas?: number
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel?: string | null
+          status?: string
+          tags?: string[] | null
+          telefone: string
+          total_mensagens?: number
+          ultima_interacao?: string
+          ultima_mensagem?: string | null
+          updated_at?: string
+          urgente?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_criacao?: string
+          email?: string | null
+          horario_ultima_mensagem?: string | null
+          id?: string
+          lead_id?: string | null
+          mensagens_nao_lidas?: number
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          responsavel?: string | null
+          status?: string
+          tags?: string[] | null
+          telefone?: string
+          total_mensagens?: number
+          ultima_interacao?: string
+          ultima_mensagem?: string | null
+          updated_at?: string
+          urgente?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_clients_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_history: {
+        Row: {
+          created_at: string
+          crm_client_id: string | null
+          descricao: string
+          detalhes: Json | null
+          id: string
+          lead_id: string | null
+          tipo: string
+          user_id: string
+          usuario: string | null
+        }
+        Insert: {
+          created_at?: string
+          crm_client_id?: string | null
+          descricao: string
+          detalhes?: Json | null
+          id?: string
+          lead_id?: string | null
+          tipo: string
+          user_id: string
+          usuario?: string | null
+        }
+        Update: {
+          created_at?: string
+          crm_client_id?: string | null
+          descricao?: string
+          detalhes?: Json | null
+          id?: string
+          lead_id?: string | null
+          tipo?: string
+          user_id?: string
+          usuario?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_history_crm_client_id_fkey"
+            columns: ["crm_client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_responsibles: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crm_statuses: {
+        Row: {
+          color: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      equipments: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lead_tags: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          compareceu: string | null
+          complemento: string | null
+          contato: string
+          cpf: string | null
+          created_at: string
+          data: string | null
+          data_agendamento: string | null
+          data_avaliacao: string | null
+          data_entrada: string | null
+          data_fechamento: string | null
+          data_nascimento: string | null
+          data_procedimento: string | null
+          data_ultimo_contato: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          nome: string
+          numero: string | null
+          observacao: string | null
+          origem: string | null
+          procedimento: string | null
+          responsavel: string | null
+          status: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+          valor_fechado: string | null
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          compareceu?: string | null
+          complemento?: string | null
+          contato: string
+          cpf?: string | null
+          created_at?: string
+          data?: string | null
+          data_agendamento?: string | null
+          data_avaliacao?: string | null
+          data_entrada?: string | null
+          data_fechamento?: string | null
+          data_nascimento?: string | null
+          data_procedimento?: string | null
+          data_ultimo_contato?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome: string
+          numero?: string | null
+          observacao?: string | null
+          origem?: string | null
+          procedimento?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+          valor_fechado?: string | null
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          compareceu?: string | null
+          complemento?: string | null
+          contato?: string
+          cpf?: string | null
+          created_at?: string
+          data?: string | null
+          data_agendamento?: string | null
+          data_avaliacao?: string | null
+          data_entrada?: string | null
+          data_fechamento?: string | null
+          data_nascimento?: string | null
+          data_procedimento?: string | null
+          data_ultimo_contato?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome?: string
+          numero?: string | null
+          observacao?: string | null
+          origem?: string | null
+          procedimento?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+          valor_fechado?: string | null
+        }
+        Relationships: []
+      }
+      lesson_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          lesson_id: string
+          updated_at: string
+          user_id: string
+          watched_seconds: number | null
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          lesson_id: string
+          updated_at?: string
+          user_id: string
+          watched_seconds?: number | null
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          updated_at?: string
+          user_id?: string
+          watched_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          duration: string | null
+          id: string
+          is_active: boolean
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          video_type: string | null
+          youtube_url: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration?: string | null
+          id?: string
+          is_active?: boolean
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          video_type?: string | null
+          youtube_url: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration?: string | null
+          id?: string
+          is_active?: boolean
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          video_type?: string | null
+          youtube_url?: string
+        }
+        Relationships: []
+      }
+      playbook_messages: {
+        Row: {
+          acao: string | null
+          categoria: string | null
+          category: string
+          created_at: string
+          depoimento: string | null
+          display_order: number
+          estrategia: string | null
+          etapa: string | null
+          id: string
+          is_active: boolean
+          objecao: string | null
+          objecao_comum: string | null
+          objetivo: string | null
+          observacao: string | null
+          pergunta: string | null
+          script: string | null
+          script_exemplo: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acao?: string | null
+          categoria?: string | null
+          category: string
+          created_at?: string
+          depoimento?: string | null
+          display_order?: number
+          estrategia?: string | null
+          etapa?: string | null
+          id?: string
+          is_active?: boolean
+          objecao?: string | null
+          objecao_comum?: string | null
+          objetivo?: string | null
+          observacao?: string | null
+          pergunta?: string | null
+          script?: string | null
+          script_exemplo?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acao?: string | null
+          categoria?: string | null
+          category?: string
+          created_at?: string
+          depoimento?: string | null
+          display_order?: number
+          estrategia?: string | null
+          etapa?: string | null
+          id?: string
+          is_active?: boolean
+          objecao?: string | null
+          objecao_comum?: string | null
+          objetivo?: string | null
+          observacao?: string | null
+          pergunta?: string | null
+          script?: string | null
+          script_exemplo?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      professional_absences: {
+        Row: {
+          absence_type: string
+          created_at: string
+          end_date: string
+          end_time: string | null
+          id: string
+          professional_id: string
+          reason: string | null
+          start_date: string
+          start_time: string | null
+          user_id: string
+        }
+        Insert: {
+          absence_type?: string
+          created_at?: string
+          end_date: string
+          end_time?: string | null
+          id?: string
+          professional_id: string
+          reason?: string | null
+          start_date: string
+          start_time?: string | null
+          user_id: string
+        }
+        Update: {
+          absence_type?: string
+          created_at?: string
+          end_date?: string
+          end_time?: string | null
+          id?: string
+          professional_id?: string
+          reason?: string | null
+          start_date?: string
+          start_time?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_absences_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professionals: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          role: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          role?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prontuario: {
+        Row: {
+          conteudo: string | null
+          created_at: string
+          id: string
+          lead_id: string | null
+          profissional: string | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conteudo?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          profissional?: string | null
+          tipo: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conteudo?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          profissional?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prontuario_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_templates: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          trigger_type: string
+          trigger_value: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          trigger_type?: string
+          trigger_value?: string | null
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          trigger_type?: string
+          trigger_value?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +1119,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "admin", "moderator", "user"],
+    },
   },
 } as const
