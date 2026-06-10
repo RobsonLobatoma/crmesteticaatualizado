@@ -38,46 +38,33 @@ export const QRCodeModal = ({ open, onOpenChange, instance, onConnected }: QRCod
     setIsConnected(false);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError("Sessão expirada. Faça login novamente.");
+      const { data, error: invokeError } = await supabase.functions.invoke("evolution-qrcode", {
+        body: {
+          evolutionApiUrl: instance.evolutionApiUrl,
+          evolutionApiKey: instance.evolutionApiKey,
+          instanceName: instance.evolutionInstanceName,
+        },
+      });
+
+      if (invokeError) {
+        setError(invokeError.message || "Erro ao buscar QR Code");
         return;
       }
 
-      const response = await fetch(
-        `https://ulzeeekfkgdhoojbiioo.supabase.co/functions/v1/evolution-qrcode`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            evolutionApiUrl: instance.evolutionApiUrl,
-            evolutionApiKey: instance.evolutionApiKey,
-            instanceName: instance.evolutionInstanceName,
-          }),
-        }
-      );
+      const result = data as QrCodeResponse;
 
-      const data: QrCodeResponse = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Erro ao buscar QR Code");
-        return;
-      }
-
-      if (data.connected) {
+      if (result?.connected) {
         setIsConnected(true);
         onConnected?.();
         return;
       }
 
-      if (data.base64) {
-        setQrCode(data.base64);
-      } else if (data.error) {
-        setError(data.error);
+      if (result?.base64) {
+        setQrCode(result.base64);
+      } else if (result?.error) {
+        setError(result.error);
       } else {
+
         setError("QR Code não disponível");
       }
     } catch (err) {
