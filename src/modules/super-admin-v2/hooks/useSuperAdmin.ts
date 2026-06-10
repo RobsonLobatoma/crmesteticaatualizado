@@ -65,30 +65,15 @@ export function useSuperAdmin() {
 
   const fetchUsersStatus = useCallback(async (): Promise<Record<string, { isBanned: boolean }>> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return {};
-
-      const response = await fetch(
-        `https://ulzeeekfkgdhoojbiioo.supabase.co/functions/v1/get-users-status`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsemVlZWtma2dkaG9vamJpaW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzE3MTcsImV4cCI6MjA4MjA0NzcxN30.05ykiyGs_DVmyvJAQ5Ej_cSUFNzH1HdlSXMFHqgLfno",
-          },
-        }
-      );
-
-      const result = await response.json();
-      if (!response.ok) return {};
-      
-      return result.usersStatus || {};
+      const { data, error } = await supabase.functions.invoke("get-users-status", { body: {} });
+      if (error) return {};
+      return (data as any)?.usersStatus || {};
     } catch (error) {
       console.error("Error fetching users status:", error);
       return {};
     }
   }, []);
+
 
   const fetchUsers = useCallback(async () => {
     try {
