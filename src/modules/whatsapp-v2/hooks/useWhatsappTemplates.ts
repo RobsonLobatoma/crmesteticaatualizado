@@ -113,8 +113,9 @@ export function useWhatsappTemplates() {
 
       const { error } = await supabase
         .from("whatsapp_templates")
-        .update(updateData)
+        .update(updateData as any)
         .eq("id", id);
+
 
       if (error) throw error;
 

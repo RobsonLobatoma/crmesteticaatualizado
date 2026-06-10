@@ -368,6 +368,8 @@ const WhatsappV2Page = () => {
 
       createAppointment({
         equipment_id: null,
+        service_ids: [],
+
         recurrence_parent_id: null,
         recurrence_type: "none",
         room_id: null,

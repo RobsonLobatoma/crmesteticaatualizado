@@ -86,6 +86,7 @@ const AgendaV2Page = () => {
     createAppointment({
       client_id: data.client_id,
       service_id: data.service_id,
+      service_ids: data.service_ids ?? [],
       professional_id: data.professional_id,
       room_id: data.room_id ?? null,
       equipment_id: data.equipment_id ?? null,
@@ -98,6 +99,7 @@ const AgendaV2Page = () => {
       status: data.status,
       send_sms: data.send_sms,
       user_id: "",
+
     }, {
       onSuccess: () => {
         // Navigate to the scheduled date
