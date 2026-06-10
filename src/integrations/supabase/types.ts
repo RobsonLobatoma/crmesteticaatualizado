@@ -84,10 +84,12 @@ export type Database = {
           client_id: string | null
           created_at: string
           duration_minutes: number
+          end_datetime: string | null
           equipment_id: string | null
           id: string
           notes: string | null
           professional_id: string | null
+          recurrence_parent_id: string | null
           recurrence_type: string | null
           room_id: string | null
           send_sms: boolean | null
@@ -102,10 +104,12 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           duration_minutes?: number
+          end_datetime?: string | null
           equipment_id?: string | null
           id?: string
           notes?: string | null
           professional_id?: string | null
+          recurrence_parent_id?: string | null
           recurrence_type?: string | null
           room_id?: string | null
           send_sms?: boolean | null
@@ -120,10 +124,12 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           duration_minutes?: number
+          end_datetime?: string | null
           equipment_id?: string | null
           id?: string
           notes?: string | null
           professional_id?: string | null
+          recurrence_parent_id?: string | null
           recurrence_type?: string | null
           room_id?: string | null
           send_sms?: boolean | null
@@ -157,6 +163,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "appointments_recurrence_parent_id_fkey"
+            columns: ["recurrence_parent_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "appointments_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
@@ -176,6 +189,7 @@ export type Database = {
         Row: {
           address: string | null
           birth_date: string | null
+          cpf: string | null
           created_at: string
           email: string | null
           id: string
@@ -188,6 +202,7 @@ export type Database = {
         Insert: {
           address?: string | null
           birth_date?: string | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -200,6 +215,7 @@ export type Database = {
         Update: {
           address?: string | null
           birth_date?: string | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
           id?: string
